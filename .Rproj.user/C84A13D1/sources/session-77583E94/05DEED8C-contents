@@ -731,7 +731,13 @@ Al1 <- lmer(data = dat,
             log(Al) ~ community+period+season+community:period+community:season+period:season+community:period:season
             + (1|community:site),
             REML = T)
+summary(Al1)
+vif(Al1)
+
+#try backwards stepwise method to get best model
 step(Al1, scope=list(lower=Al0), direction="backward")
+
+#copy it and summarize
 Al1b <- lmer(data = dat,
              log(Al) ~ community + period + season + (1 | community:site) + community:season + period:season,
              REML = T)
@@ -741,32 +747,37 @@ Al2 <- lmer(data = dat,
             log(As) ~ community+period+season+community:period+period:season+community:period:season
             + (1|community:site),
             REML = F)
+vif(Al2)
 
 Al3 <- lmer(data = dat,
             log(Al) ~ community+period+season+community:period+period:season
             + (1|community:site),
             REML = F)
+vif(Al3)
+
 Al4 <- lmer(data = dat,
             log(Al) ~ community+period+season+period:season
             + (1|community:site),
             REML = T)
+vif(Al4)
 anova(Al4)
 summary(Al4)
+
+#why was period:season taken out and not just period?
 Al5 <- lmer(data = dat,
             log(Al) ~ community+season
             + (1|community:site),
             REML = T)
 anova(Al5)
 summary(Al5)
-Al6 <- lmer(data = dat,
-            log(Al) ~ community+season
-            + (1|community:site),
-            REML = F)
 
-Al7 <- lmer(data = dat,
-            log(Al) ~ community+samplings
+Al5b <- lmer(data = dat,
+            log(Al) ~ community+season+period:season
             + (1|community:site),
-            REML = F)
+            REML = T)
+anova(Al5b)
+summary(Al5b)
+
 
 anova(Al1,Al5)
 anova(Al4, Al5)
