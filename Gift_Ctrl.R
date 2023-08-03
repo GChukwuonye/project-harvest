@@ -778,9 +778,11 @@ Al5b <- lmer(data = dat,
 anova(Al5b)
 summary(Al5b)
 
-
 anova(Al1,Al5)
 anova(Al4, Al5)
+anova(Al4, Al5b)
+anova(Al5, Al5b)
+
 anova(Al6, Al5)
 anova(Al4, Al6)
 anova(Al7, Al5)
