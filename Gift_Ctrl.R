@@ -21,7 +21,8 @@ library(multcomp)
 library(patchwork)
 
 #set working directory
-setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
+#setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
+setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 
 #load data
 ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
@@ -57,127 +58,128 @@ dat.long <- pivot_longer(data = dat,
                          names_to = "analyte",
                          values_to = "value")
 setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
+setwd("~/Documents/GitHub/project-harvest-GC/Figures")
 #summary stats community ----
 dat %>% count(community)
 
-gmean <- aggregate(dat$Pb,
-                   by = list(dat$community),
-                   FUN = geoMean) #this gives the gmean of pb conc by community
-colnames(gmean) <- c("community", "gmean") #this changes the names of the columns to gmean and community
-gmean$gmean <- formatC(signif(gmean$gmean,digits=4), digits=4,format="fg", flag="#") #this approximates to four significant figures
-
-gsd <- aggregate(dat$Pb,
-                 by = list(dat$community),
-                 FUN = geoSD) #geometric standard deviation
-colnames(gsd) <- c("community", "gsd")
-gsd$gsd <- formatC(signif(gsd$gsd,digits=2), digits=2,format="fg", flag="#")
-
-median <- aggregate(dat$Pb,
-                    by = list(dat$community),
-                    FUN = median)
-colnames(median) <- c("community", "median")
-
-min <- aggregate(dat$Pb,
-                 by = list(dat$community),
-                 FUN = min)
-colnames(min) <- c("community", "min")
-
-max <- aggregate(dat$Pb,
-                 by = list(dat$community),
-                 FUN = max)
-colnames(max) <- c("community", "max")
-
-a <- full_join(gmean, gsd, by = c("community"))
-b <- full_join(a, median, by = c("community"))
-c <- full_join(b, min, by = c("community"))
-d <- full_join(c, max, by = c("community"))
-#joining by community
-
-write.csv(d, "PbStats.csv")
-#produces csv file in working directory
-
-count <- dat %>% count(samplings, community)
-
-gmean <- aggregate(dat$Pb,
-                   by = list(dat$community, dat$samplings),
-                   FUN = geoMean)
-colnames(gmean) <- c("community", "samplings", "gmean")
-gmean$gmean <- formatC(signif(gmean$gmean,digits=4), digits=4,format="fg", flag="#")
-
-gsd <- aggregate(dat$Pb,
-                 by = list(dat$community, dat$samplings),
-                 FUN = geoSD)
-colnames(gsd) <- c("community", "samplings", "gsd")
-gsd$gsd <- formatC(signif(gsd$gsd,digits=2), digits=2,format="fg", flag="#")
-
-median <- aggregate(dat$Pb,
-                    by = list(dat$community, dat$samplings),
-                    FUN = median)
-colnames(median) <- c("community", "samplings", "median")
-
-min <- aggregate(dat$Pb,
-                 by = list(dat$community, dat$samplings),
-                 FUN = min)
-colnames(min) <- c("community", "samplings", "min")
-
-max <- aggregate(dat$Pb,
-                 by = list(dat$community, dat$samplings),
-                 FUN = max)
-colnames(max) <- c("community", "samplings", "max")
-
-a <- full_join(gmean, gsd, by = c("community", "samplings"))
-b <- full_join(a, median, by = c("community", "samplings"))
-c <- full_join(b, min, by = c("community", "samplings"))
-d <- full_join(c, max, by = c("community", "samplings"))
-e <- full_join(d, count, by = c("community", "samplings"))
-write.csv(e, "PbStatsSamp.csv")
-
-
-
-#graphing
-dat$community_short <- as.character(dat$community)
-dat[dat$community_short=="Dewey-Humboldt",]$community_short <- "DH"
-dat[dat$community_short=="Globe/Miami",]$community_short <- "GM"
-dat[dat$community_short=="Hayden/Winkelman",]$community_short <- "HW"
-dat[dat$community_short=="Tucson",]$community_short <- "TU"
-dat[dat$community_short=="AZ-Background",]$community_short <- "AZ"
-
-
-dat$community_short <- factor(dat$community_short, levels = c("DH", "GM", "HW", "TU", "AZ"))
-summary(dat$community_short)
-
-ggplot(data = dat,
-       mapping = aes(x=community_short,
-                     y=Pb))+
-  geom_boxplot() +
-  stat_boxplot(geom = 'errorbar') +
-  facet_wrap(.~samplings)+
-  labs(y = expression(paste("Pb Concentration (µg ",L^-1, ")", "\n")),
-       x = paste("\nCommunity"))+
-  theme_bw() +
-  theme(text = element_text(size=7, family = "Arial"),
-        panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.line.x = element_blank())
-dev.print(jpeg, "Fig3.jpeg", res=500, height=140, width=140, units="mm")
-
-ggplot(data = dat,
-       mapping = aes(x=community_short,
-                     y=Pb))+
-  geom_boxplot() +
-  stat_boxplot(geom = 'errorbar') +
-  facet_wrap(.~samplings)+
-  labs(y = expression(paste("Pb Concentration (µg ",L^-1, ")", "\n")),
-       x = paste("\nCommunity"))+
-  coord_cartesian(ylim = c(0, 40)) +
-  theme_bw() +
-  theme(text = element_text(size=7, family = "Arial"),
-        panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.line.x = element_blank())
-dev.print(jpeg, "Fig4.jpeg", res=500, height=140, width=140, units="mm")
+# gmean <- aggregate(dat$Pb,
+#                    by = list(dat$community),
+#                    FUN = geoMean) #this gives the gmean of pb conc by community
+# colnames(gmean) <- c("community", "gmean") #this changes the names of the columns to gmean and community
+# gmean$gmean <- formatC(signif(gmean$gmean,digits=4), digits=4,format="fg", flag="#") #this approximates to four significant figures
+# 
+# gsd <- aggregate(dat$Pb,
+#                  by = list(dat$community),
+#                  FUN = geoSD) #geometric standard deviation
+# colnames(gsd) <- c("community", "gsd")
+# gsd$gsd <- formatC(signif(gsd$gsd,digits=2), digits=2,format="fg", flag="#")
+# 
+# median <- aggregate(dat$Pb,
+#                     by = list(dat$community),
+#                     FUN = median)
+# colnames(median) <- c("community", "median")
+# 
+# min <- aggregate(dat$Pb,
+#                  by = list(dat$community),
+#                  FUN = min)
+# colnames(min) <- c("community", "min")
+# 
+# max <- aggregate(dat$Pb,
+#                  by = list(dat$community),
+#                  FUN = max)
+# colnames(max) <- c("community", "max")
+# 
+# a <- full_join(gmean, gsd, by = c("community"))
+# b <- full_join(a, median, by = c("community"))
+# c <- full_join(b, min, by = c("community"))
+# d <- full_join(c, max, by = c("community"))
+# #joining by community
+# 
+# write.csv(d, "PbStats.csv")
+# #produces csv file in working directory
+# 
+# count <- dat %>% count(samplings, community)
+# 
+# gmean <- aggregate(dat$Pb,
+#                    by = list(dat$community, dat$samplings),
+#                    FUN = geoMean)
+# colnames(gmean) <- c("community", "samplings", "gmean")
+# gmean$gmean <- formatC(signif(gmean$gmean,digits=4), digits=4,format="fg", flag="#")
+# 
+# gsd <- aggregate(dat$Pb,
+#                  by = list(dat$community, dat$samplings),
+#                  FUN = geoSD)
+# colnames(gsd) <- c("community", "samplings", "gsd")
+# gsd$gsd <- formatC(signif(gsd$gsd,digits=2), digits=2,format="fg", flag="#")
+# 
+# median <- aggregate(dat$Pb,
+#                     by = list(dat$community, dat$samplings),
+#                     FUN = median)
+# colnames(median) <- c("community", "samplings", "median")
+# 
+# min <- aggregate(dat$Pb,
+#                  by = list(dat$community, dat$samplings),
+#                  FUN = min)
+# colnames(min) <- c("community", "samplings", "min")
+# 
+# max <- aggregate(dat$Pb,
+#                  by = list(dat$community, dat$samplings),
+#                  FUN = max)
+# colnames(max) <- c("community", "samplings", "max")
+# 
+# a <- full_join(gmean, gsd, by = c("community", "samplings"))
+# b <- full_join(a, median, by = c("community", "samplings"))
+# c <- full_join(b, min, by = c("community", "samplings"))
+# d <- full_join(c, max, by = c("community", "samplings"))
+# e <- full_join(d, count, by = c("community", "samplings"))
+# write.csv(e, "PbStatsSamp.csv")
+# 
+# 
+# 
+# #graphing
+# dat$community_short <- as.character(dat$community)
+# dat[dat$community_short=="Dewey-Humboldt",]$community_short <- "DH"
+# dat[dat$community_short=="Globe/Miami",]$community_short <- "GM"
+# dat[dat$community_short=="Hayden/Winkelman",]$community_short <- "HW"
+# dat[dat$community_short=="Tucson",]$community_short <- "TU"
+# dat[dat$community_short=="AZ-Background",]$community_short <- "AZ"
+# 
+# 
+# dat$community_short <- factor(dat$community_short, levels = c("DH", "GM", "HW", "TU", "AZ"))
+# summary(dat$community_short)
+# 
+# ggplot(data = dat,
+#        mapping = aes(x=community_short,
+#                      y=Pb))+
+#   geom_boxplot() +
+#   stat_boxplot(geom = 'errorbar') +
+#   facet_wrap(.~samplings)+
+#   labs(y = expression(paste("Pb Concentration (µg ",L^-1, ")", "\n")),
+#        x = paste("\nCommunity"))+
+#   theme_bw() +
+#   theme(text = element_text(size=7, family = "Arial"),
+#         panel.grid.minor = element_blank(),
+#         panel.grid.major.x = element_blank(),
+#         axis.line.y = element_blank(),
+#         axis.line.x = element_blank())
+# dev.print(jpeg, "Fig3.jpeg", res=500, height=140, width=140, units="mm")
+# 
+# ggplot(data = dat,
+#        mapping = aes(x=community_short,
+#                      y=Pb))+
+#   geom_boxplot() +
+#   stat_boxplot(geom = 'errorbar') +
+#   facet_wrap(.~samplings)+
+#   labs(y = expression(paste("Pb Concentration (µg ",L^-1, ")", "\n")),
+#        x = paste("\nCommunity"))+
+#   coord_cartesian(ylim = c(0, 40)) +
+#   theme_bw() +
+#   theme(text = element_text(size=7, family = "Arial"),
+#         panel.grid.minor = element_blank(),
+#         panel.grid.major.x = element_blank(),
+#         axis.line.y = element_blank(),
+#         axis.line.x = element_blank())
+# dev.print(jpeg, "Fig4.jpeg", res=500, height=140, width=140, units="mm")
 
 #Al--------
 #summary stats community ----
@@ -189,23 +191,23 @@ Algmean <- aggregate(dat$Al,
 colnames(Algmean) <- c("community", "gmean") #this changes the names of the columns to gmean and community
 Algmean$gmean <- formatC(signif(gmean$gmean,digits=4), digits=4,format="fg", flag="#") #this approximates to four significant figures
 
-Algsd <- aggregate(dat$Pb,
+Algsd <- aggregate(dat$Al,
                  by = list(dat$community),
                  FUN = geoSD) #geometric standard deviation
 colnames(Algsd) <- c("community", "gsd")
 Algsd$gsd <- formatC(signif(gsd$gsd,digits=2), digits=2,format="fg", flag="#")
 
-Almedian <- aggregate(dat$Pb,
+Almedian <- aggregate(dat$Al,
                     by = list(dat$community),
                     FUN = median)
 colnames(Almedian) <- c("community", "median")
 
-Almin <- aggregate(dat$Pb,
+Almin <- aggregate(dat$Al,
                  by = list(dat$community),
                  FUN = min)
 colnames(Almin) <- c("community", "min")
 
-Almax <- aggregate(dat$Pb,
+Almax <- aggregate(dat$Al,
                  by = list(dat$community),
                  FUN = max)
 colnames(Almax) <- c("community", "max")
@@ -275,7 +277,7 @@ ggplot(data = dat,
                      y=Al))+
   geom_boxplot() +
   stat_boxplot(geom = 'errorbar') +
-  facet_wrap(.~samplings)+
+  facet_wrap(.~samplings, scales = "free_y")+
   labs(y = expression(paste("Al Concentration (µg ",L^-1, ")", "\n")),
        x = paste("\nCommunity"))+
   theme_bw() +
