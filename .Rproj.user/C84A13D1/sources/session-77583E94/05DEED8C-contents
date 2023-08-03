@@ -58,6 +58,7 @@ dat.long <- pivot_longer(data = dat,
                          names_to = "analyte",
                          values_to = "value")
 setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
+setwd("~/Documents/GitHub/project-harvest-GC/Figures")
 #summary stats community ----
 dat %>% count(community)
 
