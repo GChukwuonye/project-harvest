@@ -133,7 +133,7 @@ write.csv(ic.dm.p.wide, "spearmancorpAZB.csv")
 #only for numeric variables
 #unscaled
 library(vegan)
-iwdm.pca <- rda(as.data.frame(iw.dm[,9:27]), scale = T)
+iwdm.pca <- rda(as.data.frame(iw.dm[,c(9:27,32,34)]), scale = T)
 summary(iwdm.pca)
 screeplot(iwdm.pca)
 
