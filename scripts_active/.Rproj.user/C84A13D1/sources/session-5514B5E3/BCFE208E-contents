@@ -718,7 +718,7 @@ dat.detects.long <- pivot_longer(data = dat.detects,
 
 
 
-#As Ctrl Modeling ----
+#Al Ctrl Modeling ----
 #basic viz
 boxplot(dat$Al ~ dat$community, log = "y")
 boxplot(dat$Al ~ dat$samplings, log = "y")
