@@ -1,3 +1,8 @@
+#Authors: Kunal Palawat, Gift Chukwuonye
+#Description: Functions for summary tables and figures of Project Harvest inorganic analyte data
+
+# Functions ----
+
 summaryTable.samp.yearFX <- function(tableDF, mlodlongDF, name.string, sampletype.string){
   
   #load libraries
@@ -347,7 +352,7 @@ library(ggplot2)
 #set working directory
 setwd("")
 
-#load data
+#load data ----
 #IW DM
 iw.dm <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected mean the corrected tab in the excel sheet
 # iw.dm.detects <- read_xlsx("data/data_clean/IW_DM_Y123.xlsx", sheet = "Detection", col_names = TRUE)
