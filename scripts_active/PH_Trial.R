@@ -159,7 +159,7 @@ setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles")
 
 #Multiple Metals Test ----
 dat.long <- pivot_longer(data = iw.dm,
-                         cols = c("Al", "Zn", "Cd"),
+                         cols = c("Al", "Zn", "Cd", "As", "Pb"),
                          values_to = "concentration",
                          names_to = "analyte")
 
@@ -168,17 +168,16 @@ ggplot(data = dat.long, mapping = aes(y = log(concentration), x = community)) +
   geom_boxplot()+
   facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
 
-ggplot(data = dat.long, mapping = aes(y = log(concentration), x = period, fill = season)) + 
+ggplot(data = dat.long, mapping = aes(y = log(concentration), x = period)) + 
   geom_boxplot()+
   facet_wrap(analyte~community, scales = "free") #ln transformed just to be able to compare better
 
 ggplot(data = dat.long, mapping = aes(y = log(concentration), x = season)) + 
   geom_boxplot()+
-  facet_wrap(analyte~period, scales = "free") #ln transformed just to be able to compare better
+  facet_wrap(analyte~community, scales = "free") #ln transformed just to be able to compare better
 
 #for Al, Cd, and Zn it does seem like there are different community trends. There are not very different period or season trends. Scales are different though. There are pretty similar season and period trends by community for analytes, meaning that H/W concentrations of Cd are highest in first and last periods, etc. This could mean that community:analyte is important but period:analyte and season:analyte and maybe season:period:analyte are not.
 
-boxplot(dat.long$concentration ~ dat.long$analyte + dat.long$community)
 
 mm0 <- lmer(data = dat.long,
             concentration ~ (1|community:site),
@@ -190,18 +189,18 @@ mm1 <- lmer(data = dat.long,
             + community + community:period + community:season + community:analyte
             + period + period:season + period:analyte 
             + season + season:analyte
-            + period:analyte:season
+            + period:analyte:season + period:analyte:community + season:analyte:community
             + (1|community:site),
             REML = T) #ML for comparison, REML for final
 summary(mm1)
 plot(mm1) #not heteroscedastic when untransformed
 model.effects <- allEffects(mm1)
-plot(model.effects)
+plot(model.effects) #not good comparisons because of scale differences
 vif(mm1)
 
 mm2 <- lmer(data = dat.long,
             concentration ~
-              + community + community:analyte
+            + community + community:analyte
             + period + period:season + period:analyte 
             + season + season:analyte
             + period:analyte:season
@@ -210,18 +209,23 @@ mm2 <- lmer(data = dat.long,
 summary(mm2)
 plot(mm2) #not heteroscedastic when untransformed
 model.effects <- allEffects(mm2)
-plot(model.effects)
+plot(model.effects) #not good comparisons because of scale differences
 vif(mm2)
 
 #try backwards stepwise method to get best model
 step(mm1, scope=list(lower=mm0), direction="backward")
 
 #copy it and summarize
-Al1b <- lmer(data = dat,
-             log(Al) ~ community + period + season + (1 | community:site) + community:season + period:season,
+mm1.1 <- lmer(data = dat.long,
+             concentration ~ community + season
+             + analyte:community + analyte:season
+             + (1 | community:site),
              REML = T)
-summary(Al1b)
-
+summary(mm1.1)
+plot(mm1.1) #not heteroscedastic when untransformed
+model.effects <- allEffects(mm1.1)
+plot(model.effects) #not good comparisons because of scale differences
+vif(mm1.1)
 
 #Dewey-Humboldt=======
 #load data
