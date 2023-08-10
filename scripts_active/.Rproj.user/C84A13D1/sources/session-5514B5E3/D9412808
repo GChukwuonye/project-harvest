@@ -1,0 +1,26 @@
+{
+    "id": "D9412808",
+    "path": "~/Documents/GitHub/project-harvest-GC/scripts_active/PH_Trial.R",
+    "project_path": "PH_Trial.R",
+    "type": "r_source",
+    "hash": "3109009501",
+    "contents": "",
+    "dirty": false,
+    "created": 1691646214595.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "178,418",
+        "scrollLine": "167"
+    },
+    "folds": "23|11|153|0|\n",
+    "lastKnownWriteTime": 1691650869,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1691650869203,
+    "read_only": false,
+    "read_only_alternatives": []
+}
