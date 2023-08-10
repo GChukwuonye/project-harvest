@@ -1,3 +1,8 @@
+#Authors: Kunal Palawat, Gift Chukwuonye
+#Description: Functions for summary tables and figures of Project Harvest inorganic analyte data
+
+# Functions ----
+
 summaryTable.samp.yearFX <- function(tableDF, mlodlongDF, name.string, sampletype.string){
   
   #load libraries
@@ -347,7 +352,7 @@ library(ggplot2)
 #set working directory
 setwd("")
 
-#load data
+#load data ----
 #IW DM
 iw.dm <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected mean the corrected tab in the excel sheet
 # iw.dm.detects <- read_xlsx("data/data_clean/IW_DM_Y123.xlsx", sheet = "Detection", col_names = TRUE)
@@ -454,6 +459,7 @@ iw.dm <- full_join(iw.dm, iw.pHec, by = c("sample.name", "type")) #joins the phe
 iw.dm <- iw.dm[!is.na(iw.dm$community),]
 # na.omit(iw.dm$community)
 
+#ph EC summary ----
 iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
 na.omit(iw.dm$pH)
 iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
@@ -465,27 +471,29 @@ aggregate(iw.pHec$EC,
 
 
 median(iw.pHec$EC)
+
+# longer ----
 iw.dm.long <- pivot_longer(iw.dm,
                            cols = Be:Pb,
                            values_to = "value",
                            names_to = "analyte")
 
-iw.dm.detects.long <- pivot_longer(iw.dm.detects,
-                                   cols = Be:Pb,
-                                   values_to = "detection",
-                                   names_to = "analyte")
-
-
-iw.mlod.dm.long <- pivot_longer(iw.mlod.dm,
-                                cols=Be:Pb,
-                                values_to = "value",
-                                names_to = "analyte")
+# iw.dm.detects.long <- pivot_longer(iw.dm.detects,
+#                                    cols = Be:Pb,
+#                                    values_to = "detection",
+#                                    names_to = "analyte")
+# 
+# 
+# iw.mlod.dm.long <- pivot_longer(iw.mlod.dm,
+#                                 cols=Be:Pb,
+#                                 values_to = "value",
+#                                 names_to = "analyte")
 
 
 #reset working directory for figures
 setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/Figures")
 
-#All Elements ----
+#Scratch? All Elements ----
 Contamlist <- c("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
 Contamlist <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
 Contamlist <- list("As", "Pb")
@@ -499,7 +507,7 @@ detectTable.allelementsFX(tablelongDF = iw.dm.detects.long,
                           analytes.abbrev.string = "all",
                           digit.num = 2)
 
-#All Sample Types ----
+#Scratch? All Sample Types ----
 #Function Name: detectTableFX
 
 #Description: This function creates a table with detection status of samples by year and community with an all year total by community as well.
@@ -769,7 +777,7 @@ summaryTable.allelementsFX <- function(tablelongDF, sampletype.string, analytes.
 }
 
 detectBarplot.sampFX(tablelongDF = iw.dm.detects.long, mlodlongDF = iw.mlod.dm.long, name.string = "As", sampletype.string = "Harvested Rain Water")
-#All elements----
+#Scratch? All elements----
 Contamlist <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
 lapply(X=Contamlist,
        FUN=detectBarplot.sampFX,
