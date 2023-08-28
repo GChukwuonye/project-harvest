@@ -472,7 +472,7 @@ aggregate(iw.pHec$EC,
 
 median(iw.pHec$EC)
 
-# longer ----
+#longer ----
 iw.dm.long <- pivot_longer(iw.dm,
                            cols = Be:Pb,
                            values_to = "value",
@@ -488,6 +488,16 @@ iw.dm.long <- pivot_longer(iw.dm,
 #                                 cols=Be:Pb,
 #                                 values_to = "value",
 #                                 names_to = "analyte")
+
+
+#add proximity to point source ----
+com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+comdat <- full_join(iw.dm, com, by = c("site"))
+comdat <- comdat[!is.na(comdat$mlod.name),]
+
+#outliers ----
+#remove samples 19 and 39 from analysis because they were outliers based on MFA
+#G428IWA23-20190730 and H209IWA23-20190709
 
 
 #reset working directory for figures ----

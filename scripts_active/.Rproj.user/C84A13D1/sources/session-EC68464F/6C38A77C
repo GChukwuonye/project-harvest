@@ -1,6 +1,6 @@
 {
     "id": "6C38A77C",
-    "path": "~/Documents/GitHub/project-harvest-GC/scripts_active/Gift_MFA.R",
+    "path": "~/Documents/GitHub/project-harvest/scripts_active/Gift_MFA.R",
     "project_path": "Gift_MFA.R",
     "type": "r_source",
     "hash": "0",
@@ -11,14 +11,16 @@
     "relative_order": 2,
     "properties": {
         "source_window_id": "",
-        "Source": "Source"
+        "Source": "Source",
+        "cursorPosition": "0,0",
+        "scrollLine": "29"
     },
     "folds": "",
-    "lastKnownWriteTime": 1691099853,
+    "lastKnownWriteTime": 1693236990,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1691099853,
+    "last_content_update": 1693236990,
     "read_only": false,
     "read_only_alternatives": []
 }

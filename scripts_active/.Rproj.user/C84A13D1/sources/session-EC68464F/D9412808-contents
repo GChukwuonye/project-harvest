@@ -2,6 +2,8 @@
 #Description: Code to test analyzing multiple metal(loid)s at once with linear mixed models - Project Harvest rooftop harvested rainwater data
 
 #Notes
+# add pH into model with relevant interactions
+# Al, As, Ba, Be, Cd, Cr, Cu, Mn, Ni, Pb, Zn
 
 #load libraries ----
 library(readxl)
@@ -159,7 +161,7 @@ setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles")
 
 #Multiple Metals Test ----
 dat.long <- pivot_longer(data = iw.dm,
-                         cols = c("Al", "Zn", "Cd", "As", "Pb"),
+                         cols = c("Al", "As", "Ba", "Be", "Cd", "Cr", "Cu", "Mn", "Ni", "Pb", "Zn"),
                          values_to = "concentration",
                          names_to = "analyte")
 
@@ -170,11 +172,17 @@ ggplot(data = dat.long, mapping = aes(y = log(concentration), x = community)) +
 
 ggplot(data = dat.long, mapping = aes(y = log(concentration), x = period)) + 
   geom_boxplot()+
-  facet_wrap(analyte~community, scales = "free") #ln transformed just to be able to compare better
+  facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
 
-ggplot(data = dat.long, mapping = aes(y = log(concentration), x = season)) + 
+ggplot(data = dat.long, mapping = aes(y = log(concentration), x = community, fill = season)) + 
   geom_boxplot()+
-  facet_wrap(analyte~community, scales = "free") #ln transformed just to be able to compare better
+  facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
+
+ggplot(data = dat.long, mapping = aes(y = log(concentration), x = pH, color = community)) + 
+  geom_point(size = 1)+
+  facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
+
+#community:analyte, season:community, pH:analyte:community
 
 #for Al, Cd, and Zn it does seem like there are different community trends. There are not very different period or season trends. Scales are different though. There are pretty similar season and period trends by community for analytes, meaning that H/W concentrations of Cd are highest in first and last periods, etc. This could mean that community:analyte is important but period:analyte and season:analyte and maybe season:period:analyte are not.
 
