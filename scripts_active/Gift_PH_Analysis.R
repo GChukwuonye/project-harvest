@@ -350,7 +350,7 @@ library(readxl) #read excel files
 library(tidyverse)
 library(ggplot2)
 #set working directory
-setwd("")
+#setwd("")
 
 #load data ----
 #IW DM
@@ -490,7 +490,7 @@ iw.dm.long <- pivot_longer(iw.dm,
 #                                 names_to = "analyte")
 
 
-#reset working directory for figures
+#reset working directory for figures ----
 setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/Figures")
 
 #Scratch? All Elements ----
