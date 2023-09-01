@@ -3,7 +3,7 @@
     "path": "~/Documents/GitHub/project-harvest/scripts_active/Gift_Ctrl.R",
     "project_path": "Gift_Ctrl.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "908889253",
     "contents": "",
     "dirty": false,
     "created": 1691645871713.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "23,79",
+        "cursorPosition": "6,0",
         "scrollLine": "0"
     },
-    "folds": "",
-    "lastKnownWriteTime": 1691645697,
+    "folds": "7|15|22|0|\n23|22|26|0|\n27|11|62|0|\n63|25|81|0|\n181|9|337|0|\n338|3|338|11|\n339|25|463|0|\n464|3|464|11|\n465|25|587|0|\n588|3|711|0|\n712|3|712|11|\n713|25|874|0|\n875|18|1113|0|\n1114|18|1315|0|\n1316|13|1469|0|\n1470|13|1696|0|\n1697|13|1924|0|\n",
+    "lastKnownWriteTime": 1693335024,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1691645697,
+    "last_content_update": 1693580202807,
     "read_only": false,
     "read_only_alternatives": []
 }
