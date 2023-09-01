@@ -20,7 +20,6 @@ library(multcomp)
 library(car)
 
 
-
 #dewey ----
 dewey <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "dewey", col_names = TRUE)
 ddat <- iw.dm.long[iw.dm.long$community=="Dewey-Humboldt",]

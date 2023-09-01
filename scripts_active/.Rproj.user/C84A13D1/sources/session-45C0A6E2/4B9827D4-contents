@@ -459,10 +459,6 @@ iw.dm <- full_join(iw.dm, iw.pHec, by = c("sample.name", "type")) #joins the phe
 iw.dm <- iw.dm[!is.na(iw.dm$community),]
 # na.omit(iw.dm$community)
 
-#add mining community vs urban community
-iw.dm$landuse <- "Mining Community"
-iw.dm[iw.dm$community=="Tucson",]$landuse <- "Urban Community"
-
 #ph EC summary ----
 iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
 na.omit(iw.dm$pH)
@@ -476,7 +472,7 @@ aggregate(iw.pHec$EC,
 
 median(iw.pHec$EC)
 
-#longer ----
+# longer ----
 iw.dm.long <- pivot_longer(iw.dm,
                            cols = Be:Pb,
                            values_to = "value",
@@ -492,25 +488,6 @@ iw.dm.long <- pivot_longer(iw.dm,
 #                                 cols=Be:Pb,
 #                                 values_to = "value",
 #                                 names_to = "analyte")
-
-
-
-haydendat <- haydendat[haydendat$site!="H222",]
-
-#add pollution load index ----
-pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
-iw.dm$pli <- pli$pollution_index_selected_analytes
-
-#add proximity to point source ----
-com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
-comdat <- full_join(iw.dm, com, by = c("site"))
-comdat <- comdat[!is.na(comdat$mlod.name),]
-
-
-#outliers ----
-#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
-#G428IWA23-20190730 and H209IWA23-20190709
-comdat <- comdat[comdat$site!="H222",]
 
 
 #reset working directory for figures ----
