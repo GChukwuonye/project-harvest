@@ -2,10 +2,9 @@
 #Date Created: April 13th, 2021
 #Description: Code to analyze arsenic and lead overall with control data
 #Notes
-  #mixed model cf to assess contributions
-  #look at ej screen to assess point source for tucson
 
-#load libraries----
+
+#load libraries ----
 library(car)
 library(readxl)
 library(tidyverse)
@@ -21,7 +20,7 @@ library(emmeans)
 library(multcomp)
 library(patchwork)
 
-#set working directory----
+#set working directory ----
 #setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
 setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 
@@ -60,162 +59,8 @@ dat.long <- pivot_longer(data = dat,
                          values_to = "value")
 setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
 setwd("~/Documents/GitHub/project-harvest-GC/Figures")
-
 #summary stats community ----
-
-pli.summary <- comdat %>%
-  group_by(season, community) %>%
-  summarise(mean = mean(na.omit(pli)))
-view(pli.summary)            
-
-plot(log(comdat$pli) ~ comdat$proximity.km)
-
-#graph to viz associations by source
-ggplot(data = comdat, mapping = aes(y = pli, x = proximity.km, color = community)) + 
-  #geom_point(size = 1)+
-  facet_grid(season~., scales = "free")+
-  geom_smooth()
-
-#boxplot viz
-ggplot(data = comdat, mapping = aes(y = log(pli), x = community, fill = season)) + 
-  geom_boxplot()
-
-#pli modeling ----
-pli0 <- lmer(data = comdat,
-            pli ~ (1|community:site),
-            REML = F) #ML for comparison, REML for final
-summary(pli0)
-
-pli1 <- lmer(data = comdat,
-            pli ~
-            + community + season + proximity.km
-            + community:season + proximity.km:community
-            + (1|community:site),
-            REML = T) #ML for comparison, REML for final
-summary(pli1)
-plot(pli1) #not heteroscedastic when untransformed
-model.effects <- allEffects(pli1)
-plot(model.effects)
-vif(pli1)
-
-#try backwards stepwise method to get best model
-step(pli1, scope=list(lower=pli0), direction="both")
-
-#copy it and summarize
-pli1.1 <- lmer(data = comdat,
-              concentration ~ community + season
-              + analyte:community + analyte:season
-              + (1 | community:site),
-              REML = T)
-supliary(pli1.1)
-plot(pli1.1) #not heteroscedastic when untransformed
-model.effects <- allEffects(pli1.1)
-plot(model.effects)
-vif(pli1.1)
-
-#remove tucson from analysis
-comdat.nt <- comdat[comdat$community!="Tucson",]
-pli0.nt <- lmer(data = comdat.nt,
-             pli ~ (1|community:site),
-             REML = F) #ML for comparison, REML for final
-summary(pli0.nt)
-
-pli1.nt <- lmer(data = comdat.nt,
-             pli ~
-               + community + season + proximity.km
-             + community:season + proximity.km:community
-             + (1|community:site),
-             REML = T) #ML for comparison, REML for final
-summary(pli1.nt)
-plot(pli1.nt) #not heteroscedastic when untransformed
-model.effects <- allEffects(pli1.nt)
-plot(model.effects)
-vif(pli1.nt)
-
-#try backwards stepwise method to get best model
-step(pli1.nt, scope=list(lower=pli0.nt), direction="both")
-
-#copy it and summarize, but keep community a part of the model?
-#comm not significant, the legacy of the mine has a signif impact - DH is not sig fig from GM and HW which have active sources
-pli1.1.nt <- lmer(data = comdat.nt,
-               pli ~ season + proximity.km + community
-               + (1 | community:site),
-               REML = T)
-summary(pli1.1.nt)
-plot(pli1.1.nt) #not heteroscedastic when untransformed
-model.effects <- allEffects(pli1.1.nt)
-plot(model.effects)
-vif(pli1.1.nt)
-
-#double check community
-pli1.2.nt <- lmer(data = comdat.nt,
-               pli ~ season + proximity.km
-               + (1 | community:site),
-               REML = T)
-
-anova(pli1.1.nt, pli1.2.nt)
-
-#compare rural and urban
-pli0.lu <- lmer(data = comdat,
-             pli ~ (1|community:site),
-             REML = F) #ML for comparison, REML for final
-summary(pli0.lu)
-
-pli1.lu <- lmer(data = comdat,
-             pli ~
-               + landuse + season + proximity.km
-             + landuse:season + proximity.km:landuse
-             + (1|community:site),
-             REML = T) #ML for comparison, REML for final
-summary(pli1.lu)
-plot(pli1.lu) #not heteroscedastic when untransformed
-model.effects <- allEffects(pli1.lu)
-plot(model.effects)
-vif(pli1.lu)
-
-#try backwards stepwise method to get best model
-step(pli1.lu, scope=list(lower=pli0.lu), direction="both")
-
-
-
-
-#scratch ----
 dat %>% count(community)
-comdat.long <- pivot_longer(data = comdat,
-                        cols = pH:`Hg_(ng/kg)`,
-                        names_to = "analyte",
-                        values_to = "value")
-is.long$count <- ifelse(is.long$value == "NA", 0, 1)
-is.long$value <- is.long$value + 0.0000000000000000000000001
-is.long.sum <- is.long %>%
-  group_by(analyte) %>%
-  summarise(across(everything(),
-                   .f = list(n = n(), mean = mean(value), sd = sd(value)),
-                   na.rm = TRUE)) %>%
-  mutate(se = sd/sqrt(n)) %>%
-  mutate(ic=se*qt((1-.05)/2+.5, n-1))
-
-is.long.sum <- is.long %>%
-  group_by(analyte) %>%
-  summarise(n = sum(na.omit(count)),
-            min = min(na.omit(value)),
-            max = max(na.omit(value)),
-            mean = mean(na.omit(value)),
-            sd = sd(na.omit(value)),
-            geomean = geoMean(as.numeric(na.omit(value))),
-            gsd = geoSD(as.numeric(na.omit(value)))) %>%
-  mutate(se = sd/sqrt(n)) %>%
-  mutate(ic=se*qt((1-.05)/2+.5, n-1))
-
-is.long.sum$geomean <- as.numeric(is.long.sum$geomean)
-
-is.long.sum.print <- cbind(analyte=is.long.sum$analyte,
-                           GeometricMean=formatC(signif(is.long.sum$geomean,digits=3), digits=3,format="fg", flag="#"),
-                           Min=formatC(signif(is.long.sum$min,digits=3), digits=3,format="fg", flag="#"),
-                           Max=formatC(signif(is.long.sum$max,digits=3), digits=3,format="fg", flag="#")
-)
-
-
 
 # gmean <- aggregate(dat$Pb,
 #                    by = list(dat$community),

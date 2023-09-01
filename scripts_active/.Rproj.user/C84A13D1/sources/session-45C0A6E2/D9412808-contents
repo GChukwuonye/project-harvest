@@ -161,22 +161,48 @@ setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles")
 
 #Multiple Metals Test ----
 dat.long <- pivot_longer(data = iw.dm,
-                         cols = c("Al", "As", "Ba", "Be", "Cd", "Cr", "Cu", "Mn", "Ni", "Pb", "Zn"),
+                         cols = c("Al", "As", "Ba", "Be", "Cd", "Cr", "Cu", "Fe", "Mn", "Ni", "Se", "Pb", "Zn"),
+                         values_to = "concentration",
+                         names_to = "analyte")
+
+dat.long.ph <- pivot_longer(data = iw.dm,
+                         cols = c("Al", "As", "Ba", "Be", "Cd", "Cr", "Cu", "Fe", "Mn", "Ni", "Se", "Pb", "Zn", "pH", "EC"),
                          values_to = "concentration",
                          names_to = "analyte")
 
 #quick data viz
 ggplot(data = dat.long, mapping = aes(y = log(concentration), x = community)) + 
   geom_boxplot()+
-  facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
+  scale_x_discrete(label=abbreviate)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90))+
+  facet_grid(.~analyte, scales = "free") #ln transformed just to be able to compare better
+dev.print(jpeg, "community.jpeg", res=300, height=6, width=10, units="in")
 
 ggplot(data = dat.long, mapping = aes(y = log(concentration), x = period)) + 
   geom_boxplot()+
-  facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
+  scale_x_discrete(label=abbreviate)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90))+
+  facet_grid(.~analyte, scales = "free") #ln transformed just to be able to compare better
+dev.print(jpeg, "period.jpeg", res=300, height=6, width=10, units="in")
+
+ggplot(data = dat.long, mapping = aes(y = log(concentration), x = season)) + 
+  geom_boxplot()+
+  scale_x_discrete(label=abbreviate)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90))+
+  facet_grid(.~analyte, scales = "free") #ln transformed just to be able to compare better
+dev.print(jpeg, "season.jpeg", res=300, height=6, width=10, units="in")
 
 ggplot(data = dat.long, mapping = aes(y = log(concentration), x = community, fill = season)) + 
   geom_boxplot()+
-  facet_wrap(analyte~., scales = "free") #ln transformed just to be able to compare better
+  scale_x_discrete(label=abbreviate)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90))+
+  facet_grid(.~analyte, scales = "free") #ln transformed just to be able to compare better
+dev.print(jpeg, "commseason.jpeg", res=300, height=6, width=10, units="in")
+
 
 ggplot(data = dat.long, mapping = aes(y = log(concentration), x = pH, color = community)) + 
   geom_point(size = 1)+
