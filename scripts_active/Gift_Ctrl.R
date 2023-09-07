@@ -81,66 +81,74 @@ ggplot(data = comdat, mapping = aes(y = log(pli), x = community, fill = season))
   geom_boxplot()
 
 #pli modeling ----
-pli0 <- lmer(data = comdat,
+pli0 <- lmer(data = iw.dm,
             pli ~ (1|community:site),
             REML = F) #ML for comparison, REML for final
 summary(pli0)
 
-pli1 <- lmer(data = comdat,
+#including relevant variables - period not included based on MFA and previous modeling. proximity.km:season interaction not included because proximity to pollutant does not change by season
+pli1 <- lmer(data = iw.dm,
             pli ~
             + community + season + proximity.km
             + community:season + proximity.km:community
             + (1|community:site),
-            REML = T) #ML for comparison, REML for final
+            REML = F) #ML for comparison, REML for final
 summary(pli1)
 plot(pli1) #not heteroscedastic when untransformed
 model.effects <- allEffects(pli1)
 plot(model.effects)
 vif(pli1)
+anova(pli1)
 
 #try backwards stepwise method to get best model
 step(pli1, scope=list(lower=pli0), direction="both")
+#all variables are signif based on stepwise
 
-#copy it and summarize
-pli1.1 <- lmer(data = comdat,
-              concentration ~ community + season
-              + analyte:community + analyte:season
-              + (1 | community:site),
-              REML = T)
-supliary(pli1.1)
-plot(pli1.1) #not heteroscedastic when untransformed
-model.effects <- allEffects(pli1.1)
-plot(model.effects)
-vif(pli1.1)
+pli2 <- lmer(data = iw.dm,
+             pli ~
+               + community + season + proximity.km
+             + proximity.km:community
+             + (1|community:site),
+             REML = F) #ML for comparison, REML for final
+
+anova(pli1, pli2) #pli1 is better
+
+#keep all variables in the model???
 
 #remove tucson from analysis
-comdat.nt <- comdat[comdat$community!="Tucson",]
-pli0.nt <- lmer(data = comdat.nt,
+iw.dm.nt <- iw.dm[iw.dm$community!="Tucson",]
+pli0.nt <- lmer(data = iw.dm.nt,
              pli ~ (1|community:site),
              REML = F) #ML for comparison, REML for final
 summary(pli0.nt)
 
-pli1.nt <- lmer(data = comdat.nt,
+pli1.nt <- lmer(data = iw.dm.nt,
              pli ~
                + community + season + proximity.km
              + community:season + proximity.km:community
              + (1|community:site),
-             REML = T) #ML for comparison, REML for final
+             REML = F) #ML for comparison, REML for final
 summary(pli1.nt)
 plot(pli1.nt) #not heteroscedastic when untransformed
 model.effects <- allEffects(pli1.nt)
 plot(model.effects)
 vif(pli1.nt)
+anova(pli1.nt)
+#community:season not signif meaning monsoon trend is pmuch the same across communities
+#community:proximity not signif, all mining communities are relatively close to point source (esp compared to tucson)
+#proximity is not signif...
 
 #try backwards stepwise method to get best model
 step(pli1.nt, scope=list(lower=pli0.nt), direction="both")
+#season and proximity are signif, meaning no significant pli differences between the three communities
+#comm not significant, the legacy of the mine has a signif impact - DH is not sig fig from GM and HW which have active sources
 
 #copy it and summarize, but keep community a part of the model?
-#comm not significant, the legacy of the mine has a signif impact - DH is not sig fig from GM and HW which have active sources
-pli1.1.nt <- lmer(data = comdat.nt,
-               pli ~ season + proximity.km + community
+
+pli1.1.nt <- lmer(data = iw.dm.nt,
+               pli ~ season + proximity.km
                + (1 | community:site),
-               REML = T)
+               REML = F)
 summary(pli1.1.nt)
 plot(pli1.1.nt) #not heteroscedastic when untransformed
 model.effects <- allEffects(pli1.1.nt)
@@ -148,35 +156,80 @@ plot(model.effects)
 vif(pli1.1.nt)
 
 #double check community
-pli1.2.nt <- lmer(data = comdat.nt,
-               pli ~ season + proximity.km
+pli1.2.nt <- lmer(data = iw.dm.nt,
+               pli ~ season + proximity.km + community
                + (1 | community:site),
-               REML = T)
+               REML = F)
 
 anova(pli1.1.nt, pli1.2.nt)
 
-#compare rural and urban
-pli0.lu <- lmer(data = comdat,
+#double check community:season
+pli1.3.nt <- lmer(data = iw.dm.nt,
+                  pli ~ season + proximity.km + community:season
+                  + (1 | community:site),
+                  REML = F)
+
+anova(pli1.1.nt, pli1.3.nt)
+
+#double community:proximity
+pli1.4.nt <- lmer(data = iw.dm.nt,
+                  pli ~ season + proximity.km + community:proximity.km
+                  + (1 | community:site),
+                  REML = F)
+
+anova(pli1.1.nt, pli1.4.nt)
+
+#double check community:season + community
+pli1.5.nt <- lmer(data = iw.dm.nt,
+                  pli ~ season + proximity.km + community
+                  + community:season
+                  + (1 | community:site),
+                  REML = F)
+
+anova(pli1.1.nt, pli1.5.nt)
+
+#community is not signif when looking at mining communities, even if it looks like it should be in the effect plot summaries
+
+#compare land use - mining and urban
+  #because mining communities (DH, GM, HW) were not signif different frm one another based on above pli models
+pli0.lu <- lmer(data = iw.dm,
              pli ~ (1|community:site),
              REML = F) #ML for comparison, REML for final
 summary(pli0.lu)
 
-pli1.lu <- lmer(data = comdat,
+#instead of community, we include landuse in the maximal model
+pli1.lu <- lmer(data = iw.dm,
              pli ~
                + landuse + season + proximity.km
              + landuse:season + proximity.km:landuse
              + (1|community:site),
-             REML = T) #ML for comparison, REML for final
+             REML = F) #ML for comparison, REML for final
 summary(pli1.lu)
 plot(pli1.lu) #not heteroscedastic when untransformed
 model.effects <- allEffects(pli1.lu)
 plot(model.effects)
 vif(pli1.lu)
+anova(pli1.lu)
+#all significant, similar to inital pli models with DH, GM, HW, TU
 
 #try backwards stepwise method to get best model
 step(pli1.lu, scope=list(lower=pli0.lu), direction="both")
+#all significant, similar to inital pli models with DH, GM, HW, TU
 
+#remove landuse:season and compre
+pli2.lu <- lmer(data = iw.dm,
+                pli ~
+                  + landuse + season + proximity.km
+                + proximity.km:landuse
+                + (1|community:site),
+                REML = F) #ML for comparison, REML for final
 
+anova(pli1.lu, pli2.lu) #pli1 still more signif
+
+#based on these three sets of models,
+  #1 there are signif community differences, which were primarily due to land use (mining vs. urban)
+  #2 differences between mining communities were not significant based on models, 
+performance(pli1.1.nt)
 
 
 #scratch ----
