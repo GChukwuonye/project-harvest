@@ -503,8 +503,8 @@ iw.dm$pli <- pli$pollution_index_selected_analytes
 
 #add proximity to point source ----
 com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
-comdat <- full_join(iw.dm, com, by = c("site"))
-comdat <- comdat[!is.na(comdat$mlod.name),]
+iw.dm <- full_join(iw.dm, com, by = c("site"))
+iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 
 
 #outliers ----
