@@ -515,6 +515,7 @@ comdat <- comdat[comdat$site!="H222",]
 
 #reset working directory for figures ----
 setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/Figures")
+setwd("~/Documents/GitHub/project-harvest-fork/Figures")
 
 #Scratch? All Elements ----
 Contamlist <- c("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
