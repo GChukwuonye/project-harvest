@@ -3,7 +3,7 @@
 #Description: Code to analyze arsenic and lead overall with control data
 #Notes
   #mixed model cf to assess contributions
-  #Proximity models have 546 samples, 6 outliers removed and 25 tucson samples removed with no proximity data
+  #look at ej screen to assess point source for tucson
 
 #load libraries----
 library(car)
@@ -23,8 +23,8 @@ library(multcomp)
 library(patchwork)
 
 #set working directory----
-#setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
-setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
+setwd("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_processing")
+#setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 #load data ----
 ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
 ic.dm$community <- "AZ-Background" #changes community to AZ background
@@ -58,36 +58,26 @@ dat.long <- pivot_longer(data = dat,
                          cols = Be:Pb,
                          names_to = "analyte",
                          values_to = "value")
-setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
+setwd("/Users/Gift/Documents/GitHub/WorkingFiles/Figures")
 setwd("~/Documents/GitHub/project-harvest-GC/Figures")
 
 #summary stats community ----
 
-pli.summary <- iw.dm %>%
+pli.summary <- comdat %>%
   group_by(season, community) %>%
   summarise(mean = mean(na.omit(pli)))
-view(pli.summary) 
+view(pli.summary)            
 
-prox.summary <- iw.dm %>%
-  group_by(community) %>%
-  summarise(mean = mean(na.omit(proximity.km)),
-            min = min(na.omit(proximity.km)),
-            max = max(na.omit(proximity.km)))
-view(prox.summary) 
-
-plot(log(iw.dm$pli) ~ iw.dm$proximity.km)
+plot(log(comdat$pli) ~ comdat$proximity.km)
 
 #graph to viz associations by source
-ggplot(data = iw.dm, mapping = aes(y = pli, x = proximity.km, color = landuse)) + 
+ggplot(data = comdat, mapping = aes(y = pli, x = proximity.km, color = community)) + 
   #geom_point(size = 1)+
-  #facet_grid(season~., scales = "free")+
+  facet_grid(season~., scales = "free")+
   geom_smooth()
 
 #boxplot viz
-ggplot(data = iw.dm, mapping = aes(y = pli, x = community, fill = season)) + 
-  geom_boxplot()
-
-ggplot(data = iw.dm, mapping = aes(y = pli, x = landuse, fill = season)) + 
+ggplot(data = comdat, mapping = aes(y = log(pli), x = community, fill = season)) + 
   geom_boxplot()
 
 #pli modeling ----
@@ -114,56 +104,16 @@ anova(pli1)
 step(pli1, scope=list(lower=pli0), direction="both")
 #all variables are signif based on stepwise
 
-#keep all variables in the model???
-anova(pli1)
-vif(pli1) #try removing community:proximity interaction
-
-#remove community:proximity and compare
 pli2 <- lmer(data = iw.dm,
              pli ~
                + community + season + proximity.km
-             + community:season
+             + proximity.km:community
              + (1|community:site),
              REML = F) #ML for comparison, REML for final
 
 anova(pli1, pli2) #pli1 is better
-summary(pli2)
-anova(pli2)
-vif(pli2)
-model.effects <- allEffects(pli2)
-plot(model.effects)
 
-#remove community:season and compare
-pli3 <- lmer(data = iw.dm,
-             pli ~
-              + community + season + proximity.km
-             + (1|community:site),
-             REML = F) #ML for comparison, REML for final
-
-anova(pli1, pli3) #pli1 is better
-anova(pli2, pli3) #pli2 is better
-summary(pli3)
-anova(pli3)
-vif(pli3)
-model.effects <- allEffects(pli3)
-plot(model.effects)
-pli3 #look at intercepts/slopes
-
-#remove community:season and compare
-pli4 <- lmer(data = iw.dm,
-             pli ~
-               + community + season + proximity.km
-             + community:proximity.km
-             + (1|community:site),
-             REML = F) #ML for comparison, REML for final
-
-anova(pli1, pli4) #pli1 is better
-anova(pli3, pli4) #pli4 is better
-summary(pli4)
-anova(pli4)
-vif(pli4) #super high community:proximity VIF meaning that the variation in proximity effect is likely taken into account in the community variable already...
-model.effects <- allEffects(pli4)
-plot(model.effects)
+#keep all variables in the model???
 
 #remove tucson from analysis
 iw.dm.nt <- iw.dm[iw.dm$community!="Tucson",]
@@ -185,20 +135,18 @@ plot(model.effects)
 vif(pli1.nt)
 anova(pli1.nt)
 #community:season not signif meaning monsoon trend is pmuch the same across communities
-#community:proximity ia signif, all mining communities are relatively close to point source (esp compared to tucson), but I think Hayden is closest?
+#community:proximity not signif, all mining communities are relatively close to point source (esp compared to tucson)
 #proximity is not signif...
 
 #try backwards stepwise method to get best model
 step(pli1.nt, scope=list(lower=pli0.nt), direction="both")
 #season and proximity are signif, meaning no significant pli differences between the three communities
 #comm not significant, the legacy of the mine has a signif impact - DH is not sig fig from GM and HW which have active sources
-  #####UPDATE, after removing outliers, comm is significant and comm:proximity, substantial community differences (expected) and different proximities in each community (expected)
 
-
-#copy it and summarize
+#copy it and summarize, but keep community a part of the model?
 
 pli1.1.nt <- lmer(data = iw.dm.nt,
-               pli ~ season + proximity.km + community + community:proximity.km
+               pli ~ season + proximity.km
                + (1 | community:site),
                REML = F)
 summary(pli1.1.nt)
@@ -206,52 +154,44 @@ plot(pli1.1.nt) #not heteroscedastic when untransformed
 model.effects <- allEffects(pli1.1.nt)
 plot(model.effects)
 vif(pli1.1.nt)
-anova(pli1.1.nt)
 
-#double check community:proximity
+#double check community
 pli1.2.nt <- lmer(data = iw.dm.nt,
-                  pli ~ season + proximity.km + community
-                  + (1 | community:site),
+               pli ~ season + proximity.km + community
+               + (1 | community:site),
                REML = F)
 
 anova(pli1.1.nt, pli1.2.nt)
-vif(pli1.2.nt) #1.1 is better, with community:proximity but has high VIF...remove interaction and VIFs are okay, but anova says stick with 1.1
 
-#but honestly i trust the model where DH is separate (i.e. with the interaction)...let's look at some boxplots and summary stats So DH definitely looks pretty different in the data compared to GM and HW. It i colinear, meaning that some of the proximity difference between communities is embedded within the community variable at a baseline, but not sure if it is enough for me to feel comfortable with removing completely...
+#double check community:season
+pli1.3.nt <- lmer(data = iw.dm.nt,
+                  pli ~ season + proximity.km + community:season
+                  + (1 | community:site),
+                  REML = F)
 
+anova(pli1.1.nt, pli1.3.nt)
+
+#double community:proximity
+pli1.4.nt <- lmer(data = iw.dm.nt,
+                  pli ~ season + proximity.km + community:proximity.km
+                  + (1 | community:site),
+                  REML = F)
+
+anova(pli1.1.nt, pli1.4.nt)
+
+#double check community:season + community
+pli1.5.nt <- lmer(data = iw.dm.nt,
+                  pli ~ season + proximity.km + community
+                  + community:season
+                  + (1 | community:site),
+                  REML = F)
+
+anova(pli1.1.nt, pli1.5.nt)
 
 #community is not signif when looking at mining communities, even if it looks like it should be in the effect plot summaries
-###UPDATE: it is signif after removing 6 outliers, all from mining communities
-
-# #double check community:season
-# pli1.3.nt <- lmer(data = iw.dm.nt,
-#                   pli ~ season + proximity.km + community + community:proximity.km
-#                   + (1 | community:site),
-#                   REML = F)
-# 
-# anova(pli1.1.nt, pli1.3.nt)
-
-# #double community:proximity
-# pli1.4.nt <- lmer(data = iw.dm.nt,
-#                   pli ~ season + proximity.km + community:proximity.km
-#                   + (1 | community:site),
-#                   REML = F)
-# 
-# anova(pli1.1.nt, pli1.4.nt)
-
-# #double check community:season + community
-# pli1.5.nt <- lmer(data = iw.dm.nt,
-#                   pli ~ season + proximity.km + community
-#                   + community:season
-#                   + (1 | community:site),
-#                   REML = F)
-# 
-# anova(pli1.1.nt, pli1.5.nt)
-
 
 #compare land use - mining and urban
   #because mining communities (DH, GM, HW) were not signif different frm one another based on above pli models
-  ###UPDATE: DH, GM, and HW were signif, doing this analysis just to see what happens lol
 pli0.lu <- lmer(data = iw.dm,
              pli ~ (1|community:site),
              REML = F) #ML for comparison, REML for final
@@ -275,64 +215,21 @@ anova(pli1.lu)
 #try backwards stepwise method to get best model
 step(pli1.lu, scope=list(lower=pli0.lu), direction="both")
 #all significant, similar to inital pli models with DH, GM, HW, TU
-#remove land use:proximity interaction based on VIF
 
-
-#remove landuse:proximity based on VIF
+#remove landuse:season and compre
 pli2.lu <- lmer(data = iw.dm,
                 pli ~
                   + landuse + season + proximity.km
-                + landuse:season
+                + proximity.km:landuse
                 + (1|community:site),
                 REML = F) #ML for comparison, REML for final
 
 anova(pli1.lu, pli2.lu) #pli1 still more signif
-vif(pli2.lu)
-anova(pli2.lu)
-summary(pli2.lu)
-
-#landuse itself is not significant here...maybe because GM and HW have pretty similar concentrations to TU?
-
-#remove landuse:season and compare
-pli3.lu <- lmer(data = iw.dm,
-                pli ~
-                  + landuse + season + proximity.km
-                + landuse:proximity.km
-                + (1|community:site),
-                REML = F) #ML for comparison, REML for final
-
-#remove landuse and compare
-pli4.lu <- lmer(data = iw.dm,
-                pli ~
-                + season + proximity.km
-                + landuse:season
-                + (1|community:site),
-                REML = F) #ML for comparison, REML for final
-
-anova(pli1.lu, pli2.lu) #pli1 more signif
-anova(pli1.lu, pli3.lu) #pli1 still more signif
-anova(pli2.lu, pli3.lu) #pli2 better, but not signif
-anova(pli1.lu, pli4.lu) #pli1 still more signif
-anova(pli2.lu, pli4.lu) #same model, what?
-performance(pli2.lu)
-performance(pli4.lu)
-#i don't think this landuse model is that helpful tbh, the differences between mining communities do seem pretty important. But it does tell us that there is a season trend difference between communities and there isn't too much of a baseline difference between mining and urban communities in general (which we kind of knew b/c GM and HW are so similar to TU in pli and in concentrations)
-
-#FINAL PLI MODELS for now... 9/8/23
-pli3 #pli ~ + community + season + proximity.km + (1 | community:site)
-
-pli1.1.nt #pli ~ season + proximity.km + community + community:proximity.km + (1 | community:site)
-
-pli4.lu #pli ~ +season + proximity.km + landuse:season + (1 | community:site)
-
 
 #based on these three sets of models,
-  #1 there are signif community differences, which were not simply due to land use (mining and urban)
-  #2 there are significant seasonal differences, and it appears that Tucson has a less intense monsoon high compared to the mining communities
-  #3 proximity was significant in the models, with a slight negative trend. But, GM HW and TU had slight negative trends and DH had a slight positive trend when a proximity.km:community interaction was included.
-
-#going forward...
-  #I think we should include season, community, proximity.km, and proximity.km:community in our models, knowing that proximity.km:community may be highlighy colinear (high VIF) and it might not make sense to keep in the models later on.
+  #1 there are signif community differences, which were primarily due to land use (mining vs. urban)
+  #2 differences between mining communities were not significant based on models, 
+performance(pli1.1.nt)
 
 
 #scratch ----
