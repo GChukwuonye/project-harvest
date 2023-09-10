@@ -510,8 +510,8 @@ iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 #outliers ----
 #remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
 #G428IWA23-20190730 and H209IWA23-20190709
-comdat <- comdat[comdat$site!="H222",]
-
+iw.dm <- iw.dm[-c(19,39),]
+iw.dm <- iw.dm[iw.dm$site!="H222",]
 
 #reset working directory for figures ----
 setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/Figures")
