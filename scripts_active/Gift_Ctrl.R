@@ -25,7 +25,6 @@ library(patchwork)
 #set working directory----
 #setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
 setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
-
 #load data ----
 ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
 ic.dm$community <- "AZ-Background" #changes community to AZ background
