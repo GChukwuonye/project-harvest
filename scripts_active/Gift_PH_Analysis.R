@@ -354,7 +354,8 @@ library(ggplot2)
 
 #load data ----
 #IW DM
-iw.dm <- read_excel("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected mean the corrected tab in the excel sheet
+iw.dm <- read_excel("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected means the corrected tab in the excel sheet
+#iw.dm <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected")
 # iw.dm.detects <- read_xlsx("data/data_clean/IW_DM_Y123.xlsx", sheet = "Detection", col_names = TRUE)
 # mlod <- read_xlsx("data/data_processing/IPSW_MLODS.xlsx", sheet = "corrected - 12.22.20", col_names = TRUE)
 # iw.mlod <- mlod[mlod$`Sample Type`=="IW",]
@@ -454,6 +455,8 @@ iw.dm$community <- factor(iw.dm$community, levels = c("Dewey-Humboldt", "Globe/M
 #pH and EC data
 #append pH and EC data
 iw.pHec <- read_xlsx("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
+#iw.pHec <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
+
 iw.pHec <- iw.pHec[iw.pHec$type!="B",] #removing field blanks
 iw.dm <- full_join(iw.dm, iw.pHec, by = c("sample.name", "type")) #joins the phec data with the original iw.dm we had before
 iw.dm <- iw.dm[!is.na(iw.dm$community),]
@@ -499,10 +502,12 @@ haydendat <- haydendat[haydendat$site!="H222",]
 
 #add pollution load index ----
 pli <- read.csv("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
+#pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
 iw.dm$pli <- pli$pollution_index_selected_analytes
 
 #add proximity to point source ----
 com <- read_xlsx("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+#com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
 iw.dm <- full_join(iw.dm, com, by = c("site"))
 iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 
@@ -510,7 +515,8 @@ iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 #outliers ----
 #remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
 #G428IWA23-20190730 and H209IWA23-20190709
-comdat <- comdat[comdat$site!="H222",]
+iw.dm <- iw.dm[-c(19,39),]
+iw.dm <- iw.dm[iw.dm$site!="H222",]
 
 
 #reset working directory for figures ----
