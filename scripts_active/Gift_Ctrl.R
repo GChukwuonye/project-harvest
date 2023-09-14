@@ -299,17 +299,22 @@ pli4.lu #pli ~ +season + proximity.km + landuse:season + (1 | community:site)
 #I think we should include season, community, proximity.km, and proximity.km:community in our models, knowing that proximity.km:community may be highlighy colinear (high VIF) and it might not make sense to keep in the models later on.
 
 
+
+
+
+
+
 #cfactor modeling ----
-cf0 <- lmer(data = pli2,
+cf0 <- lmer(data = pli_dat3,
             concentration_factor ~ (1|community:site),
             REML = F) 
 summary(cf0)
 
 
-cf1 <- lmer(data = pli2,
+cf1 <- lmer(data =  pli_dat3,
             concentration_factor ~
               + analytes + analytes:season + analytes:community + season + proximity.km
-            + community + proximity.km:community
+            + community + proximity.km:community + analytes:proximity.km
             + (1|community:site),
             REML = F) #ML for comparison, REML for final
 
@@ -323,11 +328,73 @@ vif(cf1)
 r2(cf1) #only 10% of the variation is explained by this model 
 #try backwards stepwise method to get best model
 step(cf1, scope=list(lower=cf0), direction="both")
+
+
+ggplot(data = pli_dat3, mapping = aes(y = concentration_factor, x = analytes, fill = community)) + 
+  geom_boxplot() +
+  facet_wrap(.~analytes, scales="free")
+
+
 #analytes + season + proximity.km + community + (1 | community:site) + analytes:community- best model from stepwise
 #remove land use:proximity interaction based on VIF
 
 #using the best model selected by the stepwise 
-cf2 <- lmer(data = pli2,
+
+cf2 <- lmer(data =  pli_dat3, 
+            concentration_factor ~
+              + analytes + analytes:season + season + proximity.km
+            + community + proximity.km:community + analytes:proximity.km
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+
+vif(cf2) 
+anova(cf2)
+
+cf3 <- lmer(data =  pli_dat3, 
+            concentration_factor ~
+              +  analytes:season + season + proximity.km
+            + community + proximity.km:community + analytes:proximity.km
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+
+vif(cf3) 
+anova(cf3)
+summary(cf3)
+
+
+
+#trying out pli to individual analyte model====
+cfia.0 <- lmer(data = pli_dat4, 
+               pollution_index_selected_analytes ~  (1|community:site),
+            REML = F) 
+cfia.1<- lmer(data =  pli_dat4, 
+            pollution_index_selected_analytes ~
+              + Mn + Pb+ Be+ Al+ Cr+ Fe +Ni+ Cu + Zn +As + Se + Cd + Ba
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+anova(cfia.1)
+vif(cfia.1)
+
+step(cfia.1, scope=list(lower=cfia.0), direction="both")
+    
+cfia.2 <- lmer(data =  pli_dat4, 
+               pollution_index_selected_analytes ~ 
+                Mn + Pb + Al + Cr + Cu + Zn + As + Se + Cd + Ba 
+              + (1 | community:site),
+              REML = F)
+vif(cfia.2)
+anova(cfia.2)
+summary(cfia.2)
+
+
+
+
+
+
+
+
+
+cf2 <- lmer(data =  pli_dat3,
             concentration_factor ~
               + analytes + season + proximity.km + community + analytes:season + analytes:community
             + (1|community:site),
@@ -342,7 +409,7 @@ plot(cf2)
 model.effects <- allEffects(cf2)
 plot(model.effects) 
 
-cf3 <- lmer (data=pli2,
+cf3 <- lmer (data= pli_dat3,
              concentration_factor~ 
                + analytes + season + proximity.km
              + community + proximity.km:community+ 
@@ -356,7 +423,7 @@ r2(cf3) #this model can only explain 7% of the variation. I don't think this is 
 
 
 
-cf4 <- lmer(data = pli2,
+cf4 <- lmer(data =  pli_dat3,
             concentration_factor ~
               + analytes  + season + proximity.km + community
             + (1|community:site),
