@@ -232,6 +232,79 @@ anova(pli1.lu, pli2.lu) #pli1 still more signif
 performance(pli1.1.nt)
 
 
+<<<<<<< Updated upstream
+=======
+cf0 <- lmer(data = pli2,
+            concentration_factor ~ (1|community:site),
+            REML = F) 
+summary(cf0)
+
+
+cf1 <- lmer(data = pli2,
+            concentration_factor ~
+              + analytes + analytes:season + analytes:community + season + proximity.km
+            + community + proximity.km:community
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+
+anova(cf1)
+#analytes, season, community, analytes:community all significant.proximity and community:proximity interaction is not significant
+summary(cf1)
+plot(cf1)
+model.effects <- allEffects(cf1)
+plot(model.effects)
+vif(cf1) 
+r2(cf1) #only 10% of the variation is explained by this model 
+#try backwards stepwise method to get best model
+step(cf1, scope=list(lower=cf0), direction="both")
+#analytes + season + proximity.km + community + (1 | community:site) + analytes:community- best model from stepwise
+#remove land use:proximity interaction based on VIF
+
+#using the best model selected by the stepwise 
+cf2 <- lmer(data = pli2,
+            concentration_factor ~
+              + analytes + season + proximity.km + community + analytes:season + analytes:community
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+
+anova(cf1, cf2) #models not significantly different but cf2 has a slightly lower BIC
+vif(cf2)
+anova(cf2) #all the variables are significant
+summary(cf2)
+r2(cf2) 
+plot(cf2)
+model.effects <- allEffects(cf2)
+plot(model.effects) 
+
+cf3 <- lmer (data=pli2,
+             concentration_factor~ 
+               + analytes + season + proximity.km
+             + community + proximity.km:community+ 
+               (1|community:site),
+             REML = F)
+anova(cf3)
+summary(cf3)
+vif(cf3)
+anova (cf3, cf2) #cf2 is a much better and much simpler model and there is a significant difference between the models. 
+r2(cf3) #this model can only explain 7% of the variation. I don't think this is enough 
+
+
+
+cf4 <- lmer(data = pli2,
+            concentration_factor ~
+              + analytes  + season + proximity.km + community
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+
+anova(cf2, cf4) #cf4 is a. much simpler model
+vif(cf4)
+anova(cf4) #all the variables are significant
+summary(cf4)
+r2(cf4) 
+plot(cf4)
+model.effects <- allEffects(cf4)
+plot(model.effects) 
+>>>>>>> Stashed changes
 #scratch ----
 dat %>% count(community)
 comdat.long <- pivot_longer(data = comdat,
