@@ -452,7 +452,7 @@ iw.dm$community <- factor(iw.dm$community, levels = c("Dewey-Humboldt", "Globe/M
 # 
 # 
 
-#pH and EC data
+#pH and EC data----
 #append pH and EC data
 iw.pHec <- read_xlsx("/Users/Gift/Documents/GitHub/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
 #iw.pHec <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
