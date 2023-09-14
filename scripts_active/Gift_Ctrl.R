@@ -25,43 +25,7 @@ library(patchwork)
 #setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
 setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 
-#load data ----
-ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
-ic.dm$community <- "AZ-Background" #changes community to AZ background
-
-#add period and season variables
-ic.dm$period <- ic.dm$samplings
-ic.dm$season <- ic.dm$samplings
-
-#redefine them
-ic.dm[ic.dm$period=="First Winter",]$period <- "First"
-ic.dm[ic.dm$period=="Last Winter",]$period <- "Last"
-ic.dm[ic.dm$period=="First Monsoon",]$period <- "First"
-ic.dm[ic.dm$period=="Last Monsoon",]$period <- "Last"
-
-ic.dm[ic.dm$season=="First Winter",]$season <- "Winter"
-ic.dm[ic.dm$season=="Last Winter",]$season <- "Winter"
-ic.dm[ic.dm$season=="First Monsoon",]$season <- "Monsoon"
-ic.dm[ic.dm$season=="Last Monsoon",]$season <- "Monsoon"
-
-#combine water dm files together
-dat <- bind_rows(iw.dm, ic.dm) #binds iw to ic
-
-#define factors
-dat$community <- factor(dat$community, levels = c("AZ-Background", "Dewey-Humboldt", "Globe/Miami", "Hayden/Winkelman", "Tucson"))
-#dat$community <- factor(dat$community, levels = c("Dewey-Humboldt", "Globe/Miami", "Hayden/Winkelman", "Tucson", "Chiricahua", "Grand Canyon", "Oliver Knoll", "Organ Pipe", "Petrified Forest"))
-dat$samplings <- factor(dat$samplings, levels = c("First Winter", "Last Winter", "First Monsoon", "Last Monsoon"))
-dat$period <- factor(dat$period, levels = c("First", "Last"))
-dat$season <- factor(dat$season, levels = c("Winter", "Monsoon"))
-
-dat.long <- pivot_longer(data = dat,
-                         cols = Be:Pb,
-                         names_to = "analyte",
-                         values_to = "value")
-setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
-setwd("~/Documents/GitHub/project-harvest-GC/Figures")
-
-#summary stats community ----
+#pli summary stats community ----
 
 pli.summary <- iw.dm %>%
   group_by(season, community) %>%
@@ -335,9 +299,7 @@ pli4.lu #pli ~ +season + proximity.km + landuse:season + (1 | community:site)
 #I think we should include season, community, proximity.km, and proximity.km:community in our models, knowing that proximity.km:community may be highlighy colinear (high VIF) and it might not make sense to keep in the models later on.
 
 
-
-#<<<<<<< Updated upstream
-#=======
+#cfactor modeling ----
 cf0 <- lmer(data = pli2,
             concentration_factor ~ (1|community:site),
             REML = F) 
@@ -408,7 +370,46 @@ r2(cf4)
 plot(cf4)
 model.effects <- allEffects(cf4)
 plot(model.effects) 
->>>>>>> Stashed changes
+
+
+#load control data ----
+ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
+ic.dm$community <- "AZ-Background" #changes community to AZ background
+
+#add period and season variables
+ic.dm$period <- ic.dm$samplings
+ic.dm$season <- ic.dm$samplings
+
+#redefine them
+ic.dm[ic.dm$period=="First Winter",]$period <- "First"
+ic.dm[ic.dm$period=="Last Winter",]$period <- "Last"
+ic.dm[ic.dm$period=="First Monsoon",]$period <- "First"
+ic.dm[ic.dm$period=="Last Monsoon",]$period <- "Last"
+
+ic.dm[ic.dm$season=="First Winter",]$season <- "Winter"
+ic.dm[ic.dm$season=="Last Winter",]$season <- "Winter"
+ic.dm[ic.dm$season=="First Monsoon",]$season <- "Monsoon"
+ic.dm[ic.dm$season=="Last Monsoon",]$season <- "Monsoon"
+
+#combine water dm files together
+dat <- bind_rows(iw.dm, ic.dm) #binds iw to ic
+
+#define factors
+dat$community <- factor(dat$community, levels = c("AZ-Background", "Dewey-Humboldt", "Globe/Miami", "Hayden/Winkelman", "Tucson"))
+#dat$community <- factor(dat$community, levels = c("Dewey-Humboldt", "Globe/Miami", "Hayden/Winkelman", "Tucson", "Chiricahua", "Grand Canyon", "Oliver Knoll", "Organ Pipe", "Petrified Forest"))
+dat$samplings <- factor(dat$samplings, levels = c("First Winter", "Last Winter", "First Monsoon", "Last Monsoon"))
+dat$period <- factor(dat$period, levels = c("First", "Last"))
+dat$season <- factor(dat$season, levels = c("Winter", "Monsoon"))
+
+dat.long <- pivot_longer(data = dat,
+                         cols = Be:Pb,
+                         names_to = "analyte",
+                         values_to = "value")
+setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
+setwd("~/Documents/GitHub/project-harvest-GC/Figures")
+
+
+
 #scratch ----
 dat %>% count(community)
 comdat.long <- pivot_longer(data = comdat,
