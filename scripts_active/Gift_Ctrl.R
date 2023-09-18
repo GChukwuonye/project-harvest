@@ -33,7 +33,7 @@ pli.summary <- iw.dm %>%
 view(pli.summary) 
 
 prox.summary <- iw.dm %>%
-  group_by(community) %>%
+  group_by(source) %>%
   summarise(mean = mean(na.omit(proximity.km)),
             min = min(na.omit(proximity.km)),
             max = max(na.omit(proximity.km)))
