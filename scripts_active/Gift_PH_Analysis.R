@@ -354,7 +354,7 @@ library(ggplot2)
 
 #load data ----
 #IW DM
-iw.dm <- read_excel("/Users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected means the corrected tab in the excel sheet
+iw.dm <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected means the corrected tab in the excel sheet
 #iw.dm <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected")
 # iw.dm.detects <- read_xlsx("data/data_clean/IW_DM_Y123.xlsx", sheet = "Detection", col_names = TRUE)
 # mlod <- read_xlsx("data/data_processing/IPSW_MLODS.xlsx", sheet = "corrected - 12.22.20", col_names = TRUE)
@@ -454,7 +454,7 @@ iw.dm$community <- factor(iw.dm$community, levels = c("Dewey-Humboldt", "Globe/M
 
 #pH and EC data----
 #append pH and EC data
-iw.pHec <- read_xlsx("/Users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
+iw.pHec <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
 #iw.pHec <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_pHEC_Y123.xlsx", sheet = 1, col_names = TRUE)
 
 iw.pHec <- iw.pHec[iw.pHec$type!="B",] #removing field blanks
@@ -501,7 +501,7 @@ iw.dm.long <- pivot_longer(iw.dm,
 haydendat <- haydendat[haydendat$site!="H222",]
 
 #add pollution load index ----
-pli <- read.csv("/Users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
+pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
 #pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
 iw.dm$pli <- pli$pollution_index_selected_analytes
 pli_dat<- pli[-c(19,39),]
@@ -524,7 +524,7 @@ pli_dat4<- pivot_wider(pli_dat3,
 
 
 #add proximity to point source ----
-com <- read_xlsx("/Users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
 #com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
 iw.dm <- full_join(iw.dm, com, by = c("site"))
 iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
