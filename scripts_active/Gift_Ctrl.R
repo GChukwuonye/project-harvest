@@ -343,10 +343,10 @@ predict.dat.nt <- ggeffect(model = pli1.1.nt,
                         back.transform = F,
                         type = "re")
 
-ggplot(data = iw.dm, mapping = aes(x = proximity.km, y = pli))+
-  geom_point(data = iw.dm, mapping = aes(color = community))+
+ggplot(data = iw.dm.nt, mapping = aes(x = proximity.km, y = pli))+
+  geom_point(data = iw.dm.nt, mapping = aes(color = community))+
   geom_ribbon(data = predict.dat.nt, mapping = aes(x=x, y =predicted, ymin = conf.low, ymax = conf.high, color = group), alpha = .5, fill = "#4068B2")+ #adds shading for error
-  geom_line(data = predict.dat, mapping = aes(x=x, y = predicted))+
+  geom_line(data = predict.dat.nt, mapping = aes(x=x, y = predicted, color = group))+
   labs(title = "PLI by Distance From Point Source\n",
        y = "PLI \n",
        x = "\n Distance From Point Source (km)")+
