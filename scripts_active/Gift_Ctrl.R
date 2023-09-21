@@ -415,6 +415,25 @@ ggplot(data = pli_dat3, mapping = aes(y = concentration_factor, x = analytes, fi
 #using the best model selected by the stepwise 
 
 cf2 <- lmer(data =  pli_dat3, 
+            concentration_factor ~ 
+              analytes + season + proximity.km + community + (1 | community:site) +
+              analytes:season + analytes:community + analytes:proximity.km,
+            REML = F)
+anova(cf2)
+summary(cf2)
+plot(cf2)
+model.effects <- allEffects(cf2)
+plot(model.effects)
+vif(cf2) 
+r2(cf2)
+
+
+
+
+
+
+            
+cf2b <- lmer(data =  pli_dat3, 
             concentration_factor ~
               + analytes + analytes:season + season + proximity.km
             + community + proximity.km:community + analytes:proximity.km
@@ -426,8 +445,8 @@ anova(cf2)
 
 cf3 <- lmer(data =  pli_dat3, 
             concentration_factor ~
-              +  analytes:season + season + proximity.km
-            + community + proximity.km:community + analytes:proximity.km
+            + analytes + season + proximity.km
+            + community: proximity.km
             + (1|community:site),
             REML = F) #ML for comparison, REML for final
 
@@ -443,7 +462,8 @@ cfia.0 <- lmer(data = pli_dat4,
             REML = F) 
 cfia.1<- lmer(data =  pli_dat4, 
             pollution_index_selected_analytes ~
-              + Mn + Pb+ Be+ Al+ Cr+ Fe +Ni+ Cu + Zn +As + Se + Cd + Ba
+              + Mn + Pb+ Be+ Al+ Cr+ Fe +Ni+ Cu + Zn +As + Se + Cd + Ba + 
+              season+ community+ proximity.km
             + (1|community:site),
             REML = F) #ML for comparison, REML for final
 anova(cfia.1)
@@ -453,7 +473,7 @@ step(cfia.1, scope=list(lower=cfia.0), direction="both")
     
 cfia.2 <- lmer(data =  pli_dat4, 
                pollution_index_selected_analytes ~ 
-                Mn + Pb + Al + Cr + Cu + Zn + As + Se + Cd + Ba 
+                Mn + Pb + Al + Cr + Cu + Zn + As + Se + Cd + Ba + proximity.km
               + (1 | community:site),
               REML = F)
 vif(cfia.2)
