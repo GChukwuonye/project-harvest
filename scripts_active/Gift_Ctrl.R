@@ -33,7 +33,7 @@ pli.summary <- iw.dm %>%
 view(pli.summary) 
 
 prox.summary <- iw.dm %>%
-  group_by(community) %>%
+  group_by(source) %>%
   summarise(mean = mean(na.omit(proximity.km)),
             min = min(na.omit(proximity.km)),
             max = max(na.omit(proximity.km)))
@@ -42,10 +42,11 @@ view(prox.summary)
 plot(log(iw.dm$pli) ~ iw.dm$proximity.km)
 
 #graph to viz associations by source
-ggplot(data = iw.dm, mapping = aes(y = pli, x = proximity.km, color = landuse)) + 
+ggplot(data = iw.dm, mapping = aes(y = pli, x = proximity.km, color = community)) + 
   #geom_point(size = 1)+
   #facet_grid(season~., scales = "free")+
-  geom_smooth()
+  geom_smooth() +
+  theme(legend.position = "bottom")
 
 #boxplot viz
 ggplot(data = iw.dm, mapping = aes(y = pli, x = community, fill = season)) + 
@@ -102,7 +103,7 @@ pli3 <- lmer(data = iw.dm,
              pli ~
                + community + season + proximity.km
              + (1|community:site),
-             REML = F) #ML for comparison, REML for final
+             REML = T) #ML for comparison, REML for final
 
 anova(pli1, pli3) #pli1 is better
 anova(pli2, pli3) #pli2 is better
@@ -128,6 +129,13 @@ anova(pli4)
 vif(pli4) #super high community:proximity VIF meaning that the variation in proximity effect is likely taken into account in the community variable already...
 model.effects <- allEffects(pli4)
 plot(model.effects)
+
+pli5 <- lmer(data = iw.dm,
+             pli ~
+               + community + season + proximity.km
+             + (1|community:site),
+             REML = F) #ML for comparison, REML for final
+vif(pli5)
 
 #remove tucson from analysis
 iw.dm.nt <- iw.dm[iw.dm$community!="Tucson",]
@@ -164,7 +172,7 @@ step(pli1.nt, scope=list(lower=pli0.nt), direction="both")
 pli1.1.nt <- lmer(data = iw.dm.nt,
                   pli ~ season + proximity.km + community + community:proximity.km
                   + (1 | community:site),
-                  REML = F)
+                  REML = T)
 summary(pli1.1.nt)
 plot(pli1.1.nt) #not heteroscedastic when untransformed
 model.effects <- allEffects(pli1.1.nt)
@@ -271,7 +279,7 @@ pli4.lu <- lmer(data = iw.dm,
                   + season + proximity.km
                 + landuse:season
                 + (1|community:site),
-                REML = F) #ML for comparison, REML for final
+                REML = T) #ML for comparison, REML for final
 
 anova(pli1.lu, pli2.lu) #pli1 more signif
 anova(pli1.lu, pli3.lu) #pli1 still more signif
@@ -299,10 +307,76 @@ pli4.lu #pli ~ +season + proximity.km + landuse:season + (1 | community:site)
 #I think we should include season, community, proximity.km, and proximity.km:community in our models, knowing that proximity.km:community may be highlighy colinear (high VIF) and it might not make sense to keep in the models later on.
 
 
+##effect plots ----
 
+###Full dataset ----
+predict.dat <- ggeffect(model = pli3,
+                        terms = c("proximity.km"),
+                        back.transform = F,
+                        type = "re")
+# pb.sum <- summary(Pb7)
+# write.csv(pb.sum$coefficients, "pb7coefT.csv")
+# pb.ssnmeans <- lsmeans(Pb7, pairwise~season, adjust = "tukey")#
+# write.csv(pb.ssnmeans$lsmeans, "pb7lsmeansT.csv")
+# write.csv(pb.ssnmeans$contrasts, "pb7contrastsT.csv")
+# predict.datt <- ggpredict(model = As93,
+#                  terms = c("nearest.dist.km"),
+#                  back.transform = F) #specify both variables in terms to assess them together, this helps visualize an interaction.
 
+ggplot(data = iw.dm, mapping = aes(x = proximity.km, y = pli))+
+  geom_point(data = iw.dm, mapping = aes(color = community))+
+  geom_ribbon(data = predict.dat, mapping = aes(x=x, y =predicted, ymin = conf.low, ymax = conf.high), alpha = .5, fill = "#4068B2")+ #adds shading for error
+  geom_line(data = predict.dat, mapping = aes(x=x, y = predicted))+
+  labs(title = "PLI by Distance From Point Source\n",
+       y = "PLI \n",
+       x = "\n Distance From Point Source (km)")+
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "bottom")
+# dev.print(png, "Pb_Tafbeffectln.png", res=100, height=6, width=8, units="in")
 
+predict.dat.nt <- ggeffect(model = pli1.1.nt,
+                        terms = c("proximity.km", "community"),
+                        back.transform = F,
+                        type = "re")
 
+ggplot(data = iw.dm.nt, mapping = aes(x = proximity.km, y = pli))+
+  geom_point(data = iw.dm.nt, mapping = aes(color = community))+
+  geom_ribbon(data = predict.dat.nt, mapping = aes(x=x, y =predicted, ymin = conf.low, ymax = conf.high, color = group), alpha = .5, fill = "#4068B2")+ #adds shading for error
+  geom_line(data = predict.dat.nt, mapping = aes(x=x, y = predicted, color = group))+
+  labs(title = "PLI by Distance From Point Source\n",
+       y = "PLI \n",
+       x = "\n Distance From Point Source (km)")+
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "bottom")
+
+predict.dat.lu <- ggeffect(model = pli4.lu,
+                           terms = c("landuse", "season"),
+                           back.transform = F,
+                           type = "re")
+ggplot(data= iw.dm,
+       mapping = aes(x=landuse,y=pli, color = season)) +
+  #geom_point(alpha = .3, position = position_jitter())+
+  geom_pointrange(data = predict.dat.lu, aes(x=x, y = predicted, color = group, ymin = conf.low, ymax=conf.high),position=position_dodge(width=0.75), size = 1) +
+  #geom_ribbon(data = predict.dat.nt, mapping = aes(x=x, y =predicted, ymin = conf.low, ymax = conf.high, color = group), alpha = .5, fill = "#4068B2")+ #adds shading for error
+  #geom_line(data = predict.dat, mapping = aes(x=x, y = predicted))+
+  labs(title = "PLI by Land Use and Season\n",
+       y = "PLI \n"
+       # x = "\n Distance From Point Source (km)"
+       )+
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "bottom")
 
 #cfactor modeling ----
 cf0 <- lmer(data = pli_dat3,
