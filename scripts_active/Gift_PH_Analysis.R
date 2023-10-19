@@ -135,23 +135,6 @@ aggregate(iw.pHec$EC,
 
 median(iw.pHec$EC)
 
-#longer ----
-iw.dm.long <- pivot_longer(iw.dm,
-                           cols = Be:Pb,
-                           values_to = "value",
-                           names_to = "analyte")
-
-# iw.dm.detects.long <- pivot_longer(iw.dm.detects,
-#                                    cols = Be:Pb,
-#                                    values_to = "detection",
-#                                    names_to = "analyte")
-# 
-# 
-# iw.mlod.dm.long <- pivot_longer(iw.mlod.dm,
-#                                 cols=Be:Pb,
-#                                 values_to = "value",
-#                                 names_to = "analyte")
-
 
 #add pollution load index ----
 pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
@@ -186,8 +169,46 @@ pli_dat4<- pivot_wider(pli_dat3,
 #outliers ----
 #remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
 #G428IWA23-20190730 and H209IWA23-20190709
-iw.dm <- iw.dm[-c(19,39),]
+iw.dm <- iw.dm[-c("G428IWA23-20190730","H209IWA23-20190709"),]
 iw.dm <- iw.dm[iw.dm$site!="H222",]
+
+
+
+#longer ----
+iw.dm.long <- pivot_longer(iw.dm,
+                           cols = Be:Pb,
+                           values_to = "value",
+                           names_to = "analyte")
+
+# iw.dm.detects.long <- pivot_longer(iw.dm.detects,
+#                                    cols = Be:Pb,
+#                                    values_to = "detection",
+#                                    names_to = "analyte")
+# 
+# 
+# iw.mlod.dm.long <- pivot_longer(iw.mlod.dm,
+#                                 cols=Be:Pb,
+#                                 values_to = "value",
+#                                 names_to = "analyte")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #reset working directory for figures ----
