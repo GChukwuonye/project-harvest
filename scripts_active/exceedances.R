@@ -52,7 +52,7 @@ sumtable.wide <- pivot_wider(data = sumtable,
                              names_from = "standard",
                              values_from = "exceedances_freq")
 view(sumtable.wide)
-write.csv(sumtable.wide, "")
+write.csv(sumtable.wide, "test.csv")
 
 #modeling ----
 ex.dat.long
