@@ -23,7 +23,7 @@ library(patchwork)
 
 #set working directory----
 #setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
-setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
+#setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 
 #pli summary stats community ----
 
