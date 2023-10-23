@@ -2,9 +2,21 @@
 #Description: Functions for summary tables and figures of Project Harvest inorganic analyte data
 
 #load libraries ----
-library(readxl) #read excel files
+library(car)
+library(readxl)
 library(tidyverse)
 library(ggplot2)
+library(EnvStats)
+library(lme4)
+library(lmerTest)
+library(performance)
+library(effects)
+library(ggeffects)
+library(ggpubr)
+library(emmeans)
+library(multcomp)
+library(patchwork)
+library(aod)
 #set working directory
 #setwd("")
 
