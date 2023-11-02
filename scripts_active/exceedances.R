@@ -66,7 +66,7 @@ aicu.0 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.lon
               family = "binomial")
 
 aicu.1 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",],
-          exceedance ~ season+community+proximity.km,
+          exceedance ~ season+community+proximity.km+community:proximity.km,
           family = "binomial")
 summary(aicu.1)
 vif(aicu.1)
@@ -88,7 +88,7 @@ aizn.0 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.lon
               family = "binomial")
 
 aizn.1 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Zn",],
-              exceedance ~ season+community+proximity.km,
+              exceedance ~ season+community+proximity.km+community:proximity.km,
               family = "binomial")
 summary(aizn.1)
 vif(aizn.1)
