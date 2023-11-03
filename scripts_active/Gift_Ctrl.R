@@ -43,7 +43,7 @@ plot(log(iw.dm$pli) ~ iw.dm$proximity.km)
 
 #Cfactor Ranking ----
 ##density plots ----
-ggplot(data=pli_dat3, aes(x=concentration_factor, group=analytes, fill=analytes)) +
+ggplot(data=pli_dat3, aes(x=contamination_factor, group=analytes, fill=analytes)) +
   geom_density(adjust=1.5) +
   theme_bw() +
   facet_wrap(~analytes, scales = "free") +
@@ -53,7 +53,7 @@ ggplot(data=pli_dat3, aes(x=concentration_factor, group=analytes, fill=analytes)
     axis.ticks.x=element_blank()
   )
 
-ggplot(data=pli_dat3, aes(x=log(concentration_factor), group=analytes, fill=analytes)) +
+ggplot(data=pli_dat3, aes(x=log(contamination_factor), group=analytes, fill=analytes)) +
   geom_density(adjust=1.5) +
   theme_bw() +
   facet_wrap(~analytes, scales = "free") +
@@ -67,7 +67,7 @@ ggplot(data=pli_dat3, aes(x=log(concentration_factor), group=analytes, fill=anal
 ##mean by community ----
 cfactor.summary.m <- pli_dat3 %>%
   group_by(analytes, community) %>%
-  summarise(mean = mean(na.omit(concentration_factor)))
+  summarise(mean = mean(na.omit(contamination_factor)))
 cfactor.summary.wide.m <- pivot_wider(data = cfactor.summary.m,
                                     values_from = "mean",
                                     names_from = "community")
@@ -89,7 +89,7 @@ view(cfactor.summary.wide.m)
 ##geomean by community ----
 cfactor.summary.gm <- pli_dat3 %>%
   group_by(analytes, community) %>%
-  summarise(mean = geoMean(na.omit(concentration_factor)))
+  summarise(mean = geoMean(na.omit(contamination_factor)))
 cfactor.summary.wide.gm <- pivot_wider(data = cfactor.summary.gm,
                                     values_from = "mean",
                                     names_from = "community")
@@ -453,159 +453,117 @@ ggplot(data= iw.dm,
         legend.position = "bottom")
 
 #cfactor modeling ----
-cf0 <- lmer(data = pli_dat3,
-            concentration_factor ~ (1|community:site),
+cf_short<- pli_dat3[c(3, 4, 5, 15, 16, 17)]
+cf_wider<- pivot_wider(cf_short,
+                       names_from= analytes,
+                       values_from= contamination_factor)
+
+#cf for tucson====
+cf_tucson<- cf_wider[cf_wider$community=="Tucson",]
+
+cft0 <- lmer(data = cf_tucson,
+            pli_contaminants ~ (1|site),
             REML = F) 
-summary(cf0)
+summary(cft0)
 
-
-cf1 <- lmer(data =  pli_dat3,
-            concentration_factor ~
-              + analytes + analytes:season + analytes:community + season + proximity.km
-            + community + proximity.km:community + analytes:proximity.km
-            + (1|community:site),
-            REML = F) #ML for comparison, REML for final
-
-anova(cf1)
-#analytes, season, community, analytes:community all significant.proximity and community:proximity interaction is not significant
-summary(cf1)
-plot(cf1)
-model.effects <- allEffects(cf1)
+cft1 <- lmer(data = cf_tucson,
+             pli_contaminants ~ 
+               Al+Mn+As+Pb+Cu+Cd+Ba+Be+Cr+Ni+Zn+
+               (1|site),
+             REML = T) 
+step(cft1, scope=list(lower=cft0), direction="both")
+cft2 <- lmer(data = cf_tucson,
+             pli_contaminants ~ 
+               Al+Mn+Pb+Cu+Cd+Ba+Be+Cr+Ni+Zn+
+               (1|site),
+             REML = T) 
+anova(cft2) #everything is signficant except arsenic
+summary(cft2)
+plot(cft2)
+model.effects <- allEffects(cft2)
 plot(model.effects)
-vif(cf1) 
-r2(cf1) #only 10% of the variation is explained by this model 
-#try backwards stepwise method to get best model
-step(cf1, scope=list(lower=cf0), direction="both")
+vif(cft2) 
+r2(cft2)
 
+#cf for hayden====
+cf_hayden<- cf_wider[cf_wider$community=="Hayden/Winkelman",]
 
-ggplot(data = pli_dat3, mapping = aes(y = concentration_factor, x = analytes, fill = community)) + 
-  geom_boxplot() +
-  facet_wrap(.~analytes, scales="free")
+cfh0 <- lmer(data = cf_hayden,
+             pli_contaminants ~ (1|site),
+             REML = F) 
+summary(cfh0)
 
+cfh1 <- lmer(data =cf_hayden,
+             pli_contaminants ~ 
+               Al+Mn+As+Pb+Cu+Cd+Ba+Be+Cr+Ni+Zn+
+               (1|site),
+             REML = T) 
+step(cfh1, scope=list(lower=cfh0), direction="both")
 
-#analytes + season + proximity.km + community + (1 | community:site) + analytes:community- best model from stepwise
-#remove land use:proximity interaction based on VIF
-
-#using the best model selected by the stepwise 
-
-cf2 <- lmer(data =  pli_dat3, 
-            concentration_factor ~ 
-              analytes + season + proximity.km + community + (1 | community:site) +
-              analytes:season + analytes:community + analytes:proximity.km,
-            REML = F)
-anova(cf2)
-summary(cf2)
-plot(cf2)
-model.effects <- allEffects(cf2)
+cfh2 <- lmer(data =cf_hayden,
+             pli_contaminants ~ Al + Mn + As + Pb + Cd + Be + Cr + Ni + Zn + 
+               (1 | site),
+             REML= T)
+anova(cfh2) #be and Cu not significant
+summary(cfh2)
+plot(cfh2)
+model.effects <- allEffects(cfh2)
 plot(model.effects)
-vif(cf2) 
-r2(cf2)
+r2(cfh2)
 
 
+#cf for Dewey====
+cf_dewey<- cf_wider[cf_wider$community=="Dewey-Humboldt",]
+
+cfd0 <- lmer(data = cf_dewey,
+             pli_contaminants ~ (1|site),
+             REML = F) 
+summary(cfd0)
+
+cfd1 <- lmer(data =cf_dewey,
+             pli_contaminants ~ 
+               Al+Mn+As+Pb+Cu+Cd+Ba+Be+Cr+Ni+Zn+
+               (1|site),
+             REML = T) 
+step(cfd1, scope=list(lower=cfd0), direction="both")
+
+cfd2 <- lmer(data =cf_dewey,
+             pli_contaminants ~ Al + Mn + As +  Cd + Be + Cr + Zn + 
+               (1 |site),
+             REML= T)
+anova(cfd2) #Ni and Pb not significant
+summary(cfd2)
+plot(cfd2)
+model.effects <- allEffects(cfd2)
+plot(model.effects)
+r2(cfd2)
 
 
+#cf for Globe====
+cf_globe<- cf_wider[cf_wider$community=="Globe/Miami",]
 
+cfg0 <- lmer(data = cf_globe,
+             pli_contaminants ~ (1|site),
+             REML = F) 
+summary(cfg0)
 
-            
-cf2b <- lmer(data =  pli_dat3, 
-            concentration_factor ~
-              + analytes + analytes:season + season + proximity.km
-            + community + proximity.km:community + analytes:proximity.km
-            + (1|community:site),
-            REML = F) #ML for comparison, REML for final
+cfg1 <- lmer(data =cf_globe,
+             pli_contaminants ~ 
+               Al+Mn+As+Pb+Cu+Cd+Ba+Be+Cr+Ni+Zn+
+               (1|site),
+             REML = T) 
+step(cfg1, scope=list(lower=cfg0), direction="both")
 
-vif(cf2) 
-anova(cf2)
-
-cf3 <- lmer(data =  pli_dat3, 
-            concentration_factor ~
-            + analytes + season + proximity.km
-            + community: proximity.km
-            + (1|community:site),
-            REML = F) #ML for comparison, REML for final
-
-vif(cf3) 
-anova(cf3)
-summary(cf3)
-
-
-
-#trying out pli to individual analyte model====
-cfia.0 <- lmer(data = pli_dat4, 
-               pollution_index_selected_analytes ~  (1|community:site),
-            REML = F) 
-cfia.1<- lmer(data =  pli_dat4, 
-            pollution_index_selected_analytes ~
-              + Mn + Pb+ Be+ Al+ Cr+ Fe +Ni+ Cu + Zn +As + Se + Cd + Ba + 
-              season+ community+ proximity.km
-            + (1|community:site),
-            REML = F) #ML for comparison, REML for final
-anova(cfia.1)
-vif(cfia.1)
-
-step(cfia.1, scope=list(lower=cfia.0), direction="both")
-    
-cfia.2 <- lmer(data =  pli_dat4, 
-               pollution_index_selected_analytes ~ 
-                Mn + Pb + Al + Cr + Cu + Zn + As + Se + Cd + Ba + proximity.km
-              + (1 | community:site),
-              REML = F)
-vif(cfia.2)
-anova(cfia.2)
-summary(cfia.2)
-
-
-
-
-
-
-
-
-
-cf2 <- lmer(data =  pli_dat3,
-            concentration_factor ~
-              + analytes + season + proximity.km + community + analytes:season + analytes:community
-            + (1|community:site),
-            REML = F) #ML for comparison, REML for final
-
-anova(cf1, cf2) #models not significantly different but cf2 has a slightly lower BIC
-vif(cf2)
-anova(cf2) #all the variables are significant
-summary(cf2)
-r2(cf2) 
-plot(cf2)
-model.effects <- allEffects(cf2)
-plot(model.effects) 
-
-cf3 <- lmer (data= pli_dat3,
-             concentration_factor~ 
-               + analytes + season + proximity.km
-             + community + proximity.km:community+ 
-               (1|community:site),
-             REML = F)
-anova(cf3)
-summary(cf3)
-vif(cf3)
-anova (cf3, cf2) #cf2 is a much better and much simpler model and there is a significant difference between the models. 
-r2(cf3) #this model can only explain 7% of the variation. I don't think this is enough 
-
-
-
-cf4 <- lmer(data =  pli_dat3,
-            concentration_factor ~
-              + analytes  + season + proximity.km + community
-            + (1|community:site),
-            REML = F) #ML for comparison, REML for final
-
-anova(cf2, cf4) #cf4 is a. much simpler model
-vif(cf4)
-anova(cf4) #all the variables are significant
-summary(cf4)
-r2(cf4) 
-plot(cf4)
-model.effects <- allEffects(cf4)
-plot(model.effects) 
-
+cfg2 <- lmer(data =cf_globe,
+             pli_contaminants ~  Mn + Pb+  Cd + Be + Cr + Zn + 
+               (1 |site),
+             REML= T)
+anova(cfg2) #only mn, pb, cd, be, cr, and zn are significant
+summary(cfg2)
+plot(cfg2)
+model.effects <- allEffects(cfg2)
+plot(model.effects)
+r2(cfg2)
 
 #load control data ----
 ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
@@ -640,6 +598,18 @@ dat.long <- pivot_longer(data = dat,
                          cols = Be:Pb,
                          names_to = "analyte",
                          values_to = "value")
+
+
+
+
+
+
+
+
+
+
+
+
 setwd("/users/godsgiftnkechichukwuonye/Desktop/PhD Stuff/PH_Figures")
 setwd("~/Documents/GitHub/project-harvest-GC/Figures")
 

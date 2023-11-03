@@ -2,25 +2,10 @@
 #Description: Functions for summary tables and figures of Project Harvest inorganic analyte data
 
 #load libraries ----
-library(car)
-library(readxl)
+library(readxl) #read excel files
 library(tidyverse)
 library(ggplot2)
-<<<<<<< HEAD
 library(table1)
-=======
-library(EnvStats)
-library(lme4)
-library(lmerTest)
-library(performance)
-library(effects)
-library(ggeffects)
-library(ggpubr)
-library(emmeans)
-library(multcomp)
-library(patchwork)
-library(aod)
->>>>>>> 4a3606807d342ea4265e0ef41e37623614b97a0d
 #set working directory
 #setwd("")
 
@@ -138,120 +123,18 @@ iw.dm <- iw.dm[!is.na(iw.dm$community),]
 iw.dm$landuse <- "Mining Community"
 iw.dm[iw.dm$community=="Tucson",]$landuse <- "Urban Community"
 
-# #ph EC summary ----
-# iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
-# na.omit(iw.dm$pH)
-# iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
-# na.omit(iw.dm$EC)
-# aggregate(iw.pHec$EC,
-#           by = list(iw.pHec$season),
-#           FUN = max)
-# 
-# 
-# 
-# median(iw.pHec$EC)
-
-
-#add pollution load index ----
-pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
-#pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
-iw.dm$pli <- pli$pli_contaminants
-iw.dm <- iw.dm[-c(19,39),]
-iw.dm <- iw.dm[iw.dm$site!="H222",]
- #pli summary table====
-table1(~ pli|community, 
-       data=iw.dm,
-       overall=F)
-table1(~pli|community, 
-       data=iw.dm,
-       render.continuous=c(.="Mean (sd)", .="Median [Min, Max]",
-                           .="GMEAN (GSD)"))
-
-
-ggplot(iw.dm, aes(x=community, y=pli,  fill=community)) + 
-  stat_boxplot(geom ='errorbar') +
-  geom_boxplot()+
-  xlab(label = "Community") +
-  ylab(label = "Pollution Load Index") +
-  scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
-  theme_bw() +
-  theme(strip.text = element_blank(),
-        text = element_text(size=17, family = "Arial", face="bold"),
-        panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.line.x = element_blank(),
-        plot.title = element_text(hjust=.5, face = "bold"),
-        plot.subtitle = element_text(hjust=.5),
-        legend.title=element_text(size=14),
-        legend.text=element_text(size=14, face= "bold"),
-        legend.position = "bottom") +
-        scale_y_continuous(limits = c(0,30))
+#ph EC summary ----
+iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
+na.omit(iw.dm$pH)
+iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
+na.omit(iw.dm$EC)
+aggregate(iw.pHec$EC,
+          by = list(iw.pHec$season),
+          FUN = max)
 
 
 
-ggplot(iw.dm, aes(x=season, y=pli,  fill=season)) + 
-  stat_boxplot(geom ='errorbar') +
-  geom_boxplot()+
-  xlab(label = "Season") +
-  ylab(label = "Pollution Load Index") +
-  scale_fill_manual(values=c("red", "blue"))+
-  theme_bw() +
-  theme(strip.text = element_blank(),
-        text = element_text(size=17, family = "Arial", face="bold"),
-        panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.line.x = element_blank(),
-        plot.title = element_text(hjust=.5, face = "bold"),
-        plot.subtitle = element_text(hjust=.5),
-        legend.title=element_text(size=14),
-        legend.text=element_text(size=14, face= "bold"),
-        legend.position = "bottom")+
-  scale_y_continuous(limits = c(0,10))
-
-
-
-
-pli_dat<- pli[-c(19,39),]
-pli_dat <- pli_dat[pli_dat$site!="H222",]
-pli_short<-  pli_dat[, -c(15, 19, 25, 26, 28, 29)]
-pli_dat2<- pivot_longer(pli_short,
-                    cols = Be:Pb,
-                    values_to = "concentration_factor",
-                    names_to = "analytes")
-
-
-#outliers ----
-#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
-#G428IWA23-20190730 and H209IWA23-20190709
-iw.dm <- iw.dm[-c(19,39),]
-iw.dm <- iw.dm[iw.dm$site!="H222",]
-
-
-#add proximity to point source ----
-com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
-#com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
-iw.dm <- full_join(iw.dm, com, by = c("site"))
-iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
-
-#add proximity to cfactor dataframe
-pli_dat3 <- full_join(pli_dat2, com, by = c("site"))
-pli_dat3 <- pli_dat3[!is.na(pli_dat3$mlod.name),]
-pli_dat4<- pivot_wider(pli_dat3,
-                       values_from = "concentration_factor",
-                       names_from= "analytes")
-
-
-<<<<<<< HEAD
-=======
-#outliers ----
-#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
-#G428IWA23-20190730 and H209IWA23-20190709
-iw.dm <- iw.dm %>%
-  filter(!str_detect(sample.name, "G428IWA23-20190730")) %>%
-  filter(!str_detect(sample.name, "H209IWA23-20190709")) %>%
-  filter(!str_detect(site, "H22"))
+median(iw.pHec$EC)
 
 #longer ----
 iw.dm.long <- pivot_longer(iw.dm,
@@ -274,20 +157,185 @@ iw.dm.long <- pivot_longer(iw.dm,
 
 
 
+#add proximity to point source ----
+#com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+iw.dm <- full_join(iw.dm, com, by = c("site"))
+iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
+
+#add proximity to cfactor dataframe
+pli_dat3 <- full_join(pli_dat2, com, by = c("site"))
+pli_dat3 <- pli_dat3[!is.na(pli_dat3$mlod.name),]
+pli_dat4<- pivot_wider(pli_dat3,
+                       values_from = "contamination_factor",
+                       names_from= "analytes")
+#add pollution load index ----
+pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
+#pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
+iw.dm$pli <- pli$pli_contaminants
+#outliers ----
+#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
+#G428IWA23-20190730 and H209IWA23-20190709
+iw.dm <- iw.dm[-c(19,39),]
+iw.dm <- iw.dm[iw.dm$site!="H222",]
+ #pli summary table====
+table1(~ pli|community, 
+       data=iw.dm,
+       overall=F)
+table1(~pli|community+season, 
+       data=iw.dm,
+       render.continuous=c(.="Mean (sd)", .="Median [Min, Max]",
+                           .="GMEAN (GSD)"))
+kruskal.test(iw.dm$pli, iw.dm$community)
+library(dunn.test)
+dunn.test  (iw.dm$pli, g=iw.dm$community, kw=TRUE, label=TRUE, 
+            wrap=FALSE, table=TRUE, list=FALSE, rmc=FALSE, alpha=0.05, altp=FALSE) #performs the posthoc test to see where the differences lie
+
+ggplot(iw.dm, aes(x=community, y=pli,  fill=community)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Community") +
+  ylab(label = "Pollution Load Index") +
+  scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom") +
+        scale_y_continuous(limits = c(0,30))
+ggplot(iw.dm, aes(x=community, y=pli,  fill=community)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Community") +
+  ylab(label = "Pollution Load Index") +
+  scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom") +
+  scale_y_continuous(limits = c(0,5))
 
 
 
+kruskal.test(iw.dm$pli, iw.dm$season) #significant difference by season
+dunn.test  (iw.dm$pli, g=iw.dm$season, kw=TRUE, label=TRUE, 
+            wrap=FALSE, table=TRUE, list=FALSE, rmc=FALSE, alpha=0.05, altp=FALSE) #performs the posthoc test to see where the differences lie
+
+ggplot(iw.dm, aes(x=season, y=pli,  fill=season)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Season") +
+  ylab(label = "Pollution Load Index") +
+  scale_fill_manual(values=c("purple", "darkgreen"))+
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom")+
+  scale_y_continuous(limits = c(0,30))
+
+ggplot(iw.dm, aes(x=season, y=pli,  fill=season)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Season") +
+  ylab(label = "Pollution Load Index") +
+  scale_fill_manual(values=c("purple", "darkgreen"))+
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom")+
+  scale_y_continuous(limits = c(0,5))
+
+
+#contamination factor=====
+pli_dat<- pli[-c(19,39),]
+pli_dat <- pli_dat[pli_dat$site!="H222",]
+pli_short<-  pli_dat[, -c(15, 19, 25, 26, 28, 29)]
+pli_dat2<- pivot_longer(pli_short,
+                    cols = Be:Pb,
+                    values_to = "contamination_factor",
+                    names_to = "analytes")
+
+table1(~contamination_factor|analytes+community, 
+       data=pli_dat2,
+       render.continuous=c(.="Mean (sd)", .="Median [Min, Max]",
+                           .="GMEAN (GSD)"))
 
 
 
+ggplot(pli_dat2, aes(x=season, y=contamination_factor,  fill=analytes)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Season") +
+  ylab(label = "Contamination Factor") +
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom")+
+  scale_y_continuous(limits = c(0,5))
 
 
+ggplot(pli_dat2, aes(x=community, y=contamination_factor,  fill=analytes)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Community") +
+  ylab(label = "Contamination Factor") +
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom")+
+  scale_y_continuous(limits = c(0,5))
 
 
+#
 
 
-
->>>>>>> 4a3606807d342ea4265e0ef41e37623614b97a0d
 
 
 
