@@ -23,7 +23,7 @@ library(patchwork)
 
 #set working directory----
 #setwd("/users/godsgiftnkechichukwuonye/Documents/GitHub/WorkingFiles/data/data_processing")
-setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
+#setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 
 #pli summary stats community ----
 
@@ -40,6 +40,80 @@ prox.summary <- iw.dm %>%
 view(prox.summary) 
 
 plot(log(iw.dm$pli) ~ iw.dm$proximity.km)
+
+#Cfactor Ranking ----
+##density plots ----
+ggplot(data=pli_dat3, aes(x=concentration_factor, group=analytes, fill=analytes)) +
+  geom_density(adjust=1.5) +
+  theme_bw() +
+  facet_wrap(~analytes, scales = "free") +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    axis.ticks.x=element_blank()
+  )
+
+ggplot(data=pli_dat3, aes(x=log(concentration_factor), group=analytes, fill=analytes)) +
+  geom_density(adjust=1.5) +
+  theme_bw() +
+  facet_wrap(~analytes, scales = "free") +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    axis.ticks.x=element_blank()
+  )
+
+
+##mean by community ----
+cfactor.summary.m <- pli_dat3 %>%
+  group_by(analytes, community) %>%
+  summarise(mean = mean(na.omit(concentration_factor)))
+cfactor.summary.wide.m <- pivot_wider(data = cfactor.summary.m,
+                                    values_from = "mean",
+                                    names_from = "community")
+view(cfactor.summary.wide.m) 
+#DH: Zn. Ni, Cu, Cr, Ba
+#GM: Cu, Zn, Ni, Cd, Mn
+#HW: Cu, Zn, Cd, As, Ba
+#TU: Zn, Pb, Cu, Ba, Ni
+
+#Zn, Cu, 
+#Ni in DH, GM, TU
+#Cr in GH
+#Ba in DH, HW, TU
+#Cd in GM, HW
+#Mn in GM
+#As in HW
+#Pb in TU
+
+##geomean by community ----
+cfactor.summary.gm <- pli_dat3 %>%
+  group_by(analytes, community) %>%
+  summarise(mean = geoMean(na.omit(concentration_factor)))
+cfactor.summary.wide.gm <- pivot_wider(data = cfactor.summary.gm,
+                                    values_from = "mean",
+                                    names_from = "community")
+view(cfactor.summary.wide.gm) 
+#DH: Zn. Ni, As, Ba, Cu
+#GM: Zn, Cu, Cd, Ba, Ni
+#HW: Cu, Cd, As, Ba, Zn
+#TU: Zn, Cu, Ba, Ni, Pb
+
+#Zn, Cu, Ba in all
+#As in HW and DH
+#Ni in DH, GM, TU
+#Cd in GM, HW
+#Pb in TU
+
+#use all 7 for community modeling
+#Zn, Cu, Ba, Ni, Cd, As, Pb
+
+#DH
+#concentration ~ proximity + season + analyte + proximity:analyte + season:analyte
+
+#signif based on modeling
+#Cu, Cd, Ni, Pb, Zn
+#Mn, Pb, Al, Cr, Cu, Zn, As, Se, Cd, Ba
 
 #graph to viz associations by source
 ggplot(data = iw.dm, mapping = aes(y = pli, x = proximity.km, color = community)) + 

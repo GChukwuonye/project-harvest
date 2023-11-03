@@ -2,10 +2,25 @@
 #Description: Functions for summary tables and figures of Project Harvest inorganic analyte data
 
 #load libraries ----
-library(readxl) #read excel files
+library(car)
+library(readxl)
 library(tidyverse)
 library(ggplot2)
+<<<<<<< HEAD
 library(table1)
+=======
+library(EnvStats)
+library(lme4)
+library(lmerTest)
+library(performance)
+library(effects)
+library(ggeffects)
+library(ggpubr)
+library(emmeans)
+library(multcomp)
+library(patchwork)
+library(aod)
+>>>>>>> 4a3606807d342ea4265e0ef41e37623614b97a0d
 #set working directory
 #setwd("")
 
@@ -123,35 +138,18 @@ iw.dm <- iw.dm[!is.na(iw.dm$community),]
 iw.dm$landuse <- "Mining Community"
 iw.dm[iw.dm$community=="Tucson",]$landuse <- "Urban Community"
 
-#ph EC summary ----
-iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
-na.omit(iw.dm$pH)
-iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
-na.omit(iw.dm$EC)
-aggregate(iw.pHec$EC,
-          by = list(iw.pHec$season),
-          FUN = max)
-
-
-
-median(iw.pHec$EC)
-
-#longer ----
-iw.dm.long <- pivot_longer(iw.dm,
-                           cols = Be:Pb,
-                           values_to = "value",
-                           names_to = "analyte")
-
-# iw.dm.detects.long <- pivot_longer(iw.dm.detects,
-#                                    cols = Be:Pb,
-#                                    values_to = "detection",
-#                                    names_to = "analyte")
+# #ph EC summary ----
+# iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
+# na.omit(iw.dm$pH)
+# iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
+# na.omit(iw.dm$EC)
+# aggregate(iw.pHec$EC,
+#           by = list(iw.pHec$season),
+#           FUN = max)
 # 
 # 
-# iw.mlod.dm.long <- pivot_longer(iw.mlod.dm,
-#                                 cols=Be:Pb,
-#                                 values_to = "value",
-#                                 names_to = "analyte")
+# 
+# median(iw.pHec$EC)
 
 
 #add pollution load index ----
@@ -245,6 +243,51 @@ pli_dat4<- pivot_wider(pli_dat3,
                        names_from= "analytes")
 
 
+<<<<<<< HEAD
+=======
+#outliers ----
+#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
+#G428IWA23-20190730 and H209IWA23-20190709
+iw.dm <- iw.dm %>%
+  filter(!str_detect(sample.name, "G428IWA23-20190730")) %>%
+  filter(!str_detect(sample.name, "H209IWA23-20190709")) %>%
+  filter(!str_detect(site, "H22"))
+
+#longer ----
+iw.dm.long <- pivot_longer(iw.dm,
+                           cols = Be:Pb,
+                           values_to = "value",
+                           names_to = "analyte")
+
+# iw.dm.detects.long <- pivot_longer(iw.dm.detects,
+#                                    cols = Be:Pb,
+#                                    values_to = "detection",
+#                                    names_to = "analyte")
+# 
+# 
+# iw.mlod.dm.long <- pivot_longer(iw.mlod.dm,
+#                                 cols=Be:Pb,
+#                                 values_to = "value",
+#                                 names_to = "analyte")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 4a3606807d342ea4265e0ef41e37623614b97a0d
 
 
 
