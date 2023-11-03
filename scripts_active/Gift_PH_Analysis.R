@@ -5,6 +5,7 @@
 library(readxl) #read excel files
 library(tidyverse)
 library(ggplot2)
+library(table1)
 #set working directory
 #setwd("")
 
@@ -156,7 +157,64 @@ iw.dm.long <- pivot_longer(iw.dm,
 #add pollution load index ----
 pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
 #pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
-iw.dm$pli <- pli$pollution_index_selected_analytes
+iw.dm$pli <- pli$pli_contaminants
+iw.dm <- iw.dm[-c(19,39),]
+iw.dm <- iw.dm[iw.dm$site!="H222",]
+ #pli summary table====
+table1(~ pli|community, 
+       data=iw.dm,
+       overall=F)
+table1(~pli|community, 
+       data=iw.dm,
+       render.continuous=c(.="Mean (sd)", .="Median [Min, Max]",
+                           .="GMEAN (GSD)"))
+
+
+ggplot(iw.dm, aes(x=community, y=pli,  fill=community)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Community") +
+  ylab(label = "Pollution Load Index") +
+  scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom") +
+        scale_y_continuous(limits = c(0,30))
+
+
+
+ggplot(iw.dm, aes(x=season, y=pli,  fill=season)) + 
+  stat_boxplot(geom ='errorbar') +
+  geom_boxplot()+
+  xlab(label = "Season") +
+  ylab(label = "Pollution Load Index") +
+  scale_fill_manual(values=c("red", "blue"))+
+  theme_bw() +
+  theme(strip.text = element_blank(),
+        text = element_text(size=17, family = "Arial", face="bold"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank(),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=14, face= "bold"),
+        legend.position = "bottom")+
+  scale_y_continuous(limits = c(0,10))
+
+
+
+
 pli_dat<- pli[-c(19,39),]
 pli_dat <- pli_dat[pli_dat$site!="H222",]
 pli_short<-  pli_dat[, -c(15, 19, 25, 26, 28, 29)]
@@ -166,7 +224,11 @@ pli_dat2<- pivot_longer(pli_short,
                     names_to = "analytes")
 
 
-
+#outliers ----
+#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
+#G428IWA23-20190730 and H209IWA23-20190709
+iw.dm <- iw.dm[-c(19,39),]
+iw.dm <- iw.dm[iw.dm$site!="H222",]
 
 
 #add proximity to point source ----
@@ -183,11 +245,7 @@ pli_dat4<- pivot_wider(pli_dat3,
                        names_from= "analytes")
 
 
-#outliers ----
-#remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
-#G428IWA23-20190730 and H209IWA23-20190709
-iw.dm <- iw.dm[-c(19,39),]
-iw.dm <- iw.dm[iw.dm$site!="H222",]
+
 
 
 #reset working directory for figures ----
