@@ -123,18 +123,18 @@ iw.dm <- iw.dm[!is.na(iw.dm$community),]
 iw.dm$landuse <- "Mining Community"
 iw.dm[iw.dm$community=="Tucson",]$landuse <- "Urban Community"
 
-#ph EC summary ----
-iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
-na.omit(iw.dm$pH)
-iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
-na.omit(iw.dm$EC)
-aggregate(iw.pHec$EC,
-          by = list(iw.pHec$season),
-          FUN = max)
-
-
-
-median(iw.pHec$EC)
+# #ph EC summary ----
+# iw.pHec <- iw.dm[!is.na(iw.dm$pH),]
+# na.omit(iw.dm$pH)
+# iw.pHec <- iw.dm[!is.na(iw.dm$EC),]
+# na.omit(iw.dm$EC)
+# aggregate(iw.pHec$EC,
+#           by = list(iw.pHec$season),
+#           FUN = max)
+# 
+# 
+# 
+# median(iw.pHec$EC)
 
 #longer ----
 iw.dm.long <- pivot_longer(iw.dm,
@@ -158,8 +158,8 @@ iw.dm.long <- pivot_longer(iw.dm,
 
 
 #add proximity to point source ----
-#com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
-com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+#com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
 iw.dm <- full_join(iw.dm, com, by = c("site"))
 iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 

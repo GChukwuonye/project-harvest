@@ -7,6 +7,17 @@
 ###
 ###
 ###
+###
+#load libraries
+library(readxl)
+library(MASS)
+library(tidyverse)
+library(ggplot2)
+library(EnvStats)
+library(aod)
+library(wesanderson)
+
+
 #load data ----
 standards <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/Standards.xlsx", sheet = "standards", col_names = TRUE)
 #standards <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/Standards.xlsx", sheet = "standards", col_names = TRUE)
@@ -48,6 +59,33 @@ sumtable.wide <- pivot_wider(data = sumtable.small,
 view(sumtable.wide)
 write.csv(sumtable.wide, "test.csv")
 
+#viz ----
+ggplot(ex.dat.long, mapping = aes(x = analyte, fill = as.factor(exceedance))) +
+  geom_bar() +
+  scale_fill_manual(values = wes_palette(name = "Darjeeling2", n = 4),
+                    labels = c("No Exceedance", "Exceedance")) +
+  #scale_fill_viridis_d() +
+  facet_grid(standard~., scales = "free") +
+  labs(x = "\nAnalyte",
+       y = "Counte\n",
+       title = "Count of exceedances by analyte and available standards",
+       fill = "")+
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 15),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        strip.background = element_rect(fill = "white"),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "iw_exceedance_overall.png", res=300, height=10, width=7, units="in")
+
+
+
 #overall top 5 # of exceedances
 #AI: Cu, Zn, Mn, Mo, Cd
 #DW: Al, Mn, Fe, As, Pb
@@ -75,7 +113,7 @@ exp(coef(aicu.1))
 performance(aicu.1)
 #controlling for season and community, proximity to point source doesnt show a substantial or significant influence on odds of AI Cu exceedance
 
-aicu.2 <- step(aicu.0,scope = list(upper=aicu.1), direction="both",test="Chisq", trace = F)
+aicu.2 <- stepAIC(aicu.0,scope = list(upper=aicu.1), direction="both",test="Chisq", trace = F, k = log(n))
 summary(aicu.2) #no significant community effect
 vif(aicu.2)
 check_model(aicu.2)
