@@ -16,6 +16,14 @@ library(ggplot2)
 library(EnvStats)
 library(aod)
 library(wesanderson)
+library(car)
+library(GGally)
+library(reshape2)
+library(lme4)
+library(compiler)
+library(parallel)
+library(boot)
+library(lattice)
 
 
 #load data ----
@@ -42,7 +50,7 @@ ex.dat.long <- ex.dat.long %>%
 
 #summary ----
 #name subset columns
-cols <- c("standard", "analyte", "season", "community")
+cols <- c("standard", "analyte")
 
 #calculate counts and percentages of the whole
 sumtable <- ex.dat.long %>%
@@ -51,13 +59,13 @@ sumtable <- ex.dat.long %>%
             exceedances_n = sum(exceedance),
             exceedances_freq = signif(sum(exceedance)/n()*100, 2))
 
-sumtable.small <- subset(sumtable, select = -c(n, exceedances_n))
+sumtable.small <- subset(sumtable, select = -c(exceedances_n))
 
 sumtable.wide <- pivot_wider(data = sumtable.small,
                              names_from = "standard",
                              values_from = "exceedances_freq")
 view(sumtable.wide)
-write.csv(sumtable.wide, "test.csv")
+write.csv(sumtable.wide, "exceedance%_overall.csv")
 
 #viz ----
 ggplot(ex.dat.long, mapping = aes(x = analyte, fill = as.factor(exceedance))) +
@@ -85,6 +93,31 @@ ggplot(ex.dat.long, mapping = aes(x = analyte, fill = as.factor(exceedance))) +
 dev.print(png, "iw_exceedance_overall.png", res=300, height=10, width=7, units="in")
 
 
+ggplot(ex.dat.long, mapping = aes(x = analyte, y = as.factor(exceedance), fill = as.factor(community))) +
+  stat_sum(aes(size = ..n.., group = 1), position = "jitter", shape = 21) +
+  scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+  # #scale_fill_viridis_d() +
+  facet_grid(standard~analyte, scales = "free") +
+  labs(x = "\nAnalyte",
+       y = "Exceedance\n",
+       title = "Count of exceedances by analyte and available standards",
+       fill = "Community",
+       size = "Count")+
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 15),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position="right",
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        strip.background = element_rect(fill = "white"),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "iw_exceedance_com.png", res=300, height=10, width=12, units="in")
+
 
 #overall top 5 # of exceedances
 #AI: Cu, Zn, Mn, Mo, Cd
@@ -99,10 +132,11 @@ ex.dat.long.prox <- ex.dat.long %>%
   drop_na(proximity.km)
 
 ##copper----
+#null model
 aicu.0 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",],
               exceedance ~ 1,
               family = "binomial")
-
+#maximal model
 aicu.1 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",],
           exceedance ~ season+community+proximity.km+community:proximity.km,
           family = "binomial")
@@ -113,12 +147,20 @@ exp(coef(aicu.1))
 performance(aicu.1)
 #controlling for season and community, proximity to point source doesnt show a substantial or significant influence on odds of AI Cu exceedance
 
-aicu.2 <- stepAIC(aicu.0,scope = list(upper=aicu.1), direction="both",test="Chisq", trace = F, k = log(n))
+aicu.2 <- stepAIC(aicu.0,scope = list(upper=aicu.1), direction="both", trace = T)
 summary(aicu.2) #no significant community effect
 vif(aicu.2)
 check_model(aicu.2)
 exp(coef(aicu.2))
 performance(aicu.2)
+
+#get confidence intervals for estimates
+se <- sqrt(diag(vcov(aicumm.1)))
+# table of estimates with 95% CI
+(tab <- cbind(Est = fixef(aicumm.1), LL = fixef(aicumm.1) - 1.96 * se, UL = fixef(aicumm.1) + 1.96 *
+                se))
+exp(tab)
+
 
 ##zinc ----
 aizn.0 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Zn",],
@@ -177,6 +219,34 @@ exp(-4.7431)/(1+(exp(-4.7431)))
 #odds of having an AI exceedance during winter is 
 
 #Scratch Work ----
+
+#null model
+aicumm.0 <- glmer(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",],
+                  exceedance ~ 1 +
+                    (1|site),
+                  family = binomial, control = glmerControl(optimizer = "bobyqa"), nAGQ = 10)
+summary(aicumm.0)
+
+#max model
+aicumm.1 <- glmer(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",],
+                  exceedance ~ season+community+proximity.km +
+                    (1|site),
+                  family = binomial, control = glmerControl(optimizer = "bobyqa"), nAGQ = 10)
+summary(aicumm.1)
+aod(aicumm.1)
+#get confidence intervals for estimates
+se <- sqrt(diag(vcov(aicumm.1)))
+# table of estimates with 95% CI
+(tab <- cbind(Est = fixef(aicumm.1), LL = fixef(aicumm.1) - 1.96 * se, UL = fixef(aicumm.1) + 1.96 *
+                se))
+exp(tab)
+
+
+aicumm.2 <- stepAIC(aicumm.1, direction="both", trace = F,
+                    data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",])
+
+
+
 summarize(n = n(),
             min = min(.data[[exceedance]]),
             max = max(.data[[exceedance]]),
