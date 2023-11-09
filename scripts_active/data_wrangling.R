@@ -187,3 +187,77 @@ iw.ln.dm.long <- subset(iw.dm.long, select = -c(value))
 iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
                          values_from = "ln_value",
                          names_from ="analyte")
+
+#Summaries ----
+contam_list <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
+
+
+#distributions
+lapply(X = contam_list,
+       FUN = violintransFX,
+       dataDF = iw.dm.longer,
+       type.string = "iw",
+       subset.string = "community",
+       subset.title.string = "Community",
+       facet.string = "transformation",
+       facet.title.string = "",
+       units.string = "ln(mg/kg) and (mg/kg)")
+
+#Functions ----
+violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.string, facet.string, facet.title.string, units.string, type.string){
+  
+  #load libraries
+  library(ggplot2)
+  library(tidyverse)
+  
+  #assign data
+  dat <- dataDF
+  type <- type.string
+  analyte <- analyte.string
+  subset <- subset.string
+  subset.title <- subset.title.string
+  fac <- facet.string
+  fac.title <- facet.title.string
+  units <- units.string
+  
+  #format data
+  dat <- dat %>%
+    drop_na(!!subset)
+  
+  #write graph
+  p <- ggplot(data = dat[dat$analyte == c(analyte),],
+              mapping = aes_string(y = "concentration", x = subset, fill = subset)) +
+    geom_violin() +
+    geom_jitter(color="black", size=0.7, alpha=0.25) +
+    labs(title = paste(analyte,"Concentrations by", subset.title, fac.title),
+         fill = "",
+         x = paste("\n",subset.title),
+         y = paste("[",analyte,"] ",units,"\n", sep="")) +
+    scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+    facet_wrap(facets = as.formula(paste("~", fac)),scales = "free")+
+    theme_bw() +
+    theme(text = element_text(family = "Avenir", size = 15),
+          plot.title = element_text(hjust=.5, face = "bold"),
+          plot.subtitle = element_text(hjust=.5),
+          strip.background = element_rect(fill = "white"),
+          axis.text = element_text(vjust = .5, color = "black"),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom",
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.line.y = element_blank(),
+          axis.line.x = element_blank())
+  print(p)
+  dev.print(png, paste(type,"_", analyte, "_vplot_", subset, ".png", sep=""), res=300, height=7, width=12, units="in")
+  
+}
+
+violintransFX(dataDF = iw.dm.longer,
+            type.string = "iw",
+            analyte.string = "Zn",
+            subset.string = "community",
+            subset.title.string = "Community",
+            facet.string = "transformation",
+            facet.title.string = "",
+            units.string = "ln(mg/kg) and (mg/kg)")
