@@ -168,3 +168,22 @@ iw.dm.long <- pivot_longer(iw.dm,
                            values_to = "value",
                            names_to = "analyte")
 
+#calculate natural log
+iw.dm.long$ln_value <- log(iw.dm.long$value)
+
+#create longer version to compare transformation
+iw.dm.longer <- pivot_longer(data = iw.dm.long,
+                           cols = c(value,ln_value),
+                           names_to = "transformation",
+                           values_to = "concentration")
+
+iw.dm.longer[iw.dm.longer$transformation == "value",]$transformation <- "untransformed"
+iw.dm.longer[iw.dm.longer$transformation == "ln_value",]$transformation <- "natural log"
+
+iw.dm.longer$transformation <- as.factor(iw.dm.longer$transformation)
+
+#create natural log dataframes for analysis
+iw.ln.dm.long <- subset(iw.dm.long, select = -c(value))
+iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
+                         values_from = "ln_value",
+                         names_from ="analyte")
