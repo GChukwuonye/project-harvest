@@ -168,7 +168,7 @@ iw.dm.long <- pivot_longer(iw.dm,
                            values_to = "value",
                            names_to = "analyte")
 
-#calculate natural log
+#calculate natural log ----
 iw.dm.long$ln_value <- log(iw.dm.long$value)
 
 #create longer version to compare transformation
@@ -188,6 +188,8 @@ iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
                          values_from = "ln_value",
                          names_from ="analyte")
 
+
+
 #Summaries ----
 contam_list <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
 
@@ -202,6 +204,43 @@ lapply(X = contam_list,
        facet.string = "transformation",
        facet.title.string = "",
        units.string = "ln(mg/kg) and (mg/kg)")
+
+#by community
+#boxplots by community
+boxplotFX(dataDF = iw.ln.dm,
+          type.string = "iw",
+          analyte.string = "pH",
+          subset.string = "community",
+          subset.title.string = "Community",
+          units.string = "")
+
+lapply(X=contam_list,
+       FUN = boxplotFX,
+       dataDF = iw.ln.dm,
+       type.string = "iw",
+       subset.string = "community",
+       subset.title.string = "Community",
+       units.string = "(ln(mg/kg))")
+
+#by community and sampling window
+violinfacFX(dataDF = iw.ln.dm,
+          type.string = "iw",
+          analyte.string = "pH",
+          subset.string = "samplings",
+          subset.title.string = "Sampling Window",
+          units.string = "",
+          facet.string = "community",
+          facet.title.string = "Community")
+
+lapply(X=contam_list,
+       FUN = violinfacFX,
+       dataDF = iw.ln.dm,
+       type.string = "iw",
+       subset.string = "samplings",
+       subset.title.string = "sampling_window",
+       facet.string = "community",
+       facet.title.string = "Community",
+       units.string = "(ln(mg/kg))")
 
 #Functions ----
 violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.string, facet.string, facet.title.string, units.string, type.string){
@@ -253,11 +292,96 @@ violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.st
   
 }
 
-violintransFX(dataDF = iw.dm.longer,
-            type.string = "iw",
-            analyte.string = "Zn",
-            subset.string = "community",
-            subset.title.string = "Community",
-            facet.string = "transformation",
-            facet.title.string = "",
-            units.string = "ln(mg/kg) and (mg/kg)")
+# violintransFX(dataDF = iw.dm.longer,
+#             type.string = "iw",
+#             analyte.string = "Zn",
+#             subset.string = "community",
+#             subset.title.string = "Community",
+#             facet.string = "transformation",
+#             facet.title.string = "",
+#             units.string = "ln(mg/kg) and (mg/kg)")
+
+
+boxplotFX <- function(dataDF, analyte.string, subset.string, subset.title.string, units.string, type.string){
+  
+  library(ggplot2)
+  library(tidyverse)
+  
+  dat <- dataDF
+  type <- type.string
+  analyte <- analyte.string
+  subset <- subset.string
+  subset.title <- subset.title.string
+  units <- units.string
+
+  p <- ggplot(data = dat,
+              mapping = aes_string(y = analyte, x = subset, fill = subset)) +
+    geom_boxplot() +
+    labs(title = paste(analyte,"Concentrations by", subset.title),
+         fill = "",
+         x = paste("\n",subset.title),
+         y = paste("[",analyte,"] ",units,"\n", sep="")) +
+    scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+    theme_bw() +
+    theme(text = element_text(family = "Avenir", size = 15),
+          plot.title = element_text(hjust=.5, face = "bold"),
+          plot.subtitle = element_text(hjust=.5),
+          axis.text = element_text(vjust = .5, color = "black"),
+          axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+          legend.position="none",
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank(),
+          axis.line.y = element_blank(),
+          axis.line.x = element_blank())
+  print(p)
+  dev.print(png, paste(type,"_", analyte, "bplot_", subset,".png", sep=""), res=300, height=7, width=10, units="in")
+  
+}
+
+violinfacFX <- function(dataDF, analyte.string, subset.string, subset.title.string, facet.string, facet.title.string, units.string, type.string){
+  
+  #load libraries
+  library(ggplot2)
+  library(tidyverse)
+  
+  #assign data
+  dat <- dataDF
+  type <- type.string
+  analyte <- analyte.string
+  subset <- subset.string
+  subset.title <- subset.title.string
+  fac <- facet.string
+  fac.title <- facet.title.string
+  units <- units.string
+
+  #format data
+  dat <- dat %>%
+    drop_na(!!subset)
+  
+  #write graph
+  p <- ggplot(data = dat,
+              mapping = aes_string(y = analyte, x = subset, fill = subset)) +
+    geom_violin() +
+    geom_jitter(color="black", size=0.7, alpha=0.25) +
+    labs(title = paste(analyte,"Concentrations by", subset.title, "and", fac.title),
+         fill = "",
+         x = paste("\n",subset.title),
+         y = paste("[",analyte,"] ",units,"\n", sep="")) +
+    scale_fill_viridis_d()+
+    # scale_y_reverse()+
+    facet_wrap(facets = as.formula(paste("~", fac)),scales = "free")+
+    theme_bw() +
+    theme(text = element_text(family = "Avenir", size = 15),
+          plot.title = element_text(hjust=.5, face = "bold"),
+          plot.subtitle = element_text(hjust=.5),
+          axis.text = element_text(vjust = .5, color = "black"),
+          axis.text.x = element_text(),
+          legend.position="none",
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank(),
+          axis.line.y = element_blank(),
+          axis.line.x = element_blank())
+  print(p)
+  dev.print(png, paste(type,"_", analyte, "_vplot_", subset, "_", fac, ".png", sep=""), res=300, height=7, width=10, units="in")
+  
+}
