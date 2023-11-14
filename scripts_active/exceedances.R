@@ -75,7 +75,7 @@ ggplot(ex.dat.long, mapping = aes(x = analyte, fill = as.factor(exceedance))) +
   #scale_fill_viridis_d() +
   facet_grid(standard~., scales = "free") +
   labs(x = "\nAnalyte",
-       y = "Counte\n",
+       y = "Count\n",
        title = "Count of exceedances by analyte and available standards",
        fill = "")+
   theme_bw() +

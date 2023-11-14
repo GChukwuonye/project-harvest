@@ -188,6 +188,83 @@ iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
                          values_from = "ln_value",
                          names_from ="analyte")
 
+#Home description survey ----
+hds <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IO_HDS.xlsx")
+#hds <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/IO_HDS.xlsx")
+#load in data and if there is a missing value, assume participant does not follow best practices - conservative estimate. No is a zero. Yes is a 1
+
+##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
+hds$Q67 <- as.character(hds$Q67)
+hds[is.na(hds$Q67),]$Q67 <- "0"
+hds[hds$Q67=="0",]$Q67 <- "0"
+hds[hds$Q67=="1",]$Q67 <- "1"
+hds[hds$Q67=="2",]$Q67 <- "0"
+hds$Q67 <- as.numeric(hds$Q67)
+summary(hds$Q67)
+
+##Q71 Do you treat or wash your cistern with anything? ----
+hds$Q71 <- as.character(hds$Q71)
+hds[is.na(hds$Q71),]$Q71 <- "0"
+hds[hds$Q71=="0",]$Q71 <- "0"
+hds[hds$Q71=="1",]$Q71 <- "1"
+hds[hds$Q71=="2",]$Q71 <- "0"
+hds$Q71 <- as.numeric(hds$Q71)
+summary(hds$Q71)
+
+##Q76 Does your cistern have a first flush? ----
+hds$Q76 <- as.character(hds$Q76)
+hds[is.na(hds$Q76),]$Q76 <- "0"
+hds[hds$Q76=="0",]$Q76 <- "0"
+hds[hds$Q76=="1",]$Q76 <- "1"
+hds[hds$Q76=="2",]$Q76 <- "0"
+hds[hds$Q76=="3",]$Q76 <- "0"
+hds$Q76 <- as.numeric(hds$Q76)
+summary(hds$Q76)
+
+##Q77 Does your cistern have a screen/filter for incoming water from down spout on top of the tank? ----
+hds$Q77 <- as.character(hds$Q77)
+hds[is.na(hds$Q77),]$Q77 <- "0"
+hds[hds$Q77=="0",]$Q77 <- "0"
+hds[hds$Q77=="1",]$Q77 <- "1"
+hds[hds$Q77=="2",]$Q77 <- "0"
+hds[hds$Q77=="3",]$Q77 <- "0"
+hds$Q77 <- as.numeric(hds$Q77)
+summary(hds$Q77)
+
+##Q79 Do you ever NOT remove the screen/filter and leave your cistern without the filter? ----
+##question edited so that the Y/N response goes the same direction as the other questions
+hds$Q79 <- as.character(hds$Q79)
+hds[is.na(hds$Q79),]$Q79 <- "0"
+hds[hds$Q79=="0",]$Q79 <- "0"
+hds[hds$Q79=="1",]$Q79 <- "0"
+hds[hds$Q79=="2",]$Q79 <- "1"
+hds[hds$Q79=="100",]$Q79 <- "0"
+hds$Q79 <- as.numeric(hds$Q79)
+summary(hds$Q79)
+
+hds$score <- hds$Q67 + hds$Q71 + hds$Q76 + hds$Q77 + hds$Q79
+hds$score <- as.character(hds$score)
+hds[hds$score=="4",]$score <- "4-5"
+hds[hds$score=="5",]$score <- "4-5"
+hds$score <- as.factor(hds$score)
+summary(hds$score)
+
+iw.score <- full_join(iw.dm, hds, by = c("site"))
+iw.score <- iw.score[!is.na(iw.score$score),]
+iw.score <- iw.score[!is.na(iw.score$community),]
+
+#boxplot(log(iw.score$Cd)~iw.score$score)
+
+# ##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?
+# q67 <- hds
+# q67$Q67 <- as.character(q67$Q67)
+# q67 <- q67[q67$Q67!="0",]
+# q67 <- q67[q67$Q67!="N/A",]
+# q67 <- q67[!is.na(q67$Q67),]
+# q67[q67$Q67=="1",]$Q67 <- "Yes"
+# q67[q67$Q67=="2",]$Q67 <- "No"
+# q67$Q67 <- as.factor(q67$Q67)
+# summary(q67$Q67)
 
 
 #Summaries ----
