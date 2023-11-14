@@ -293,11 +293,13 @@ table1(~contamination_factor|analytes+community,
 
 
 
-ggplot(pli_dat2, aes(x=season, y=contamination_factor,  fill=analytes)) + 
+ggplot(pli_dat2, aes(x=analytes, y=contamination_factor,  fill=analytes)) + 
   stat_boxplot(geom ='errorbar') +
   geom_boxplot()+
   xlab(label = "Season") +
   ylab(label = "Contamination Factor") +
+  scale_fill_virdis_d()+
+  facet_grid(.~season)+
   theme_bw() +
   theme(strip.text = element_blank(),
         text = element_text(size=17, family = "Arial", face="bold"),
@@ -310,10 +312,12 @@ ggplot(pli_dat2, aes(x=season, y=contamination_factor,  fill=analytes)) +
         legend.title=element_text(size=14),
         legend.text=element_text(size=14, face= "bold"),
         legend.position = "bottom")+
-  scale_y_continuous(limits = c(0,5))
+  scale_y_continuous(limits = c(0,5)) #may need to log transform
+
+dev.print(png, “tittle.png”, res=300, height=7, width=10, units="cm")
 
 
-ggplot(pli_dat2, aes(x=community, y=contamination_factor,  fill=analytes)) + 
+ggplot(pli_dat2, aes(x=analytes, y=contamination_factor,  fill=analytes)) + 
   stat_boxplot(geom ='errorbar') +
   geom_boxplot()+
   xlab(label = "Community") +
