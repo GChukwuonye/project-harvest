@@ -30,14 +30,14 @@ iw.score.long <- pivot_longer(data = iw.score,
                               names_to = "analyte")
 
 #initial viz
-ggplot(iw.score.long, mapping = aes(y = log(concentration), x = score, fill = score)) +
+ggplot(iw.score.long, mapping = aes(y = log(concentration), x = score_bin, fill = score_bin)) +
   geom_boxplot() +
   scale_fill_manual(values = wes_palette(name = "Darjeeling2", n = 5)) +
   #scale_fill_viridis_d() +
   facet_wrap(analyte~., scales = "free") +
-  labs(x = "\nMaintenence Score",
+  labs(x = "\nMaintenance Score",
        y = "[analyte] (ln(ug/L))\n",
-       title = "Boxplots of maintenence score by analyte",
+       title = "Boxplots of maintenance score by analyte",
        fill = "")+
   theme_bw() +
   theme(text = element_text(family = "Avenir", size = 15),
@@ -51,12 +51,12 @@ ggplot(iw.score.long, mapping = aes(y = log(concentration), x = score, fill = sc
         strip.background = element_rect(fill = "white"),
         axis.line.y = element_blank(),
         axis.line.x = element_blank())
-dev.print(png, "maintainencescore_analyte.png", res=300, height=10, width=12, units="in")
+dev.print(png, "maintenancescore_analyte.png", res=300, height=10, width=12, units="in")
 
 #summary ----
 ##project ----
 sumFX(datalongDF = iw.score.long,
-      subset.vector.string = c("analyte", "score"),
+      subset.vector.string = c("analyte", "score_bin"),
       value.string = "concentration",
       dfname.string = "sum.score",
       filename.string = "score")
@@ -68,7 +68,7 @@ sumFX(datalongDF = iw.score.long,
 #anovas
 
 zn.0 <- lm(data = iw.score,
-           log(Zn) ~ score + community + season + proximity.km)
+           log(Zn) ~ score_bin + community + season + proximity.km)
 summary(zn.0)
 check_model(zn.0)
 performance(zn.0)
@@ -76,7 +76,7 @@ anova(zn.0) #score signif
 plot(allEffects(zn.0))
 
 al.0 <- lm(data = iw.score,
-           log(Al) ~ score + community + season + proximity.km)
+           log(Al) ~ score_bin + community + season + proximity.km)
 summary(al.0)
 check_model(al.0)
 performance(al.0)
@@ -84,7 +84,7 @@ anova(al.0) #score signif
 plot(allEffects(al.0))
 
 cu.0 <- lm(data = iw.score,
-           log(Cu) ~ score + community + season + proximity.km)
+           log(Cu) ~ score_bin + community + season + proximity.km)
 summary(cu.0)
 check_model(cu.0)
 performance(cu.0)
@@ -92,7 +92,7 @@ anova(cu.0) #score signif
 plot(allEffects(cu.0))
 
 pb.0 <- lm(data = iw.score,
-           log(Pb) ~ score + community + season + proximity.km)
+           log(Pb) ~ score_bin + community + season + proximity.km)
 summary(pb.0)
 check_model(pb.0)
 performance(pb.0)
@@ -100,7 +100,7 @@ anova(pb.0) #score not signif
 plot(allEffects(pb.0))
 
 cd.0 <- lm(data = iw.score,
-           log(Cd) ~ score + community + season + proximity.km)
+           log(Cd) ~ score_bin + community + season + proximity.km)
 summary(cd.0)
 check_model(cd.0)
 performance(cd.0)
