@@ -565,7 +565,100 @@ model.effects <- allEffects(cfg2)
 plot(model.effects)
 r2(cfg2)
 
-#load control data ----
+
+
+
+
+
+#cfactor modeling with log pli----
+cf_short<- pli_dat3[c(3, 4, 5, 15, 16, 17)]
+cf_wider<- pivot_wider(cf_short,
+                       names_from= analytes,
+                       values_from= contamination_factor)
+
+#cf for tucson====
+cf_tucson<- cf_wider[cf_wider$community=="Tucson",]
+
+cft0 <- lmer(data = cf_tucson,
+             log(pli_contaminants) ~ (1|site),
+             REML = F) 
+summary(cft0)
+
+cft1 <- lmer(data = cf_tucson,
+             log(pli_contaminants) ~ 
+               log(Al)+log(Mn)+log(As)+log(Pb)+log(Cu)+log(Cd)+log(Ba)+log(Be)+log(Cr)+log(Ni)+log(Zn)+
+               (1|site),
+             REML = T) 
+step(cft1, scope=list(lower=cft0), direction="both")
+cft2 <- lmer(data = cf_tucson,
+             log(pli_contaminants) ~ 
+               log(Al)+log(Mn)+log(As)+log(Pb)+log(Cu)+log(Cd)+log(Ba)+log(Be)+log(Cr)+log(Zn)+
+               (1|site),
+             REML = T) 
+anova(cft2) #everything is signficant except nickel
+summary(cft2)
+plot(cft2)
+model.effects <- allEffects(cft2)
+plot(model.effects)
+vif(cft2) 
+r2(cft2)
+
+#cf for hayden====
+cf_hayden<- cf_wider[cf_wider$community=="Hayden/Winkelman",]
+
+cfh0 <- lmer(data = cf_hayden,
+             log(pli_contaminants) ~ (1|site),
+             REML = F) 
+summary(cfh0)
+
+cfh1 <- lmer(data =cf_hayden,
+             log(pli_contaminants) ~ 
+               log(Al)+log(Mn)+log(As)+log(Pb)+log(Cu)+log(Cd)+log(Ba)+log(Be)+log(Cr)+log(Ni)+log(Zn)+
+               (1|site),
+             REML = T) 
+step(cfh1, scope=list(lower=cfh0), direction="both")
+
+
+anova(cfh1) 
+summary(cfh1)
+
+
+
+#cf for Dewey====
+cf_dewey<- cf_wider[cf_wider$community=="Dewey-Humboldt",]
+
+cfd0 <- lmer(data = cf_dewey,
+             log(pli_contaminants) ~ (1|site),
+             REML = F) 
+summary(cfd0)
+
+cfd1 <- lmer(data =cf_dewey,
+             log(pli_contaminants) ~ 
+               log(Al)+log(Mn)+log(As)+log(Pb)+log(Cu)+log(Cd)+log(Ba)+log(Be)+log(Cr)+log(Ni)+log(Zn)+
+               (1|site),
+             REML = T) 
+step(cfd1, scope=list(lower=cfd0), direction="both")
+
+
+
+#cf for Globe====
+cf_globe<- cf_wider[cf_wider$community=="Globe/Miami",]
+
+cfg0 <- lmer(data = cf_globe,
+             log(pli_contaminants) ~ (1|site),
+             REML = F) 
+summary(cfg0)
+
+cfg1 <- lmer(data =cf_globe,
+             log(pli_contaminants) ~ 
+               log(Al)+log(Mn)+log(As)+log(Pb)+log(Cu)+log(Cd)+log(Ba)+log(Be)+log(Cr)+log(Ni)+log(Zn)+
+               (1|site),
+             REML = T) 
+step(cfg1, scope=list(lower=cfg0), direction="both")
+
+
+
+control data ----
 ic.dm <- read_xlsx("IC_DMTM_Y23.xlsx", sheet = "Corrected - DM", col_names = TRUE)
 ic.dm$community <- "AZ-Background" #changes community to AZ background
 
