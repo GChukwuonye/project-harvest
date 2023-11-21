@@ -138,6 +138,8 @@ iw.dm[iw.dm$community=="Tucson",]$landuse <- "Urban Community"
 #add proximity to point source ----
 com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
 #com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+
+
 iw.dm <- full_join(iw.dm, com, by = c("site"))
 iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 
@@ -192,7 +194,8 @@ iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
 hds <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IO_HDS.xlsx")
 #hds <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/IO_HDS.xlsx")
 #load in data and if there is a missing value, assume participant does not follow best practices - conservative estimate. No is a zero. Yes is a 1
-
+#assumption: this index assumes equal influence of each best practice on rainwater quality
+#assumption/limitation: we assume that the maintenance action reported was consistent across the duration of the study
 ##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
 hds$Q67 <- as.character(hds$Q67)
 hds[is.na(hds$Q67),]$Q67 <- "0"
@@ -244,14 +247,21 @@ summary(hds$Q79)
 
 hds$score <- hds$Q67 + hds$Q71 + hds$Q76 + hds$Q77 + hds$Q79
 hds$score <- as.character(hds$score)
-hds[hds$score=="4",]$score <- "4-5"
-hds[hds$score=="5",]$score <- "4-5"
-hds$score <- as.factor(hds$score)
-summary(hds$score)
+hds$score_bin <- hds$score
+hds[hds$score_bin=="1",]$score_bin <- "1-2"
+hds[hds$score_bin=="2",]$score_bin <- "1-2"
+hds[hds$score_bin=="3",]$score_bin <- "3-5"
+hds[hds$score_bin=="4",]$score_bin <- "3-5"
+hds[hds$score_bin=="5",]$score_bin <- "3-5"
+hds$score_bin <- as.factor(hds$score_bin)
+summary(hds$score_bin)
 
 iw.score <- full_join(iw.dm, hds, by = c("site"))
-iw.score <- iw.score[!is.na(iw.score$score),]
+#write.csv(iw.score, "score_test.csv")
+iw.score <- iw.score[!is.na(iw.score$score_bin),]
 iw.score <- iw.score[!is.na(iw.score$community),]
+table(iw.score$score_bin, iw.score$community)
+
 
 #boxplot(log(iw.score$Cd)~iw.score$score)
 
