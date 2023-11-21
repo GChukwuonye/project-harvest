@@ -138,6 +138,8 @@ iw.dm[iw.dm$community=="Tucson",]$landuse <- "Urban Community"
 #add proximity to point source ----
 com <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
 #com <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "community", col_names = TRUE)
+
+
 iw.dm <- full_join(iw.dm, com, by = c("site"))
 iw.dm <- iw.dm[!is.na(iw.dm$mlod.name),]
 

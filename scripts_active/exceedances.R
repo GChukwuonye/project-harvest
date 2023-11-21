@@ -1,13 +1,6 @@
-#
-##
-###
-###
-###
-###
-###
-###
-###
-###
+#Kunal Palawat
+#Description: code to summarize and analyze RHRW standard exceedances
+
 #load libraries
 library(readxl)
 library(MASS)
@@ -24,6 +17,7 @@ library(compiler)
 library(parallel)
 library(boot)
 library(lattice)
+library(performance)
 
 
 #load data ----
@@ -48,7 +42,32 @@ ex.dat.long <- subset(ex.dat.long, select = -c(standard_value))
 ex.dat.long <- ex.dat.long %>%
   drop_na(exceedance)
 
+#data for modeling
+#drop samples without proximity data
+ex.dat.long.prox <- ex.dat.long %>%
+  drop_na(proximity.km) %>%
+  drop_na(prox.normal)
+
+#split dataframe into different ones for each community
+exc <- ex.dat.long.prox %>%
+  group_by(community) %>%
+  group_split()
+
+exdh <- exc[[1]]
+exgm <- exc[[2]]
+exhw <- exc[[3]]
+extu <- exc[[4]]
+
+
 #summary ----
+sumFX(datalongDF = ex.dat.long,
+      subset.vector.string = c("standard", "analyte"),
+      value.string = "exceedance",
+      dfname.string = "ex.overall",
+      filename.string = "ex%")
+
+
+
 #name subset columns
 cols <- c("standard", "analyte")
 
@@ -128,9 +147,545 @@ dev.print(png, "iw_exceedance_com.png", res=300, height=10, width=12, units="in"
 # Cu, Mn, Pb, As, Fe
 
 #modeling ----
-ex.dat.long.prox <- ex.dat.long %>%
-  drop_na(proximity.km)
+#in general, models were only run on datasets with at least 6 exceedances
 
+#AI ----
+#note that there are not enough exceedances to model most of these by community...or at all
+#can probably only do Cu - GM HW TU, Mn - GM, Mo - TU, Zn - TU. Could also try Cu with all communities
+
+##copper ----
+### gm ----
+### not enough data to really analyze this, season is not significant on its own
+aicu.gm.0 <- glm(data = exgm[exgm$standard=="AI"&exgm$analyte=="Cu",],
+              exceedance ~ 1,
+              family = "binomial")
+#maximal.gm model
+aicu.gm.1 <- glm(data = exgm[exgm$standard=="AI"&exgm$analyte=="Cu",],
+              exceedance ~ season +prox.normal,
+              family = "binomial")
+summary(aicu.gm.1)
+vif(aicu.gm.1)
+check_model(aicu.gm.1)
+exp(coef(aicu.gm.1))
+performance(aicu.gm.1)
+#neither variable significant? might not have enough data, but trends make sense
+
+aicu.gm.2 <- stepAIC(aicu.gm.0,scope = list(upper=aicu.gm.1), direction="both", trace = T)
+summary(aicu.gm.2) #no significant variable effect
+vif(aicu.gm.2)
+check_model(aicu.gm.2)
+exp(coef(aicu.gm.2))
+performance(aicu.gm.2)
+
+# #get confidence interval.gms for estimates
+# se <- sqrt(diag(vcov(aicu.gm.2)))
+# # table of estimates with 95% CI
+# (tab <- cbind(Est = fixef(aicu.gm.1), LL = fixef(aicu.gm.1) - 1.96 * se, UL = fixef(aicu.gm.1) + 1.96 *
+#                 se))
+# exp(tab)
+
+
+### hw ----
+aicu.hw.0 <- glm(data = exhw[exhw$standard=="AI"&exhw$analyte=="Cu",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.hw model
+aicu.hw.1 <- glm(data = exhw[exhw$standard=="AI"&exhw$analyte=="Cu",],
+                 exceedance ~ proximity.km + season,
+                 family = "binomial")
+summary(aicu.hw.1)
+vif(aicu.hw.1)
+check_model(aicu.hw.1)
+exp(coef(aicu.hw.1))
+performance(aicu.hw.1)
+#both variables significant, still continue with analysis
+
+aicu.hw.2 <- stepAIC(aicu.hw.0,scope = list(upper=aicu.hw.1), direction="both", trace = T)
+summary(aicu.hw.2) #both variables significant with a trend that makes sense
+vif(aicu.hw.2)
+check_model(aicu.hw.2)
+exp(coef(aicu.hw.2))
+performance(aicu.hw.2)
+
+
+### tu ----
+aicu.tu.0 <- glm(data = extu[extu$standard=="AI"&extu$analyte=="Cu",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.tu model
+aicu.tu.1 <- glm(data = extu[extu$standard=="AI"&extu$analyte=="Cu",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(aicu.tu.1)
+vif(aicu.tu.1)
+check_model(aicu.tu.1)
+exp(coef(aicu.tu.1))
+performance(aicu.tu.1)
+#neither variable significant alone or together
+
+aicu.tu.2 <- stepAIC(aicu.tu.0,scope = list(upper=aicu.tu.1), direction="both", trace = T)
+summary(aicu.tu.2) #no significance
+vif(aicu.tu.2)
+check_model(aicu.tu.2)
+exp(coef(aicu.tu.2))
+performance(aicu.tu.2)
+
+
+##manganese ----
+### gm ----
+aimn.gm.0 <- glm(data = exgm[exgm$standard=="AI"&exgm$analyte=="Mn",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.gm model
+aimn.gm.1 <- glm(data = exgm[exgm$standard=="AI"&exgm$analyte=="Mn",],
+                 exceedance ~ season +prox.normal,
+                 family = "binomial")
+summary(aimn.gm.1)
+vif(aimn.gm.1)
+check_model(aimn.gm.1)
+exp(coef(aimn.gm.1))
+performance(aimn.gm.1)
+#proximity significant
+
+aimn.gm.2 <- stepAIC(aimn.gm.0,scope = list(upper=aimn.gm.1), direction="both", trace = T)
+summary(aimn.gm.2) #prox still significant
+vif(aimn.gm.2)
+check_model(aimn.gm.2)
+exp(coef(aimn.gm.2))
+performance(aimn.gm.2)
+
+
+##molybdenum ----
+### tu ----
+aimo.tu.0 <- glm(data = extu[extu$standard=="AI"&extu$analyte=="Mo",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.tu model
+aimo.tu.1 <- glm(data = extu[extu$standard=="AI"&extu$analyte=="Mo",],
+                 exceedance ~ season +prox.normal,
+                 family = "binomial")
+summary(aimo.tu.1)
+vif(aimo.tu.1)
+check_model(aimo.tu.1)
+exp(coef(aimo.tu.1))
+performance(aimo.tu.1)
+#neither variable significant alone or together, season almost signif
+
+aimo.tu.2 <- stepAIC(aimo.tu.0,scope = list(upper=aimo.tu.1), direction="both", trace = T)
+summary(aimo.tu.2) #season almost signif
+vif(aimo.tu.2)
+check_model(aimo.tu.2)
+exp(coef(aimo.tu.2))
+performance(aimo.tu.2)
+
+##zinc ----
+### tu ----
+aizn.tu.0 <- glm(data = extu[extu$standard=="AI"&extu$analyte=="Zn",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.hw model
+aizn.tu.1 <- glm(data = extu[extu$standard=="AI"&extu$analyte=="Zn",],
+                 exceedance ~ season + prox.normal,
+                 family = "binomial")
+summary(aizn.tu.1)
+vif(aizn.tu.1)
+check_model(aizn.tu.1)
+exp(coef(aizn.tu.1))
+performance(aizn.tu.1)
+#prox where further away from airforce base, higher odds of exceedance
+
+aizn.tu.2 <- stepAIC(aizn.tu.0,scope = list(upper=aizn.tu.1), direction="both", trace = T)
+summary(aizn.tu.2)
+vif(aizn.tu.2)
+check_model(aizn.tu.2)
+exp(coef(aizn.tu.2))
+performance(aizn.tu.2)
+#season not signif, but prox is
+
+#DW ----
+#note that there are not enough exceedances to model most of these by community...or at all
+#can probably only do Al - DHGM HW TU, As- HW, Cd - GM, Fe - TU, Mn - GM TU, Pb - TU, Zn - Pb Could also try Al with all communities
+
+##aluminum ----
+### dh ----
+dwal.dh.0 <- glm(data = exdh[exdh$standard=="DW"&exdh$analyte=="Al",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal model
+dwal.dh.1 <- glm(data = exdh[exdh$standard=="DW"&exdh$analyte=="Al",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(dwal.dh.1)
+vif(dwal.dh.1)
+check_model(dwal.dh.1)
+exp(coef(dwal.dh.1))
+performance(dwal.dh.1)
+#season almost signif
+
+dwal.dh.2 <- stepAIC(dwal.dh.0,scope = list(upper=dwal.dh.1), direction="both", trace = T)
+summary(dwal.dh.2) #season almost signif
+vif(dwal.dh.2)
+check_model(dwal.dh.2)
+exp(coef(dwal.dh.2))
+performance(dwal.dh.2)
+
+
+### gm ----
+dwal.gm.0 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Al",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.gm model
+dwal.gm.1 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Al",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(dwal.gm.1)
+vif(dwal.gm.1)
+check_model(dwal.gm.1)
+exp(coef(dwal.gm.1))
+performance(dwal.gm.1)
+#prox signif, model is not
+
+dwal.gm.2 <- stepAIC(dwal.gm.0,scope = list(upper=dwal.gm.1), direction="both", trace = T)
+summary(dwal.gm.2) #prox signif, model is not
+vif(dwal.gm.2)
+check_model(dwal.gm.2)
+exp(coef(dwal.gm.2))
+performance(dwal.gm.2)
+
+### hw ----
+dwal.hw.0 <- glm(data = exhw[exhw$standard=="DW"&exhw$analyte=="Al",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.hw model
+dwal.hw.1 <- glm(data = exhw[exhw$standard=="DW"&exhw$analyte=="Al",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(dwal.hw.1)
+vif(dwal.hw.1)
+check_model(dwal.hw.1)
+exp(coef(dwal.hw.1))
+performance(dwal.hw.1)
+#prox significant
+
+dwal.hw.2 <- stepAIC(dwal.hw.0,scope = list(upper=dwal.hw.1), direction="both", trace = T)
+summary(dwal.hw.2) #prox significant with a trend that makes sense
+vif(dwal.hw.2)
+check_model(dwal.hw.2)
+exp(coef(dwal.hw.2))
+performance(dwal.hw.2)
+
+### tu ----
+dwal.tu.0 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Al",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.tu model
+dwal.tu.1 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Al",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(dwal.tu.1)
+vif(dwal.tu.1)
+check_model(dwal.tu.1)
+exp(coef(dwal.tu.1))
+performance(dwal.tu.1)
+#prox signif
+
+dwal.tu.2 <- stepAIC(dwal.tu.0,scope = list(upper=dwal.tu.1), direction="both", trace = T)
+summary(dwal.tu.2) #prox almost signif
+vif(dwal.tu.2)
+check_model(dwal.tu.2)
+exp(coef(dwal.tu.2))
+performance(dwal.tu.2)
+
+### all ----
+
+##arsenic ----
+### hw ----
+dwas.hw.0 <- glm(data = exhw[exhw$standard=="DW"&exhw$analyte=="As",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal model
+dwas.hw.1 <- glm(data = exhw[exhw$standard=="DW"&exhw$analyte=="As",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(dwas.hw.1)
+vif(dwas.hw.1)
+check_model(dwas.hw.1)
+exp(coef(dwas.hw.1))
+performance(dwas.hw.1)
+#both signif
+
+dwas.hw.2 <- stepAIC(dwas.hw.0,scope = list(upper=dwas.hw.1), direction="both", trace = T)
+summary(dwas.hw.2) #both signif
+vif(dwas.hw.2)
+check_model(dwas.hw.2)
+exp(coef(dwas.hw.2))
+performance(dwas.hw.2)
+
+
+##cadmium ----
+### gm ----
+dwcd.gm.0 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Cd",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.gm model
+dwcd.gm.1 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Cd",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(dwcd.gm.1)
+vif(dwcd.gm.1)
+check_model(dwcd.gm.1)
+exp(coef(dwcd.gm.1))
+performance(dwcd.gm.1)
+#neither signif
+
+dwcd.gm.2 <- stepAIC(dwcd.gm.0,scope = list(upper=dwcd.gm.1), direction="both", trace = T)
+summary(dwcd.gm.2) #neither signif
+vif(dwcd.gm.2)
+check_model(dwcd.gm.2)
+exp(coef(dwcd.gm.2))
+performance(dwcd.gm.2)
+
+
+##iron ----
+### tu ----
+dwfe.tu.0 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Fe",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.tu model
+dwfe.tu.1 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Fe",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(dwfe.tu.1)
+vif(dwfe.tu.1)
+check_model(dwfe.tu.1)
+exp(coef(dwfe.tu.1))
+performance(dwfe.tu.1)
+#season signif
+
+dwfe.tu.2 <- stepAIC(dwfe.tu.0,scope = list(upper=dwfe.tu.1), direction="both", trace = T)
+summary(dwfe.tu.2) #season signif
+vif(dwfe.tu.2)
+check_model(dwfe.tu.2)
+exp(coef(dwfe.tu.2))
+performance(dwfe.tu.2)
+
+
+##manganese ----
+### gm ----
+dwmn.gm.0 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Mn",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.gm model
+dwmn.gm.1 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Mn",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(dwmn.gm.1)
+vif(dwmn.gm.1)
+check_model(dwmn.gm.1)
+exp(coef(dwmn.gm.1))
+performance(dwmn.gm.1)
+#both signif
+
+dwmn.gm.2 <- stepAIC(dwmn.gm.0,scope = list(upper=dwmn.gm.1), direction="both", trace = T)
+summary(dwmn.gm.2) #both signif, trend makes sense
+vif(dwmn.gm.2)
+check_model(dwmn.gm.2)
+exp(coef(dwmn.gm.2))
+performance(dwmn.gm.2)
+
+
+### tu ----
+dwmn.tu.0 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Mn",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.tu model
+dwmn.tu.1 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Mn",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(dwmn.tu.1)
+vif(dwmn.tu.1)
+check_model(dwmn.tu.1)
+exp(coef(dwmn.tu.1))
+performance(dwmn.tu.1)
+#both signif
+
+dwmn.tu.2 <- stepAIC(dwmn.tu.0,scope = list(upper=dwmn.tu.1), direction="both", trace = T)
+summary(dwmn.tu.2) #both signif, trend makes sense
+vif(dwmn.tu.2)
+check_model(dwmn.tu.2)
+exp(coef(dwmn.tu.2))
+performance(dwmn.tu.2)
+
+##lead ----
+### tu ----
+dwpb.tu.0 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Pb",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.tu model
+dwpb.tu.1 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Pb",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(dwpb.tu.1)
+vif(dwpb.tu.1)
+check_model(dwpb.tu.1)
+exp(coef(dwpb.tu.1))
+performance(dwpb.tu.1)
+#neither signif
+
+dwpb.tu.2 <- stepAIC(dwpb.tu.0,scope = list(upper=dwpb.tu.1), direction="both", trace = T)
+summary(dwpb.tu.2) #neither
+vif(dwpb.tu.2)
+check_model(dwpb.tu.2)
+exp(coef(dwpb.tu.2))
+performance(dwpb.tu.2)
+
+
+##zinc ----
+### tu ----
+dwzn.tu.0 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Zn",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.tu model
+dwzn.tu.1 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Zn",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(dwzn.tu.1)
+vif(dwzn.tu.1)
+check_model(dwzn.tu.1)
+exp(coef(dwzn.tu.1))
+performance(dwzn.tu.1)
+#prox signif, higher further away from afb
+
+dwzn.tu.2 <- stepAIC(dwzn.tu.0,scope = list(upper=dwzn.tu.1), direction="both", trace = T)
+summary(dwzn.tu.2) #both signif, trend makes sense
+vif(dwzn.tu.2)
+check_model(dwzn.tu.2)
+exp(coef(dwzn.tu.2))
+performance(dwzn.tu.2)
+
+#FB/PB ----
+##lead ----
+### tu ----
+fpbpb.tu.0 <- glm(data = extu[extu$standard=="FB"&extu$analyte=="Pb",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.hw model
+fpbpb.tu.1 <- glm(data = extu[extu$standard=="FB"&extu$analyte=="Pb",],
+                 exceedance ~ season + prox.normal,
+                 family = "binomial")
+summary(fpbpb.tu.1)
+vif(fpbpb.tu.1)
+check_model(fpbpb.tu.1)
+exp(coef(fpbpb.tu.1))
+performance(fpbpb.tu.1)
+#nothing signif
+
+fpbpb.tu.2 <- stepAIC(fpbpb.tu.0,scope = list(upper=fpbpb.tu.1), direction="both", trace = T)
+summary(fpbpb.tu.2) #nothing signif
+vif(fpbpb.tu.2)
+check_model(fpbpb.tu.2)
+exp(coef(fpbpb.tu.2))
+performance(fpbpb.tu.2)
+#season not signif, but prox is
+
+
+#LDW ----
+##arsenic ----
+### hw ----
+ldwas.hw.0 <- glm(data = exhw[exhw$standard=="LDW"&exhw$analyte=="As",],
+                 exceedance ~ 1,
+                 family = "binomial")
+#maximal.hw model
+ldwas.hw.1 <- glm(data = exhw[exhw$standard=="LDW"&exhw$analyte=="As",],
+                 exceedance ~ prox.normal + season,
+                 family = "binomial")
+summary(ldwas.hw.1)
+vif(ldwas.hw.1)
+check_model(ldwas.hw.1)
+exp(coef(ldwas.hw.1))
+performance(ldwas.hw.1)
+#both variables significant
+
+ldwas.hw.2 <- stepAIC(ldwas.hw.0,scope = list(upper=ldwas.hw.1), direction="both", trace = T)
+summary(ldwas.hw.2) #both variables significant with a trend that makes sense
+vif(ldwas.hw.2)
+check_model(ldwas.hw.2)
+exp(coef(ldwas.hw.2))
+performance(ldwas.hw.2)
+
+
+##iron ----
+### tu ----
+ldwfe.tu.0 <- glm(data = extu[extu$standard=="LDW"&extu$analyte=="Fe",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.tu model
+ldwfe.tu.1 <- glm(data = extu[extu$standard=="LDW"&extu$analyte=="Fe",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(ldwfe.tu.1)
+vif(ldwfe.tu.1)
+check_model(ldwfe.tu.1)
+exp(coef(ldwfe.tu.1))
+performance(ldwfe.tu.1)
+#season signif significant
+
+ldwfe.tu.2 <- stepAIC(ldwfe.tu.0,scope = list(upper=ldwfe.tu.1), direction="both", trace = T)
+summary(ldwfe.tu.2) #season signif
+vif(ldwfe.tu.2)
+check_model(ldwfe.tu.2)
+exp(coef(ldwfe.tu.2))
+performance(ldwfe.tu.2)
+
+
+## manganese ----
+### gm ----
+ldwmn.gm.0 <- glm(data = exgm[exgm$standard=="LDW"&exgm$analyte=="Mn",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.gm model
+ldwmn.gm.1 <- glm(data = exgm[exgm$standard=="LDW"&exgm$analyte=="Mn",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(ldwmn.gm.1)
+vif(ldwmn.gm.1)
+check_model(ldwmn.gm.1)
+exp(coef(ldwmn.gm.1))
+performance(ldwmn.gm.1)
+#both signif
+
+ldwmn.gm.2 <- stepAIC(ldwmn.gm.0,scope = list(upper=ldwmn.gm.1), direction="both", trace = T)
+summary(ldwmn.gm.2) #both signif, trend makes sense
+vif(ldwmn.gm.2)
+check_model(ldwmn.gm.2)
+exp(coef(ldwmn.gm.2))
+performance(ldwmn.gm.2)
+
+
+### tu ----
+ldwmn.tu.0 <- glm(data = extu[extu$standard=="LDW"&extu$analyte=="Mn",],
+                  exceedance ~ 1,
+                  family = "binomial")
+#maximal.tu model
+ldwmn.tu.1 <- glm(data = extu[extu$standard=="LDW"&extu$analyte=="Mn",],
+                  exceedance ~ prox.normal + season,
+                  family = "binomial")
+summary(ldwmn.tu.1)
+vif(ldwmn.tu.1)
+check_model(ldwmn.tu.1)
+exp(coef(ldwmn.tu.1))
+performance(ldwmn.tu.1)
+#both signif
+
+ldwmn.tu.2 <- stepAIC(ldwmn.tu.0,scope = list(upper=ldwmn.tu.1), direction="both", trace = T)
+summary(ldwmn.tu.2) #both signif, trend makes sense
+vif(ldwmn.tu.2)
+check_model(ldwmn.tu.2)
+exp(coef(ldwmn.tu.2))
+performance(ldwmn.tu.2)
+
+
+#scratch models ----
 ##copper----
 #null model
 aicu.0 <- glm(data = ex.dat.long.prox[ex.dat.long.prox$standard=="AI"&ex.dat.long.prox$analyte=="Cu",],
@@ -217,6 +772,41 @@ exp(-4.7431)/(1+(exp(-4.7431)))
                                      
                                      
 #odds of having an AI exceedance during winter is 
+
+
+#Functions ----
+sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string, filename.string){
+  
+  #load libraries
+  library(tidyverse)
+  library(EnvStats)
+  
+  #assign data
+  dat.long <- datalongDF
+  cols <- subset.vector.string
+  value <- value.string
+  dfname <- dfname.string
+  filename <- filename.string
+  
+  #calculate summary stats
+  sumtable <- ex.dat.long %>%
+    group_by(across(all_of(cols))) %>%
+    summarise(n = n(),
+              exceedances_n = sum(.data[[value]]),
+              exceedances_freq = signif(sum(.data[[value]])/n()*100, 2))
+  
+  sumtable.small <- subset(sumtable, select = -c(exceedances_n))
+  
+  sumtable.wide <- pivot_wider(data = sumtable.small,
+                               names_from = "standard",
+                               values_from = "exceedances_freq")
+  #save as csv file in your working directory
+  write.csv(sumtable.wide, paste(filename,"_sum.csv", sep = ""))
+  
+  #copy to new dataframe with a unique name and place in global environment
+  assign(paste(dfname), sumtable.wide, envir=.GlobalEnv)  
+}
+
 
 #Scratch Work ----
 
