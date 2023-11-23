@@ -149,6 +149,7 @@ pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/
 #pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
 iw.dm$pli <- pli$pli_contaminants
 
+
 #outliers ----
 #remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
 #G428IWA23-20190730 and H209IWA23-20190709
@@ -259,6 +260,8 @@ hds$score_bin <- factor(hds$score_bin, levels = c("None", "Medium", "High"))
 summary(hds$score_bin)
 
 iw.score <- full_join(iw.dm, hds, by = c("site"))
+iw.score$pli.ln<- log(iw.score$pli)
+
 #write.csv(iw.score, "score_test.csv")
 iw.score[is.na(iw.score$score_bin),]$score_bin <- "None"
 iw.score <- iw.score[!is.na(iw.score$community),]
@@ -474,3 +477,4 @@ violinfacFX <- function(dataDF, analyte.string, subset.string, subset.title.stri
   dev.print(png, paste(type,"_", analyte, "_vplot_", subset, "_", fac, ".png", sep=""), res=300, height=7, width=10, units="in")
   
 }
+
