@@ -195,9 +195,10 @@ iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
 hds <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IO_HDS.xlsx")
 #hds <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/IO_HDS.xlsx")
 #load in data and if there is a missing value, assume participant does not follow best practices - conservative estimate. No is a zero. Yes is a 1
+#assumption: if there is a missing value, we assume a participant does not follow best practices to use a risk-averse analysis framework
 #assumption: this index assumes equal influence of each best practice on rainwater quality
 #assumption/limitation: we assume that the maintenance intervention reported was consistent across the duration of the study
-#assumption: sites with no HDS survey were assumed to have maintenence scores of 0/None.
+#assumption: sites with no HDS survey were assumed to have maintenance scores of 0/None.
 ##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
 hds$Q67 <- as.character(hds$Q67)
 hds[is.na(hds$Q67),]$Q67 <- "0"
