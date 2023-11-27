@@ -140,69 +140,36 @@ plot(allEffects(mn.0))
 
 #stepwise
 #stepwise community modeling ----
+contam_list <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
+
+## dh ----
+lapply(X = contam_list,
+       FUN = hdslmerstepFX,
+       dataDF = iw.score.long,
+       dfname.string = ".dh")
+
+aaa <- "Al"
+m.1 <- lmer(data = iw.score.long[iw.score.long$analyte==aaa,],
+            log(concentration) ~ season + prox.normal + score_bin +
+               (1|site),
+             REML = F)
 ## gm ----
+lapply(X = contam_list,
+       FUN = hdslmerstepFX,
+       dataDF = iws.gm,
+       dfname.string = ".gm")
 
-hdslmerstepFX <- function(dataDF, analyte.string, dfname.string){
-  
-  dat <- dataDF
-  analyte <- analyte.string
-  dfname <- dfname.string
-  
-  mm.0 <- lmer(data = dat,
-               log(dat[[analyte]]) ~
-                 (1|site),
-               REML = F)
-  summary(mm.0)
-  assign(paste(dfname, ".0", sep = ""), mm.0, envir=.GlobalEnv)
-  
-  mm.1 <- lmer(data = dat,
-               log(dat[[analyte]]) ~ season + prox.normal + score_bin +
-                 (1|site),
-               REML = F)
-  summary(mm.1)
-  assign(paste(dfname, ".1", sep = ""), mm.1, envir=.GlobalEnv)
-  
-  mm.2.step <- lmerTest::step(mm.1)
-  mm.2.step
-  mm.2 <- get_model(mm.2.step)
-  print(summary(mm.2))
-  print(anova(mm.2))
-  assign(paste(dfname, ".2", sep = ""), mm.2, envir=.GlobalEnv)
-  
-}
+## hw ----
+lapply(X = contam_list,
+       FUN = hdslmerstepFX,
+       dataDF = iws.hw,
+       dfname.string = ".hw")
 
-hdslmerstepFX(dataDF = iws.gm,
-              analyte.string = "Al",
-              dfname.string = "al.gm")
-
-
-mm.0 <- lmer(data = datt,
-                 log(datt[[analytee]]) ~ season +
-              (1|site),
-                 REML = F)
-datt <- iws.gm
-dfnamee <- "al.gm.0"
-analytee <- "Al"
-assign(paste(dfnamee), mm.0, envir=.GlobalEnv)
-
-#maximal.gm model
-aimn.gm.1 <- glm(data = exgm[exgm$standard=="AI"&exgm$analyte=="Mn",],
-                 exceedance ~ season +prox.normal,
-                 family = "binomial")
-summary(aimn.gm.1)
-vif(aimn.gm.1)
-check_model(aimn.gm.1)
-exp(coef(aimn.gm.1))
-performance(aimn.gm.1)
-#proximity significant
-
-aimn.gm.2 <- stepAIC(aimn.gm.0,scope = list(upper=aimn.gm.1), direction="both", trace = T)
-summary(aimn.gm.2) #prox still significant
-vif(aimn.gm.2)
-check_model(aimn.gm.2)
-exp(coef(aimn.gm.2))
-performance(aimn.gm.2)
-
+## tu ----
+lapply(X = contam_list,
+       FUN = hdslmerstepFX,
+       dataDF = iws.tu,
+       dfname.string = ".tu")
 
 #functions ----
 sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string, filename.string){
@@ -262,3 +229,70 @@ sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string,
   # return(get(dfname))
   
 }
+
+hdslmerstepFX <- function(datalongDF, analyte.string, dfname.string){
+  
+  datlong <- datalongDF
+  analyte.s <- analyte.string
+  dfname <- dfname.string
+  
+  dat <- datlong[datlong$analyte == analyte.s,]
+  
+  mm.0 <- lmer(data = dat,
+               log(concentration) ~
+                 (1|site),
+               REML = F)
+  print(summary(mm.0))
+  #assign(paste(analyte.s, dfname, ".0", sep = ""), mm.0, envir=.GlobalEnv)
+  
+  mm.1 <- lmer(data = dat,
+               log(concentration) ~ season + prox.normal + score_bin +
+                 (1|site),
+               REML = F)
+  print(summary(mm.1))
+  #assign(paste(analyte.s, dfname, ".1", sep = ""), mm.1, envir=.GlobalEnv)
+  
+  mm.2.step <- step(mm.1)
+  #mm.2.step
+  #mm.2 <- get_model(mm.2.step)
+  #print(summary(mm.2))
+  #print(anova(mm.2))
+  #assign(paste(analyte.s, dfname, ".2", sep = ""), mm.2, envir=.GlobalEnv)
+  
+}
+
+hdslmerstepFX(datalongDF = iw.score.long,
+              analyte.string = "Al",
+              dfname.string = ".all")
+
+ForwardStep <- function(df,yName, Xs, XsMin) {
+  Data <- df[, c(yName,Xs)]
+  fit <- glm(formula = paste(yName, " ~ ", paste0(XsMin, collapse = " + ")),
+             data = Data, family = binomial(link = "logit") )
+  ScopeFormula <- list(lower = paste(yName, " ~ ", paste0(XsMin, collapse = " + ")), 
+                       upper = paste(yName, " ~ ", paste0(Xs, collapse = " + ")))
+  result <- step(fit, direction = "forward", scope = ScopeFormula, trace = 1 )
+  
+  return(result)
+}
+
+
+ForwardStep <- function(df,Yname, Xs, XsMin) {
+  Data <- df[, c(Yname,Xs)]
+  f1 <- as.formula(paste(Yname, " ~ ", paste0(XsMin, collapse = " + ")))
+  
+  fit <- glm(formula = f1,
+             data = Data, family = binomial(link = "logit") )
+  f2 <- as.formula(paste(Yname, " ~ ", paste0(XsMin, collapse = " + ")))
+  f3 <- as.formula(paste(Yname, " ~ ", paste0(Xs, collapse = " + ")))
+  
+  ScopeFormula <- list(lower = f2, 
+                       upper = f3)
+  step(fit, direction = "forward", scope = ScopeFormula, trace = 1)
+}
+
+
+
+
+
+

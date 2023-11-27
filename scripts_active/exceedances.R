@@ -191,7 +191,7 @@ aicu.hw.0 <- glm(data = exhw[exhw$standard=="AI"&exhw$analyte=="Cu",],
                  family = "binomial")
 #maximal.hw model
 aicu.hw.1 <- glm(data = exhw[exhw$standard=="AI"&exhw$analyte=="Cu",],
-                 exceedance ~ proximity.km + season,
+                 exceedance ~ prox.normal + season,
                  family = "binomial")
 summary(aicu.hw.1)
 vif(aicu.hw.1)
@@ -204,8 +204,96 @@ aicu.hw.2 <- stepAIC(aicu.hw.0,scope = list(upper=aicu.hw.1), direction="both", 
 summary(aicu.hw.2) #both variables significant with a trend that makes sense
 vif(aicu.hw.2)
 check_model(aicu.hw.2)
-exp(coef(aicu.hw.2))
+coefs <- data.frame(t(coef(aicu.hw.2)))
 performance(aicu.hw.2)
+
+predict(aicu.hw.2, type = "response")
+
+#winter, 0km
+exp(coefs$X.Intercept. + coefs$seasonMonsoon*0
+    + coefs$prox.normal*0)/
+  (1+(exp(coefs$X.Intercept.+coefs$seasonMonsoon*0
+          + coefs$prox.normal*0)))
+#winter, .5km
+exp(coefs$X.Intercept. + coefs$seasonMonsoon*0
+    + coefs$prox.normal*.5)/
+  (1+(exp(coefs$X.Intercept.+coefs$seasonMonsoon*0
+          + coefs$prox.normal*.5)))
+#winter, 1km
+exp(coefs$X.Intercept. + coefs$seasonMonsoon*0
+    + coefs$prox.normal*1)/
+  (1+(exp(coefs$X.Intercept.+coefs$seasonMonsoon*0
+          + coefs$prox.normal*1)))
+#winter, 1.5km
+exp(coefs$X.Intercept. + coefs$seasonMonsoon*0
+    + coefs$prox.normal*1.5)/
+  (1+(exp(coefs$X.Intercept.+coefs$seasonMonsoon*0
+          + coefs$prox.normal*1.5)))
+#winter, 2km
+exp(coefs$X.Intercept. + coefs$seasonMonsoon*0
+    + coefs$prox.normal*2)/
+  (1+(exp(coefs$X.Intercept.+coefs$seasonMonsoon*0
+          + coefs$prox.normal*2)))
+                                   
+#monsoon, 0km
+exp(coefs$X.Intercept. + coefs$seasonMonsoon*1
+    + coefs$prox.normal*0)/
+  (1+(exp(coefs$X.Intercept.+coefs$seasonMonsoon*1
+          + coefs$prox.normal*0)))
+  
+glm.fit.prob=predict(glm.fit, newdata = test2, type="response")
+                                                 
+
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*0
+           + coefs$prox.normal*0)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*0
+           + coefs$prox.normal*.5)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*0
+           + coefs$prox.normal*1)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*0
+           + coefs$prox.normal*1.5)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*0
+           + coefs$prox.normal*2)
+
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*1
+           + coefs$prox.normal*0)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*1
+           + coefs$prox.normal*.5)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*1
+           + coefs$prox.normal*1)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*1
+           + coefs$prox.normal*1.5)
+logit2prob(coefs$X.Intercept.
+           + coefs$seasonMonsoon*1
+           + coefs$prox.normal*2)
+
+plot(allEffects(aicu.hw.2, typical=median))
+plot(Effect(focal.predictors = c("prox.normal","season"), 
+            mod = aicu.hw.2,
+            xlevels=list(prox.normal=seq(0, 2, .5))),
+     multiline = TRUE)
+
+hw_logit_seq <- seq(0, 2, by = .5)
+prob_seq <- round(logit2prob(hw_logit_seq), 3)
+
+
+df <- data.frame(Logit = logit_seq,
+                 Probability = prob_seq)
 
 
 ### tu ----
