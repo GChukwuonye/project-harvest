@@ -39,6 +39,9 @@ iws.gm <- iws.c[[2]]
 iws.hw <- iws.c[[3]]
 iws.tu <- iws.c[[4]]
 
+iws.tu <- iws.tu %>%
+  drop_na(prox.normal)
+
 #initial viz----
 ggplot(iw.score.long, mapping = aes(y = log(concentration), x = score_bin, fill = community)) +
   geom_boxplot() +
@@ -143,29 +146,451 @@ plot(allEffects(mn.0))
 contam_list <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
 
 ## dh ----
-lapply(X = contam_list,
-       FUN = hdslmerstepFX,
-       dataDF = iw.score.long,
-       dfname.string = ".dh")
-
-aaa <- "Al"
-m.1 <- lmer(data = iw.score.long[iw.score.long$analyte==aaa,],
-            log(concentration) ~ season + prox.normal + score_bin +
+###Mn ----
+mn.dh.0 <- lmer(data = iws.dh,
+             log(Mn) ~
                (1|site),
              REML = F)
+print(summary(mn.dh.0))
+
+mn.dh.1 <- lmer(data = iws.dh,
+             log(Mn) ~ season + prox.normal + score_bin +
+               (1|site),
+             REML = F)
+print(summary(mn.dh.1))
+
+mn.dh.2.step <- step(mn.dh.1)
+mn.dh.2.step
+mn.dh.2 <- get_model(mn.dh.2.step)
+print(summary(mn.dh.2))
+anova(mn.dh.1)
+print(anova(mn.dh.2))
+#season only
+
+###Ba ----
+ba.dh.0 <- lmer(data = iws.dh,
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.dh.0))
+
+ba.dh.1 <- lmer(data = iws.dh,
+                log(Ba) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(ba.dh.1))
+
+ba.dh.2.step <- step(ba.dh.1)
+ba.dh.2.step
+ba.dh.2 <- get_model(ba.dh.2.step)
+print(summary(ba.dh.2))
+anova(ba.dh.1)
+print(anova(ba.dh.2))
+#season only
+
+###Mo ----
+mo.dh.0 <- lmer(data = iws.dh,
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.dh.0))
+
+mo.dh.1 <- lmer(data = iws.dh,
+                log(Mo) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(mo.dh.1))
+
+mo.dh.2.step <- step(mo.dh.1)
+mo.dh.2.step
+mo.dh.2 <- get_model(mo.dh.2.step)
+print(summary(mo.dh.2))
+anova(mo.dh.1)
+print(anova(mo.dh.2))
+#season only
+
+###Ni ----
+ni.dh.0 <- lmer(data = iws.dh,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.dh.0))
+
+ni.dh.1 <- lmer(data = iws.dh,
+                log(Ni) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(ni.dh.1))
+
+ni.dh.2.step <- step(ni.dh.1)
+ni.dh.2.step
+ni.dh.2 <- get_model(ni.dh.2.step)
+print(summary(ni.dh.2))
+anova(ni.dh.1)
+print(anova(ni.dh.2))
+#season only
+
+###V ----
+v.dh.0 <- lmer(data = iws.dh,
+                log(V) ~
+                  (1|site),
+                REML = F)
+print(summary(v.dh.0))
+
+v.dh.1 <- lmer(data = iws.dh,
+                log(V) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(v.dh.1))
+
+v.dh.2.step <- step(v.dh.1)
+v.dh.2.step
+v.dh.2 <- get_model(v.dh.2.step)
+print(summary(v.dh.2))
+anova(v.dh.1)
+print(anova(v.dh.2))
+#season only
+# 
+# 
+# lapply(X = contam_list,
+#        FUN = hdslmerstepFX,
+#        dataDF = iw.score.long,
+#        dfname.string = ".dh")
+# 
+# hdslmerstepFX(datalongDF = iws.dh[iws.dh$analyte == "Mn",],
+#               analyte.string = "Mn",
+#               dfname.string = ".dh")
+
+
 ## gm ----
+###V ----
+v.gm.0 <- lmer(data = iws.gm,
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.gm.0))
+
+v.gm.1 <- lmer(data = iws.gm,
+               log(V) ~ season + prox.normal + score_bin +
+                 (1|site),
+               REML = F)
+print(summary(v.gm.1))
+
+v.gm.2.step <- step(v.gm.1)
+v.gm.2.step
+v.gm.2 <- get_model(v.gm.2.step)
+print(summary(v.gm.2))
+anova(v.gm.1)
+print(anova(v.gm.2))
+#season only
+
+###Co ----
+co.gm.0 <- lmer(data = iws.gm,
+               log(Co) ~
+                 (1|site),
+               REML = F)
+print(summary(co.gm.0))
+
+co.gm.1 <- lmer(data = iws.gm,
+               log(Co) ~ season + prox.normal + score_bin +
+                 (1|site),
+               REML = F)
+print(summary(co.gm.1))
+
+co.gm.2.step <- step(co.gm.1)
+co.gm.2.step
+co.gm.2 <- get_model(co.gm.2.step)
+print(summary(co.gm.2))
+anova(co.gm.1)
+print(anova(co.gm.2))
+#season only
+
+###Mn ----
+mn.gm.0 <- lmer(data = iws.gm,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(mn.gm.0))
+
+mn.gm.1 <- lmer(data = iws.gm,
+                log(Mn) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(mn.gm.1))
+
+mn.gm.2.step <- step(mn.gm.1)
+mn.gm.2.step
+mn.gm.2 <- get_model(mn.gm.2.step)
+print(summary(mn.gm.2))
+anova(mn.gm.1)
+print(anova(mn.gm.2))
+#season only, almost prox
+
+###Al ----
+al.gm.0 <- lmer(data = iws.gm,
+                log(Al) ~
+                  (1|site),
+                REML = F)
+print(summary(al.gm.0))
+
+al.gm.1 <- lmer(data = iws.gm,
+                log(Al) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(al.gm.1))
+
+al.gm.2.step <- step(al.gm.1)
+al.gm.2.step
+al.gm.2 <- get_model(al.gm.2.step)
+print(summary(al.gm.2))
+anova(al.gm.1)
+print(anova(al.gm.2))
+#prox and score
+
+###Cr ----
+cr.gm.0 <- lmer(data = iws.gm,
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(cr.gm.0))
+
+cr.gm.1 <- lmer(data = iws.gm,
+                log(Cr) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(cr.gm.1))
+
+cr.gm.2.step <- step(cr.gm.1)
+cr.gm.2.step
+cr.gm.2 <- get_model(cr.gm.2.step)
+print(summary(cr.gm.2))
+anova(cr.gm.1)
+print(anova(cr.gm.2))
+#season only
+
+
+
 lapply(X = contam_list,
        FUN = hdslmerstepFX,
        dataDF = iws.gm,
        dfname.string = ".gm")
 
 ## hw ----
+###Mn ----
+mn.hw.0 <- lmer(data = iws.hw,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(mn.hw.0))
+
+mn.hw.1 <- lmer(data = iws.hw,
+                log(Mn) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(mn.hw.1))
+
+mn.hw.2.step <- step(mn.hw.1)
+mn.hw.2.step
+mn.hw.2 <- get_model(mn.hw.2.step)
+print(summary(mn.hw.2))
+anova(mn.hw.1)
+print(anova(mn.hw.2))
+#season and prox
+
+###Cu ----
+cu.hw.0 <- lmer(data = iws.hw,
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(cu.hw.0))
+
+cu.hw.1 <- lmer(data = iws.hw,
+                log(Cu) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(cu.hw.1))
+
+cu.hw.2.step <- step(cu.hw.1)
+cu.hw.2.step
+cu.hw.2 <- get_model(cu.hw.2.step)
+print(summary(cu.hw.2))
+anova(cu.hw.1)
+print(anova(cu.hw.2))
+#season and prox
+
+###As ----
+as.hw.0 <- lmer(data = iws.hw,
+                log(As) ~
+                  (1|site),
+                REML = F)
+print(summary(as.hw.0))
+
+as.hw.1 <- lmer(data = iws.hw,
+                log(As) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(as.hw.1))
+
+as.hw.2.step <- step(as.hw.1)
+as.hw.2.step
+as.hw.2 <- get_model(as.hw.2.step)
+print(summary(as.hw.2))
+vif(as.hw.1)
+anova(as.hw.1)
+print(anova(as.hw.2))
+#season and prox
+
+###Pb ----
+pb.hw.0 <- lmer(data = iws.hw,
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(pb.hw.0))
+
+pb.hw.1 <- lmer(data = iws.hw,
+                log(Pb) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(pb.hw.1))
+
+pb.hw.2.step <- step(pb.hw.1)
+pb.hw.2.step
+pb.hw.2 <- get_model(pb.hw.2.step)
+print(summary(pb.hw.2))
+anova(pb.hw.1)
+print(anova(pb.hw.2))
+#season and prox
+
+###Co ----
+co.hw.0 <- lmer(data = iws.hw,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(co.hw.0))
+
+co.hw.1 <- lmer(data = iws.hw,
+                log(Co) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(co.hw.1))
+
+co.hw.2.step <- step(co.hw.1)
+co.hw.2.step
+co.hw.2 <- get_model(co.hw.2.step)
+print(summary(co.hw.2))
+print(summary(co.hw.1))
+anova(co.hw.1)
+anova(co.hw.2)
+#season and prox and score
+
+
 lapply(X = contam_list,
        FUN = hdslmerstepFX,
        dataDF = iws.hw,
        dfname.string = ".hw")
 
 ## tu ----
+###Mn ----
+mn.tu.0 <- lmer(data = iws.tu,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(mn.tu.0))
+
+mn.tu.1 <- lmer(data = iws.tu,
+                log(Mn) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(mn.tu.1))
+mn.tu.2.step <- step(mn.tu.1)
+mn.tu.2.step
+mn.tu.2 <- get_model(mn.tu.2.step)
+print(summary(mn.tu.2))
+anova(mn.tu.1)
+print(anova(mn.tu.2))
+#season
+
+###Co ----
+co.tu.0 <- lmer(data = iws.tu,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(co.tu.0))
+
+co.tu.1 <- lmer(data = iws.tu,
+                log(Co) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(co.tu.1))
+co.tu.2.step <- step(co.tu.1)
+co.tu.2.step
+co.tu.2 <- get_model(co.tu.2.step)
+print(summary(co.tu.2))
+anova(co.tu.1)
+print(anova(co.tu.2))
+#season
+
+###Ni ----
+ni.tu.0 <- lmer(data = iws.tu,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.tu.0))
+
+ni.tu.1 <- lmer(data = iws.tu,
+                log(Ni) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(ni.tu.1))
+ni.tu.2.step <- step(ni.tu.1)
+ni.tu.2.step
+ni.tu.2 <- get_model(ni.tu.2.step)
+print(summary(ni.tu.2))
+anova(ni.tu.1)
+print(anova(ni.tu.2))
+#season
+
+###Zn ----
+zn.tu.0 <- lmer(data = iws.tu,
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(zn.tu.0))
+
+zn.tu.1 <- lmer(data = iws.tu,
+                log(Zn) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(zn.tu.1))
+zn.tu.2.step <- step(zn.tu.1)
+zn.tu.2.step
+zn.tu.2 <- get_model(zn.tu.2.step)
+print(summary(zn.tu.2))
+anova(zn.tu.1)
+print(anova(zn.tu.2))
+#prox
+
+###Ba ----
+ba.tu.0 <- lmer(data = iws.tu,
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.tu.0))
+
+ba.tu.1 <- lmer(data = iws.tu,
+                log(Ba) ~ season + prox.normal + score_bin +
+                  (1|site),
+                REML = F)
+print(summary(ba.tu.1))
+ba.tu.2.step <- step(ba.tu.1)
+ba.tu.2.step
+ba.tu.2 <- get_model(ba.tu.2.step)
+print(summary(ba.tu.2))
+anova(ba.tu.1)
+print(anova(ba.tu.2))
+#season
+
+
 lapply(X = contam_list,
        FUN = hdslmerstepFX,
        dataDF = iws.tu,
@@ -232,37 +657,37 @@ sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string,
 
 hdslmerstepFX <- function(datalongDF, analyte.string, dfname.string){
   
-  datlong <- datalongDF
+  dat <- datalongDF
   analyte.s <- analyte.string
   dfname <- dfname.string
   
-  dat <- datlong[datlong$analyte == analyte.s,]
+  #dat <- datlong[datlong$analyte == analyte.s,]
   
   mm.0 <- lmer(data = dat,
                log(concentration) ~
                  (1|site),
                REML = F)
   print(summary(mm.0))
-  #assign(paste(analyte.s, dfname, ".0", sep = ""), mm.0, envir=.GlobalEnv)
+  assign(paste(analyte.s, dfname, ".0", sep = ""), mm.0, envir=.GlobalEnv)
   
   mm.1 <- lmer(data = dat,
                log(concentration) ~ season + prox.normal + score_bin +
                  (1|site),
                REML = F)
   print(summary(mm.1))
-  #assign(paste(analyte.s, dfname, ".1", sep = ""), mm.1, envir=.GlobalEnv)
+  assign(paste(analyte.s, dfname, ".1", sep = ""), mm.1, envir=.GlobalEnv)
   
   mm.2.step <- step(mm.1)
   #mm.2.step
   #mm.2 <- get_model(mm.2.step)
   #print(summary(mm.2))
   #print(anova(mm.2))
-  #assign(paste(analyte.s, dfname, ".2", sep = ""), mm.2, envir=.GlobalEnv)
+  assign(paste(analyte.s, dfname, ".2", sep = ""), mm.2, envir=.GlobalEnv)
   
 }
 
-hdslmerstepFX(datalongDF = iw.score.long,
-              analyte.string = "Al",
+hdslmerstepFX(datalongDF = iw.score.long[is.score.long$analyte == "Mn",],
+              analyte.string = "Mn",
               dfname.string = ".all")
 
 ForwardStep <- function(df,yName, Xs, XsMin) {
