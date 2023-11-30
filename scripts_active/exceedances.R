@@ -18,7 +18,8 @@ library(parallel)
 library(boot)
 library(lattice)
 library(performance)
-
+library(palettetown)
+library(pals)
 
 #load data ----
 standards <- read_xlsx("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/Standards.xlsx", sheet = "standards", col_names = TRUE)
@@ -207,43 +208,76 @@ check_model(aicu.hw.2)
 coefs <- data.frame(t(coef(aicu.hw.2)))
 performance(aicu.hw.2)
 
+X1_range <- seq(from=0, to=round(max(exhw$proximity.km),0), by=.01)
 
-w0 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*0
-           + coefs$prox.normal*0)
-w.5 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*0
-           + coefs$prox.normal*.5)
-w1 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*0
-           + coefs$prox.normal*1)
-w1.5 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*0
-           + coefs$prox.normal*1.5)
-w2 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*0
-           + coefs$prox.normal*2)
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
 
-m0 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*1
-           + coefs$prox.normal*0)
-m.5 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*1
-           + coefs$prox.normal*.5)
-m1 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*1
-           + coefs$prox.normal*1)
-m1.5 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*1
-           + coefs$prox.normal*1.5)
-m2 <- logit2prob(coefs$X.Intercept.
-           + coefs$seasonMonsoon*1
-           + coefs$prox.normal*2)
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
 
-probs <- data.frame(proximity = c(0, .5, 1, 1.5, 2),
-                    winter = c(w0, w.5, w1, w1.5,w2),
-                    monsoon = c(m0, m.5, m1, m1.5, m2))
-write.csv(probs, "exprobs_aicu_hw.csv")
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of Cu Exceedance of Agricultural Irrigation Standard",
+       x = "\nDistance from Hayden/Winkelman Smelter (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "aicu_hw_ef.png", res=300, height=6, width=7, units="in")
+  
+
+# exp(a_logits)/(1 + exp(a_logits))
+# 
+# w0 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*0
+#            + coefs$prox.normal*0)
+# w.5 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*0
+#            + coefs$prox.normal*.5)
+# w1 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*0
+#            + coefs$prox.normal*1)
+# w1.5 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*0
+#            + coefs$prox.normal*1.5)
+# w2 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*0
+#            + coefs$prox.normal*2)
+# 
+# m0 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*1
+#            + coefs$prox.normal*0)
+# m.5 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*1
+#            + coefs$prox.normal*.5)
+# m1 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*1
+#            + coefs$prox.normal*1)
+# m1.5 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*1
+#            + coefs$prox.normal*1.5)
+# m2 <- logit2prob(coefs$X.Intercept.
+#            + coefs$seasonMonsoon*1
+#            + coefs$prox.normal*2)
+# 
+# probs <- data.frame(proximity = c(0, .5, 1, 1.5, 2),
+#                     winter = c(w0, w.5, w1, w1.5,w2),
+#                     monsoon = c(m0, m.5, m1, m1.5, m2))
+# write.csv(probs, "exprobs_aicu_hw.csv")
 
 
 ### tu ----
@@ -404,10 +438,10 @@ performance(dwal.dh.1)
 dwal.dh.2 <- stepAIC(dwal.dh.0,scope = list(upper=dwal.dh.1), direction="both", trace = T)
 summary(dwal.dh.2) #season almost signif
 vif(dwal.dh.2)
-check_model(dwal.dh.2)
-exp(coef(dwal.dh.2))
+check_model(dwal.dh.2) #not that normal
+coefs <- data.frame(t(coef(dwal.dh.2)))
 performance(dwal.dh.2)
-
+#low r2 high rmse
 
 ### gm ----
 dwal.gm.0 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Al",],
@@ -450,8 +484,37 @@ dwal.hw.2 <- stepAIC(dwal.hw.0,scope = list(upper=dwal.hw.1), direction="both", 
 summary(dwal.hw.2) #prox significant with a trend that makes sense
 vif(dwal.hw.2)
 check_model(dwal.hw.2)
-exp(coef(dwal.hw.2))
+coefs <- data.frame(t(coef(dwal.hw.2)))
 performance(dwal.hw.2)
+
+
+X1_range <- seq(from=0, to=round(max(exhw$proximity.km),0), by=.01)
+
+winter <- coefs$X.Intercept. + coefs$prox.normal*X1_range
+winter.prob <- exp(winter)/(1 + exp(winter))
+
+plot.data <- data.frame(prob=winter.prob, X1=X1_range)
+
+ggplot(plot.data, aes(x=X1, y=prob)) +
+  geom_line(lwd=2, color = "slateblue") + 
+  # scale_colour_poke(pokemon = "jigglypuff", spread = 2)+
+  labs(title = "Probability of Al Exceedance of Drinking Water Standard",
+       x = "\nDistance from Hayden/Winkelman Smelter (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "dwal_hw_ef.png", res=300, height=6, width=7, units="in")
+
 
 ### tu ----
 dwal.tu.0 <- glm(data = extu[extu$standard=="DW"&extu$analyte=="Al",],
@@ -475,8 +538,6 @@ check_model(dwal.tu.2)
 exp(coef(dwal.tu.2))
 performance(dwal.tu.2)
 
-### all ----
-
 ##arsenic ----
 ### hw ----
 dwas.hw.0 <- glm(data = exhw[exhw$standard=="DW"&exhw$analyte=="As",],
@@ -497,8 +558,39 @@ dwas.hw.2 <- stepAIC(dwas.hw.0,scope = list(upper=dwas.hw.1), direction="both", 
 summary(dwas.hw.2) #both signif
 vif(dwas.hw.2)
 check_model(dwas.hw.2)
-exp(coef(dwas.hw.2))
+coefs <- data.frame(t(coef(dwas.hw.2)))
 performance(dwas.hw.2)
+
+X1_range <- seq(from=0, to=round(max(exhw$proximity.km),0), by=.01)
+
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
+
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
+
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of As Exceedance of Drinking Water Standard",
+       x = "\nDistance from Hayden/Winkelman Smelter (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "dwas_hw_ef.png", res=300, height=6, width=7, units="in")
 
 
 ##cadmium ----
@@ -569,8 +661,40 @@ dwmn.gm.2 <- stepAIC(dwmn.gm.0,scope = list(upper=dwmn.gm.1), direction="both", 
 summary(dwmn.gm.2) #both signif, trend makes sense
 vif(dwmn.gm.2)
 check_model(dwmn.gm.2)
-exp(coef(dwmn.gm.2))
+coefs <- data.frame(t(coef(dwmn.gm.2)))
 performance(dwmn.gm.2)
+
+X1_range <- seq(from=0, to=round(max(exgm$proximity.km),0), by=.01)
+
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
+
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
+
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of Mn Exceedance of Drinking Water Standard",
+       x = "\nDistance from Globe/Miami Mine (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "dwmn_gm_ef.png", res=300, height=6, width=7, units="in")
+
 
 
 ### tu ----
@@ -592,8 +716,40 @@ dwmn.tu.2 <- stepAIC(dwmn.tu.0,scope = list(upper=dwmn.tu.1), direction="both", 
 summary(dwmn.tu.2) #both signif, trend makes sense
 vif(dwmn.tu.2)
 check_model(dwmn.tu.2)
-exp(coef(dwmn.tu.2))
+coefs <- data.frame(t(coef(dwmn.tu.2)))
 performance(dwmn.tu.2)
+
+X1_range <- seq(from=0, to=23, by=.01)
+
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
+
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
+
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of Mn Exceedance of Drinking Water Standard",
+       x = "\nDistance from Tucson Air Force Base (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "dwmn_tu_ef.png", res=300, height=6, width=7, units="in")
+
 
 ##lead ----
 ### tu ----
@@ -636,11 +792,39 @@ performance(dwzn.tu.1)
 #prox signif, higher further away from afb
 
 dwzn.tu.2 <- stepAIC(dwzn.tu.0,scope = list(upper=dwzn.tu.1), direction="both", trace = T)
-summary(dwzn.tu.2) #both signif, trend makes sense
+summary(dwzn.tu.2) #prox signif, trend makes sense
 vif(dwzn.tu.2)
 check_model(dwzn.tu.2)
-exp(coef(dwzn.tu.2))
+coefs <- data.frame(t(coef(dwzn.tu.2)))
 performance(dwzn.tu.2)
+# 
+# X1_range <- seq(from=0, to=23, by=.01)
+# 
+# winter <- coefs$X.Intercept. + coefs$prox.normal*X1_range
+# winter.prob <- exp(winter)/(1 + exp(winter))
+# 
+# plot.data <- data.frame(prob=winter.prob, X1=X1_range)
+# 
+# ggplot(plot.data, aes(x=X1, y=prob)) +
+#   geom_line(lwd=2, color = "slateblue") + 
+#   # scale_colour_poke(pokemon = "jigglypuff", spread = 2)+
+#   labs(title = "Probability of Zn Exceedance of Drinking Water Standard",
+#        x = "\nDistance from Tucson Air Force Base (km)",
+#        y = "Probability\n",
+#        color = "Season") +
+#   theme_bw() +
+#   theme(text = element_text(family = "Avenir", size = 13),
+#         plot.title = element_text(hjust=.5, face = "bold"),
+#         plot.subtitle = element_text(hjust=.5),
+#         axis.text = element_text(vjust = .5, color = "black"),
+#         # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+#         legend.position="bottom",
+#         panel.grid.minor = element_blank(),
+#         panel.grid.major = element_blank(),
+#         axis.line.y = element_blank(),
+#         axis.line.x = element_blank())
+# dev.print(png, "dwzn_tu_ef.png", res=300, height=6, width=7, units="in")
+
 
 #FB/PB ----
 ##lead ----
@@ -665,7 +849,6 @@ vif(fpbpb.tu.2)
 check_model(fpbpb.tu.2)
 exp(coef(fpbpb.tu.2))
 performance(fpbpb.tu.2)
-#season not signif, but prox is
 
 
 #LDW ----
@@ -689,8 +872,39 @@ ldwas.hw.2 <- stepAIC(ldwas.hw.0,scope = list(upper=ldwas.hw.1), direction="both
 summary(ldwas.hw.2) #both variables significant with a trend that makes sense
 vif(ldwas.hw.2)
 check_model(ldwas.hw.2)
-exp(coef(ldwas.hw.2))
+coefs <- data.frame(t(coef(ldwas.hw.2)))
 performance(ldwas.hw.2)
+
+X1_range <- seq(from=0, to=round(max(exhw$proximity.km),0), by=.01)
+
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
+
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
+
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of As Exceedance of Livestock Drinking Water Standard",
+       x = "\nDistance from Hayden/Winkelman Smelter (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "ldwas_hw_ef.png", res=300, height=6, width=7, units="in")
 
 
 ##iron ----
@@ -737,8 +951,39 @@ ldwmn.gm.2 <- stepAIC(ldwmn.gm.0,scope = list(upper=ldwmn.gm.1), direction="both
 summary(ldwmn.gm.2) #both signif, trend makes sense
 vif(ldwmn.gm.2)
 check_model(ldwmn.gm.2)
-exp(coef(ldwmn.gm.2))
+coefs <- data.frame(t(coef(ldwmn.gm.2)))
 performance(ldwmn.gm.2)
+
+X1_range <- seq(from=0, to=round(max(exgm$proximity.km),0), by=.01)
+
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
+
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
+
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of Mn Exceedance of Livestock Drinking Water Standard",
+       x = "\nDistance from Globe/Miami Mine (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "ldwmn_gm_ef.png", res=300, height=6, width=7, units="in")
 
 
 ### tu ----
@@ -760,9 +1005,39 @@ ldwmn.tu.2 <- stepAIC(ldwmn.tu.0,scope = list(upper=ldwmn.tu.1), direction="both
 summary(ldwmn.tu.2) #both signif, trend makes sense
 vif(ldwmn.tu.2)
 check_model(ldwmn.tu.2)
-exp(coef(ldwmn.tu.2))
+coefs <- data.frame(t(coef(ldwmn.tu.2)))
 performance(ldwmn.tu.2)
 
+X1_range <- seq(from=0, to=23, by=.01)
+
+winter <- coefs$X.Intercept. + coefs$seasonMonsoon*0 + coefs$prox.normal*X1_range
+monsoon <- coefs$X.Intercept. + coefs$seasonMonsoon*1 + coefs$prox.normal*X1_range
+
+winter.prob <- exp(winter)/(1 + exp(winter))
+monsoon.prob <- exp(monsoon)/(1 + exp(monsoon))
+
+plot.data <- data.frame(winter=winter.prob, monsoon=monsoon.prob, X1=X1_range)
+plot.data <- gather(plot.data, key=group, value=prob, winter:monsoon)
+
+ggplot(plot.data, aes(x=X1, y=prob, color=group)) +
+  geom_line(lwd=2) + 
+  scale_colour_poke(pokemon = "charizard", spread = 2)+
+  labs(title = "Probability of Mn Exceedance of Livestock Drinking Water Standard",
+       x = "\nDistance from Tucson Air Force Base (km)",
+       y = "Probability\n",
+       color = "Season") +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        plot.title = element_text(hjust=.5, face = "bold"),
+        plot.subtitle = element_text(hjust=.5),
+        axis.text = element_text(vjust = .5, color = "black"),
+        # axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1),
+        legend.position="bottom",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_blank())
+dev.print(png, "ldwmn_tu_ef.png", res=300, height=6, width=7, units="in")
 
 #scratch models ----
 ##copper----
