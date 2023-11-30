@@ -266,7 +266,7 @@ iw.score$pli.ln<- log(iw.score$pli)
 #write.csv(iw.score, "score_test.csv")
 iw.score[is.na(iw.score$score_bin),]$score_bin <- "None"
 iw.score <- iw.score[!is.na(iw.score$community),]
-table(iw.score$score_bin, iw.score$community)
+#table(iw.score$score_bin, iw.score$community)
 
 
 #boxplot(log(iw.score$Cd)~iw.score$score)
