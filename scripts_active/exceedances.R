@@ -481,12 +481,12 @@ performance(dwal.hw.1)
 #prox significant
 
 dwal.hw.2 <- stepAIC(dwal.hw.0,scope = list(upper=dwal.hw.1), direction="both", trace = T)
-summary(dwal.hw.2) #prox significant with a trend that makes sense
+sumdf <- summary(dwal.hw.2) #prox significant with a trend that makes sense
+write.csv(sumdf$coefficients, "dwalhw.csv")
 vif(dwal.hw.2)
 check_model(dwal.hw.2)
 coefs <- data.frame(t(coef(dwal.hw.2)))
 performance(dwal.hw.2)
-
 
 X1_range <- seq(from=0, to=round(max(exhw$proximity.km),0), by=.01)
 
@@ -555,7 +555,8 @@ performance(dwas.hw.1)
 #both signif
 
 dwas.hw.2 <- stepAIC(dwas.hw.0,scope = list(upper=dwas.hw.1), direction="both", trace = T)
-summary(dwas.hw.2) #both signif
+sumdf <- summary(dwas.hw.2) #both signif
+#write.csv(sumdf$coefficients, "dwashs.csv")
 vif(dwas.hw.2)
 check_model(dwas.hw.2)
 coefs <- data.frame(t(coef(dwas.hw.2)))
@@ -658,7 +659,8 @@ performance(dwmn.gm.1)
 #both signif
 
 dwmn.gm.2 <- stepAIC(dwmn.gm.0,scope = list(upper=dwmn.gm.1), direction="both", trace = T)
-summary(dwmn.gm.2) #both signif, trend makes sense
+sumdf <- summary(dwmn.gm.2) #both signif, trend makes sense
+#write.csv(sumdf$coefficients, "dwmngm.csv")
 vif(dwmn.gm.2)
 check_model(dwmn.gm.2)
 coefs <- data.frame(t(coef(dwmn.gm.2)))
@@ -713,7 +715,8 @@ performance(dwmn.tu.1)
 #both signif
 
 dwmn.tu.2 <- stepAIC(dwmn.tu.0,scope = list(upper=dwmn.tu.1), direction="both", trace = T)
-summary(dwmn.tu.2) #both signif, trend makes sense
+sumdf <- summary(dwmn.tu.2) #both signif, trend makes sense
+#write.csv(sumdf$coefficients, "dwmntu.csv")
 vif(dwmn.tu.2)
 check_model(dwmn.tu.2)
 coefs <- data.frame(t(coef(dwmn.tu.2)))
@@ -869,7 +872,8 @@ performance(ldwas.hw.1)
 #both variables significant
 
 ldwas.hw.2 <- stepAIC(ldwas.hw.0,scope = list(upper=ldwas.hw.1), direction="both", trace = T)
-summary(ldwas.hw.2) #both variables significant with a trend that makes sense
+sumdf <- summary(ldwas.hw.2) #both variables significant with a trend that makes sense
+#write.csv(sumdf$coefficients, "ldwashs.csv")
 vif(ldwas.hw.2)
 check_model(ldwas.hw.2)
 coefs <- data.frame(t(coef(ldwas.hw.2)))
