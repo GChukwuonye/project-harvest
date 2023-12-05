@@ -149,6 +149,7 @@ pli <- read.csv("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/
 #pli <- read.csv("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/pollution_load_selected_analytes.csv")
 iw.dm$pli <- pli$pli_contaminants
 
+iw.dm$pli.ln <- log(iw.dm$pli)
 
 #outliers ----
 #remove samples 19 and 39 from analysis because they were outliers based on MFA and remove all samples from H22 because they are a proximity outlier south of Winkelman
@@ -260,16 +261,80 @@ hds[hds$score_bin=="5",]$score_bin <- "High"
 hds$score_bin <- factor(hds$score_bin, levels = c("None", "Medium", "High"))
 summary(hds$score_bin)
 
-iw.score <- full_join(iw.dm, hds, by = c("site"))
-iw.score$pli.ln<- log(iw.score$pli)
+iw.dm <- full_join(iw.dm, hds, by = c("site"))
 
 #write.csv(iw.score, "score_test.csv")
-iw.score[is.na(iw.score$score_bin),]$score_bin <- "None"
-iw.score <- iw.score[!is.na(iw.score$community),]
+iw.dm[is.na(iw.dm$score_bin),]$score_bin <- "None"
+iw.dm <- iw.dm[!is.na(iw.dm$community),]
 #table(iw.score$score_bin, iw.score$community)
-
-
-#boxplot(log(iw.score$Cd)~iw.score$score)
+# 
+# ##Q67b Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
+# hds$Q67b <- as.character(hds$Q67)
+# hds[is.na(hds$Q67b),]$Q67b <- "-1"
+# hds[hds$Q67b=="0",]$Q67b <- "-1"
+# hds[hds$Q67b=="1",]$Q67b <- "1"
+# hds[hds$Q67b=="2",]$Q67b <- "-1"
+# hds$Q67b <- as.numeric(hds$Q67b)
+# summary(as.factor(hds$Q67b))
+# 
+# ##Q71b Do you treat or wash your cistern with anything? ----
+# hds$Q71b <- as.character(hds$Q71)
+# hds[is.na(hds$Q71b),]$Q71b <- "-1"
+# hds[hds$Q71b=="0",]$Q71b <- "-1"
+# hds[hds$Q71b=="1",]$Q71b <- "1"
+# hds[hds$Q71b=="2",]$Q71b <- "-1"
+# hds$Q71b <- as.numeric(hds$Q71b)
+# summary(hds$Q71b)
+# 
+# ##Q76b Does your cistern have a first flush? ----
+# hds$Q76b <- as.character(hds$Q76)
+# hds[is.na(hds$Q76b),]$Q76b <- "-1"
+# hds[hds$Q76b=="0",]$Q76b <- "-1"
+# hds[hds$Q76b=="1",]$Q76b <- "1"
+# hds[hds$Q76b=="2",]$Q76b <- "-1"
+# hds[hds$Q76b=="3",]$Q76b <- "-1"
+# hds$Q76b <- as.numeric(hds$Q76b)
+# summary(hds$Q76b)
+# 
+# ##Q77b Does your cistern have a screen/filter for incoming water from down spout on top of the tank? ----
+# hds$Q77b <- as.character(hds$Q77)
+# hds[is.na(hds$Q77b),]$Q77b <- "-1"
+# hds[hds$Q77b=="0",]$Q77b <- "-1"
+# hds[hds$Q77b=="1",]$Q77b <- "1"
+# hds[hds$Q77b=="2",]$Q77b <- "-1"
+# hds[hds$Q77b=="3",]$Q77b <- "-1"
+# hds$Q77b <- as.numeric(hds$Q77b)
+# summary(hds$Q77b)
+# 
+# ##Q79b Do you ever NOT remove the screen/filter and leave your cistern without the filter? ----
+# ##question edited so that the Y/N response goes the same direction as the other questions
+# hds$Q79b <- as.character(hds$Q79)
+# hds[hds$Q79b=="0",]$Q79b <- "-1"
+# hds[hds$Q79b=="1",]$Q79b <- "1"
+# hds$Q79b <- as.numeric(hds$Q79b)
+# summary(hds$Q79b)
+# 
+# hds$scoreb <- hds$Q67b + hds$Q71b + hds$Q76b + hds$Q77b + hds$Q79b
+# summary(as.factor(hds$scoreb))
+# hds$scoreb <- as.character(hds$scoreb)
+# hds$scoreb_bin <- hds$scoreb
+# hds[hds$scoreb_bin=="-5",]$scoreb_bin <- "None"
+# hds[hds$scoreb_bin=="1",]$scoreb_bin <- "Medium"
+# hds[hds$scoreb_bin=="2",]$scoreb_bin <- "Medium"
+# hds[hds$scoreb_bin=="3",]$scoreb_bin <- "High"
+# hds[hds$scoreb_bin=="4",]$scoreb_bin <- "High"
+# hds[hds$scoreb_bin=="5",]$scoreb_bin <- "High"
+# hds$scoreb_bin <- factor(hds$scoreb_bin, levels = c("None", "Medium", "High"))
+# summary(hds$scoreb_bin)
+# 
+# iw.dm <- full_join(iw.dm, hds, by = c("site"))
+# 
+# #write.csv(iw.scoreb, "scoreb_test.csv")
+# iw.dm[is.na(iw.dm$scoreb_bin),]$scoreb_bin <- "None"
+# iw.dm <- iw.dm[!is.na(iw.dm$community),]
+# table(iw.scoreb$scoreb_bin, iw.scoreb$community)
+# 
+# #boxplot(log(iw.score$Cd)~iw.score$score)
 
 # ##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?
 # q67 <- hds
