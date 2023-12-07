@@ -201,71 +201,120 @@ hds <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processin
 #assumption/limitation: we assume that the maintenance intervention reported was consistent across the duration of the study
 #assumption: sites with no HDS survey were assumed to have maintenance scores of 0/None.
 ##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
-hds$Q67 <- as.character(hds$Q67)
-hds[is.na(hds$Q67),]$Q67 <- "0"
-hds[hds$Q67=="0",]$Q67 <- "0"
-hds[hds$Q67=="1",]$Q67 <- "1"
-hds[hds$Q67=="2",]$Q67 <- "0"
-hds$Q67 <- as.numeric(hds$Q67)
-summary(hds$Q67)
+hds67<- hds
+hds67$Q67 <- as.character(hds67$Q67)
+#hds67[is.na(hds67$Q67),]$Q67 <- "0"
+hds67 <- hds67 %>%
+  drop_na(Q67)
+hds67[hds67$Q67=="0",]$Q67 <- "0"
+hds67[hds67$Q67=="1",]$Q67 <- "1"
+hds67[hds67$Q67=="2",]$Q67 <- "0"
+hds67$Q67 <- as.numeric(hds67$Q67)
+summary(as.factor(hds67$Q67))
 
 ##Q71 Do you treat or wash your cistern with anything? ----
-hds$Q71 <- as.character(hds$Q71)
-hds[is.na(hds$Q71),]$Q71 <- "0"
-hds[hds$Q71=="0",]$Q71 <- "0"
-hds[hds$Q71=="1",]$Q71 <- "1"
-hds[hds$Q71=="2",]$Q71 <- "0"
-hds$Q71 <- as.numeric(hds$Q71)
-summary(hds$Q71)
+hds71<- hds
+hds71$Q71 <- as.character(hds$Q71)
+hds71 <- hds71 %>%
+  drop_na(Q71)
+#hds[is.na(hds$Q71),]$Q71 <- "0"
+hds71[hds71$Q71=="0",]$Q71 <- "0"
+hds71[hds71$Q71=="1",]$Q71 <- "1"
+hds71[hds71$Q71=="2",]$Q71 <- "0"
+hds71$Q71 <- as.numeric(hds71$Q71)
+summary(as.factor(hds71$Q71))
 
 ##Q76 Does your cistern have a first flush? ----
-hds$Q76 <- as.character(hds$Q76)
-hds[is.na(hds$Q76),]$Q76 <- "0"
-hds[hds$Q76=="0",]$Q76 <- "0"
-hds[hds$Q76=="1",]$Q76 <- "1"
-hds[hds$Q76=="2",]$Q76 <- "0"
-hds[hds$Q76=="3",]$Q76 <- "0"
-hds$Q76 <- as.numeric(hds$Q76)
-summary(hds$Q76)
+hds76<- hds
+hds76$Q76 <- as.character(hds76$Q76)
+hds76 <- hds76 %>%
+  drop_na(Q76)
+#hds76[is.na(hds76$Q76),]$Q76 <- "0"
+hds76[hds76$Q76=="0",]$Q76 <- "0"
+hds76[hds76$Q76=="1",]$Q76 <- "1"
+hds76[hds76$Q76=="2",]$Q76 <- "0"
+hds76[hds76$Q76=="3",]$Q76 <- "0"
+hds76$Q76 <- as.numeric(hds76$Q76)
+summary(as.factor(hds76$Q76))
 
 ##Q77 Does your cistern have a screen/filter for incoming water from down spout on top of the tank? ----
-hds$Q77 <- as.character(hds$Q77)
-hds[is.na(hds$Q77),]$Q77 <- "0"
-hds[hds$Q77=="0",]$Q77 <- "0"
-hds[hds$Q77=="1",]$Q77 <- "1"
-hds[hds$Q77=="2",]$Q77 <- "0"
-hds[hds$Q77=="3",]$Q77 <- "0"
-hds$Q77 <- as.numeric(hds$Q77)
-summary(hds$Q77)
+hds77<- hds
+hds77$Q77 <- as.character(hds77$Q77)
+hds77 <- hds77 %>%
+  drop_na(Q77)
+#hds77[is.na(hds77$Q77),]$Q77 <- "0"
+hds77[hds77$Q77=="0",]$Q77 <- "0"
+hds77[hds77$Q77=="1",]$Q77 <- "1"
+hds77[hds77$Q77=="2",]$Q77 <- "0"
+hds77[hds77$Q77=="3",]$Q77 <- "0"
+hds77$Q77 <- as.numeric(hds77$Q77)
+summary(as.factor(hds77$Q77))
 
 ##Q79 Do you ever NOT remove the screen/filter and leave your cistern without the filter? ----
 ##question edited so that the Y/N response goes the same direction as the other questions
-hds$Q79 <- as.character(hds$Q79)
-hds[is.na(hds$Q79),]$Q79 <- "0"
-hds[hds$Q79=="0",]$Q79 <- "0"
-hds[hds$Q79=="1",]$Q79 <- "0"
-hds[hds$Q79=="2",]$Q79 <- "1"
-hds[hds$Q79=="100",]$Q79 <- "0"
-hds$Q79 <- as.numeric(hds$Q79)
-summary(hds$Q79)
 
-hds$score <- hds$Q67 + hds$Q71 + hds$Q76 + hds$Q77 + hds$Q79
-hds$score <- as.character(hds$score)
-hds$score_bin <- hds$score
-hds[hds$score_bin=="0",]$score_bin <- "None"
-hds[hds$score_bin=="1",]$score_bin <- "Medium"
-hds[hds$score_bin=="2",]$score_bin <- "Medium"
-hds[hds$score_bin=="3",]$score_bin <- "High"
-hds[hds$score_bin=="4",]$score_bin <- "High"
-hds[hds$score_bin=="5",]$score_bin <- "High"
-hds$score_bin <- factor(hds$score_bin, levels = c("None", "Medium", "High"))
-summary(hds$score_bin)
+hds79<- hds
+hds79$Q79 <- as.character(hds79$Q79)
+hds79 <- hds79 %>%
+  drop_na(Q79)
+#hds79[is.na(hds79$Q79),]$Q79 <- "0"
+hds79[hds79$Q79=="0",]$Q79 <- "0"
+hds79[hds79$Q79=="1",]$Q79 <- "0"
+hds79[hds79$Q79=="2",]$Q79 <- "1"
+hds79[hds79$Q79=="100",]$Q79 <- "0"
+hds79$Q79 <- as.numeric(hds79$Q79)
+summary(as.factor(hds79$Q79))
 
-iw.dm <- full_join(iw.dm, hds, by = c("site"))
+#hds$score <- hds$Q67 + hds$Q71 + hds$Q76 + hds$Q77 + hds$Q79
+#hds$score <- as.character(hds$score)
+#hds$score_bin <- hds$score
+#hds[hds$score_bin=="0",]$score_bin <- "None"
+#hds[hds$score_bin=="1",]$score_bin <- "Medium"
+#hds[hds$score_bin=="2",]$score_bin <- "Medium"
+#hds[hds$score_bin=="3",]$score_bin <- "High"
+#hds[hds$score_bin=="4",]$score_bin <- "High"
+#hds[hds$score_bin=="5",]$score_bin <- "High"
+#hds$score_bin <- factor(hds$score_bin, levels = c("None", "Medium", "High"))
+#summary(hds$score_bin)
+
+#iw.dm <- full_join(iw.dm, hds, by = c("site"))
+#iw.dm67- combining iw.dm with Q67=====
+iw.dm67 <- full_join(iw.dm, hds67, by = c("site"))
+iw.dm67 <- iw.dm67[!is.na(iw.dm67$community),]
+iw.dm67<-iw.dm67 %>%
+  drop_na(Q67)
+
+
+#iw.dm71- combining iw.dm with Q71=====
+iw.dm71 <- full_join(iw.dm, hds71, by = c("site"))
+iw.dm71 <- iw.dm71[!is.na(iw.dm71$community),]
+iw.dm71<-iw.dm71 %>%
+  drop_na(Q71)
+
+#iw.dm76- combining iw.dm with Q76=====
+iw.dm76 <- full_join(iw.dm, hds76, by = c("site"))
+iw.dm76 <- iw.dm76[!is.na(iw.dm76$community),]
+iw.dm76<-iw.dm76 %>%
+  drop_na(Q76)
+
+#iw.dm77- combining iw.dm with Q77=====
+iw.dm77 <- full_join(iw.dm, hds77, by = c("site"))
+iw.dm77 <- iw.dm77[!is.na(iw.dm77$community),]
+iw.dm77<-iw.dm77 %>%
+  drop_na(Q77)
+
+#iw.dm79- combining iw.dm with Q79=====
+iw.dm79 <- full_join(iw.dm, hds79, by = c("site"))
+iw.dm79 <- iw.dm77[!is.na(iw.dm79$community),]
+iw.dm79<-iw.dm79 %>%
+  drop_na(Q79)
+
+
+
 
 #write.csv(iw.score, "score_test.csv")
-iw.dm[is.na(iw.dm$score_bin),]$score_bin <- "None"
-iw.dm <- iw.dm[!is.na(iw.dm$community),]
+#iw.dm[is.na(iw.dm$score_bin),]$score_bin <- "None"
+#iw.dm <- iw.dm[!is.na(iw.dm$community),]
 #table(iw.score$score_bin, iw.score$community)
 # 
 # ##Q67b Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
