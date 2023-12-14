@@ -1499,85 +1499,76 @@ performance(Zn.hw.2)
 #season
 
 ## tu ----
-###Mn ----
-mn.tu.0 <- lmer(data = iws.tu,
-                log(Mn) ~
+###Ag ----
+Ag.tu.0 <- lmer(data = iws.tu,
+                log(Ag) ~
                   (1|site),
                 REML = F)
-print(summary(mn.tu.0))
+print(summary(Ag.tu.0))
 
-mn.tu.1 <- lmer(data = iws.tu,
-                log(Mn) ~ season + prox.normal + score_bin +
+Ag.tu.1 <- lmer(data = iws.tu,
+                log(Ag) ~ season + prox.normal + score_bin + pH +
                   (1|site),
                 REML = F)
-print(summary(mn.tu.1))
-mn.tu.2.step <- step(mn.tu.1)
-mn.tu.2.step
-mn.tu.2 <- get_model(mn.tu.2.step)
-print(summary(mn.tu.2))
-anova(mn.tu.1)
-print(anova(mn.tu.2))
-#season
+print(summary(Ag.tu.1))
+vif(Ag.tu.1)
+Ag.tu.2.step <- step(Ag.tu.1)
+Ag.tu.2.step
+Ag.tu.2 <- get_model(Ag.tu.2.step)
+print(summary(Ag.tu.2))
+check_model(Ag.tu.2)
+anova(Ag.tu.1)
+print(anova(Ag.tu.2))
+plot(allEffects(Ag.tu.2))
+#nothing
 
-###Co ----
-co.tu.0 <- lmer(data = iws.tu,
-                log(Co) ~
+###Al ----
+al.tu.0 <- lmer(data = iws.tu,
+                log(Al) ~
                   (1|site),
                 REML = F)
-print(summary(co.tu.0))
+print(summary(al.tu.0))
 
-co.tu.1 <- lmer(data = iws.tu,
-                log(Co) ~ season + prox.normal + score_bin +
+al.tu.1 <- lmer(data = iws.tu,
+                log(Al) ~ season + prox.normal + score_bin + pH +
                   (1|site),
                 REML = F)
-print(summary(co.tu.1))
-co.tu.2.step <- step(co.tu.1)
-co.tu.2.step
-co.tu.2 <- get_model(co.tu.2.step)
-print(summary(co.tu.2))
-anova(co.tu.1)
-print(anova(co.tu.2))
-#season
+print(summary(al.tu.1))
 
-###Ni ----
-ni.tu.0 <- lmer(data = iws.tu,
-                log(Ni) ~
-                  (1|site),
-                REML = F)
-print(summary(ni.tu.0))
+al.tu.2.step <- step(al.tu.1)
+al.tu.2.step
+al.tu.2 <- get_model(al.tu.2.step)
+print(summary(al.tu.2))
+check_model(al.tu.2)
+anova(al.tu.1)
+print(anova(al.tu.2))
+performance(al.tu.2)
+plot(allEffects(al.tu.2))
+#prox and score
 
-ni.tu.1 <- lmer(data = iws.tu,
-                log(Ni) ~ season + prox.normal + score_bin +
+###As ----
+As.tu.0 <- lmer(data = iws.tu,
+                log(As) ~
                   (1|site),
                 REML = F)
-print(summary(ni.tu.1))
-ni.tu.2.step <- step(ni.tu.1)
-ni.tu.2.step
-ni.tu.2 <- get_model(ni.tu.2.step)
-print(summary(ni.tu.2))
-anova(ni.tu.1)
-print(anova(ni.tu.2))
-#season
+print(summary(As.tu.0))
 
-###Zn ----
-zn.tu.0 <- lmer(data = iws.tu,
-                log(Zn) ~
+As.tu.1 <- lmer(data = iws.tu,
+                log(As) ~ season + prox.normal + score_bin + pH +
                   (1|site),
                 REML = F)
-print(summary(zn.tu.0))
+print(summary(As.tu.1))
 
-zn.tu.1 <- lmer(data = iws.tu,
-                log(Zn) ~ season + prox.normal + score_bin +
-                  (1|site),
-                REML = F)
-print(summary(zn.tu.1))
-zn.tu.2.step <- step(zn.tu.1)
-zn.tu.2.step
-zn.tu.2 <- get_model(zn.tu.2.step)
-print(summary(zn.tu.2))
-anova(zn.tu.1)
-print(anova(zn.tu.2))
-#prox
+As.tu.2.step <- step(As.tu.1)
+As.tu.2.step
+As.tu.2 <- get_model(As.tu.2.step)
+print(summary(As.tu.2))
+check_model(As.tu.2)
+anova(As.tu.1)
+print(anova(As.tu.2))
+performance(As.tu.2)
+plot(allEffects(As.tu.2))
+#prox pH season
 
 ###Ba ----
 ba.tu.0 <- lmer(data = iws.tu,
@@ -1587,23 +1578,372 @@ ba.tu.0 <- lmer(data = iws.tu,
 print(summary(ba.tu.0))
 
 ba.tu.1 <- lmer(data = iws.tu,
-                log(Ba) ~ season + prox.normal + score_bin +
+                log(Ba) ~ season + prox.normal + score_bin + pH +
                   (1|site),
                 REML = F)
 print(summary(ba.tu.1))
+
 ba.tu.2.step <- step(ba.tu.1)
 ba.tu.2.step
 ba.tu.2 <- get_model(ba.tu.2.step)
 print(summary(ba.tu.2))
 anova(ba.tu.1)
 print(anova(ba.tu.2))
+check_model(ba.tu.2)
+performance(ba.tu.2)
+plot(allEffects(ba.tu.2))
+#prox season
+
+###Be ----
+Be.tu.0 <- lmer(data = iws.tu,
+                log(Be) ~
+                  (1|site),
+                REML = F)
+print(summary(Be.tu.0))
+
+Be.tu.1 <- lmer(data = iws.tu,
+                log(Be) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Be.tu.1))
+
+Be.tu.2.step <- step(Be.tu.1)
+Be.tu.2.step
+Be.tu.2 <- get_model(Be.tu.2.step)
+print(summary(Be.tu.2))
+check_model(Be.tu.2)
+anova(Be.tu.1)
+print(anova(Be.tu.2))
+performance(Be.tu.2)
+plot(allEffects(Be.tu.2))
+#nothing
+
+###Cd ----
+Cd.tu.0 <- lmer(data = iws.tu,
+                log(Cd) ~
+                  (1|site),
+                REML = F)
+print(summary(Cd.tu.0))
+
+Cd.tu.1 <- lmer(data = iws.tu,
+                log(Cd) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cd.tu.1))
+
+Cd.tu.2.step <- step(Cd.tu.1)
+Cd.tu.2.step
+Cd.tu.2 <- get_model(Cd.tu.2.step)
+print(summary(Cd.tu.2))
+check_model(Cd.tu.2)
+anova(Cd.tu.1)
+print(anova(Cd.tu.2))
+performance(Cd.tu.2)
+plot(allEffects(Cd.tu.2))
+#season and prox and score
+
+###Co ----
+Co.tu.0 <- lmer(data = iws.tu,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(Co.tu.0))
+
+Co.tu.1 <- lmer(data = iws.tu,
+                log(Co) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Co.tu.1))
+
+Co.tu.2.step <- step(Co.tu.1)
+Co.tu.2.step
+Co.tu.2 <- get_model(Co.tu.2.step)
+print(summary(Co.tu.2))
+check_model(Co.tu.2)
+anova(Co.tu.1)
+print(anova(Co.tu.2))
+performance(Co.tu.2)
+#season prox
+
+###Cr ----
+Cr.tu.0 <- lmer(data = iws.tu,
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(Cr.tu.0))
+
+Cr.tu.1 <- lmer(data = iws.tu,
+                log(Cr) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cr.tu.1))
+
+Cr.tu.2.step <- step(Cr.tu.1)
+Cr.tu.2.step
+Cr.tu.2 <- get_model(Cr.tu.2.step)
+print(summary(Cr.tu.2))
+check_model(Cr.tu.2)
+anova(Cr.tu.1)
+print(anova(Cr.tu.2))
+performance(Cr.tu.2)
 #season
 
+###Cu ----
+Cu.tu.0 <- lmer(data = iws.tu,
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(Cu.tu.0))
 
-lapply(X = contam_list,
-       FUN = hdslmerstepFX,
-       dataDF = iws.tu,
-       dfname.string = ".tu")
+Cu.tu.1 <- lmer(data = iws.tu,
+                log(Cu) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cu.tu.1))
+
+Cu.tu.2.step <- step(Cu.tu.1)
+Cu.tu.2.step
+Cu.tu.2 <- get_model(Cu.tu.2.step)
+print(summary(Cu.tu.2))
+check_model(Cu.tu.2)
+anova(Cu.tu.1)
+print(anova(Cu.tu.2))
+performance(Cu.tu.2)
+#season prox
+
+###Fe ----
+Fe.tu.0 <- lmer(data = iws.tu,
+                log(Fe) ~
+                  (1|site),
+                REML = F)
+print(summary(Fe.tu.0))
+
+Fe.tu.1 <- lmer(data = iws.tu,
+                log(Fe) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Fe.tu.1))
+
+Fe.tu.2.step <- step(Fe.tu.1)
+Fe.tu.2.step
+Fe.tu.2 <- get_model(Fe.tu.2.step)
+print(summary(Fe.tu.2))
+check_model(Fe.tu.2)
+anova(Fe.tu.1)
+print(anova(Fe.tu.2))
+performance(Fe.tu.2)
+#prox pH season
+
+###Mn ----
+Mn.tu.0 <- lmer(data = iws.tu,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(Mn.tu.0))
+
+Mn.tu.1 <- lmer(data = iws.tu,
+                log(Mn) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Mn.tu.1))
+
+Mn.tu.2.step <- step(Mn.tu.1)
+Mn.tu.2.step
+Mn.tu.2 <- get_model(Mn.tu.2.step)
+print(summary(Mn.tu.2))
+check_model(Mn.tu.2)
+anova(Mn.tu.1)
+print(anova(Mn.tu.2))
+performance(Mn.tu.2)
+#season prox only
+
+
+###Mo ----
+mo.tu.0 <- lmer(data = iws.tu,
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.tu.0))
+
+mo.tu.1 <- lmer(data = iws.tu,
+                log(Mo) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(mo.tu.1))
+
+mo.tu.2.step <- step(mo.tu.1)
+mo.tu.2.step
+mo.tu.2 <- get_model(mo.tu.2.step)
+print(summary(mo.tu.2))
+anova(mo.tu.1)
+print(anova(mo.tu.2))
+check_model(mo.tu.2)
+performance(mo.tu.2)
+plot(allEffects(mo.tu.2))
+#prox season
+
+###Ni ----
+ni.tu.0 <- lmer(data = iws.tu,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.tu.0))
+
+ni.tu.1 <- lmer(data = iws.tu,
+                log(Ni) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(ni.tu.1))
+
+ni.tu.2.step <- step(ni.tu.1)
+ni.tu.2.step
+ni.tu.2 <- get_model(ni.tu.2.step)
+print(summary(ni.tu.2))
+anova(ni.tu.1)
+print(anova(ni.tu.2))
+check_model(ni.tu.2)
+performance(ni.tu.2)
+#season only, 
+
+###Pb ----
+Pb.tu.0 <- lmer(data = iws.tu,
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(Pb.tu.0))
+
+Pb.tu.1 <- lmer(data = iws.tu,
+                log(Pb) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Pb.tu.1))
+
+Pb.tu.2.step <- step(Pb.tu.1)
+Pb.tu.2.step
+Pb.tu.2 <- get_model(Pb.tu.2.step)
+print(summary(Pb.tu.2))
+check_model(Pb.tu.2)
+anova(Pb.tu.1)
+print(anova(Pb.tu.2))
+performance(Pb.tu.2)
+plot(allEffects(Pb.tu.2))
+#season prox only
+
+###Sb ----
+Sb.tu.0 <- lmer(data = iws.tu,
+                log(Sb) ~
+                  (1|site),
+                REML = F)
+print(summary(Sb.tu.0))
+
+Sb.tu.1 <- lmer(data = iws.tu,
+                log(Sb) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sb.tu.1))
+
+Sb.tu.2.step <- step(Sb.tu.1)
+Sb.tu.2.step
+Sb.tu.2 <- get_model(Sb.tu.2.step)
+print(summary(Sb.tu.2))
+check_model(Sb.tu.2)
+anova(Sb.tu.1)
+print(anova(Sb.tu.2))
+performance(Sb.tu.2)
+#season prox
+
+###Se ----
+Se.tu.0 <- lmer(data = iws.tu,
+                log(Se) ~
+                  (1|site),
+                REML = F)
+print(summary(Se.tu.0))
+
+Se.tu.1 <- lmer(data = iws.tu,
+                log(Se) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Se.tu.1))
+
+Se.tu.2.step <- step(Se.tu.1)
+Se.tu.2.step
+Se.tu.2 <- get_model(Se.tu.2.step)
+print(summary(Se.tu.2))
+check_model(Se.tu.2)
+anova(Se.tu.1)
+print(anova(Se.tu.2))
+performance(Se.tu.2)
+#season
+
+###Sn ----
+Sn.tu.0 <- lmer(data = iws.tu,
+                log(Sn) ~
+                  (1|site),
+                REML = F)
+print(summary(Sn.tu.0))
+
+Sn.tu.1 <- lmer(data = iws.tu,
+                log(Sn) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sn.tu.1))
+
+Sn.tu.2.step <- step(Sn.tu.1)
+Sn.tu.2.step
+Sn.tu.2 <- get_model(Sn.tu.2.step)
+print(summary(Sn.tu.2))
+check_model(Sn.tu.2)
+anova(Sn.tu.1)
+print(anova(Sn.tu.2))
+performance(Sn.tu.2)
+#season
+
+###V ----
+v.tu.0 <- lmer(data = iws.tu,
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.tu.0))
+
+v.tu.1 <- lmer(data = iws.tu,
+               log(V) ~ season + prox.normal + score_bin + pH +
+                 (1|site),
+               REML = F)
+print(summary(v.tu.1))
+
+v.tu.2.step <- step(v.tu.1)
+v.tu.2.step
+v.tu.2 <- get_model(v.tu.2.step)
+print(summary(v.tu.2))
+anova(v.tu.1)
+print(anova(v.tu.2))
+check_model(v.tu.2)
+performance(v.tu.2)
+#season
+
+###Zn ----
+Zn.tu.0 <- lmer(data = iws.tu,
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(Zn.tu.0))
+
+Zn.tu.1 <- lmer(data = iws.tu,
+                log(Zn) ~ season + prox.normal + score_bin + pH +
+                  (1|site),
+                REML = F)
+print(summary(Zn.tu.1))
+
+Zn.tu.2.step <- step(Zn.tu.1)
+Zn.tu.2.step
+Zn.tu.2 <- get_model(Zn.tu.2.step)
+print(summary(Zn.tu.2))
+check_model(Zn.tu.2)
+anova(Zn.tu.1)
+print(anova(Zn.tu.2))
+performance(Zn.tu.2)
+#season
+
 
 #functions ----
 sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string, filename.string){
