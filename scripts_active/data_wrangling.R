@@ -305,7 +305,7 @@ iw.dm77<-iw.dm77 %>%
 
 #iw.dm79- combining iw.dm with Q79=====
 iw.dm79 <- full_join(iw.dm, hds79, by = c("site"))
-iw.dm79 <- iw.dm77[!is.na(iw.dm79$community),]
+iw.dm79 <- iw.dm79[!is.na(iw.dm79$community),]
 iw.dm79<-iw.dm79 %>%
   drop_na(Q79)
 
