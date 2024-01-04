@@ -35,6 +35,7 @@ iws.gm <- iws.c[[2]]
 iws.hw <- iws.c[[3]]
 iws.tu <- iws.c[[4]]
 
+#add ward and sub location to Tucson data
 tuc <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "tucson", col_names = TRUE)
 iws.tu <- full_join(iws.tu, tuc, by = c("site"))
 iws.tu <- iws.tu %>%
@@ -42,6 +43,14 @@ iws.tu <- iws.tu %>%
   drop_na(community) %>%
   drop_na(location)
 iws.tu$ward <- factor(iws.tu$ward, levels = c("One", "Two", "Three", "Four", "Five", "Six"))
+
+#add sub location to globe data
+glo <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "globe", col_names = TRUE)
+iws.gm <- full_join(iws.gm, glo, by = c("site"))
+iws.gm <- iws.gm %>%
+  drop_na(community) %>%
+  drop_na(location_2)
+iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
 
 ## dh ----
 ###Ag ----
@@ -558,19 +567,21 @@ Ag.gm.0 <- lmer(data = iws.gm,
                   (1|site),
                 REML = F)
 print(summary(Ag.gm.0))
+check_model(Ag.gm.0)
 
 Ag.gm.1 <- lmer(data = iws.gm,
-                log(Ag) ~ season + prox.normal +  pH +
+                log(Ag) ~ season + prox.normal+location_2 +  pH +
                   (1|site),
                 REML = F)
 print(summary(Ag.gm.1))
+check_model(Ag.gm.1)
 vif(Ag.gm.1)
 Ag.gm.2.step <- step(Ag.gm.1)
 Ag.gm.2.step
 Ag.gm.2 <- get_model(Ag.gm.2.step)
 print(summary(Ag.gm.2))
 Ag.gm.2 <- lm(data = iws.gm,
-                log(Ag) ~ prox.normal +  pH)
+                log(Ag) ~ location_2 +  pH)
 print(summary(Ag.gm.2))
 check_model(Ag.gm.2)
 anova(Ag.gm.1)
@@ -579,7 +590,10 @@ plot(allEffects(Ag.gm.2))
 perf <- performance(Ag.gm.2)
 perf
 write.csv(perf, "aggm_diag.csv")
-#prox and pH
+#location and pH
+
+# ggplot(data = iws.gm, mapping = aes(color = location_2, x = prox.normal, y = Al))+
+#   geom_point()
 
 ###Al ----
 al.gm.0 <- lmer(data = iws.gm,
@@ -589,11 +603,11 @@ al.gm.0 <- lmer(data = iws.gm,
 print(summary(al.gm.0))
 
 al.gm.1 <- lmer(data = iws.gm,
-                log(Al) ~ season + prox.normal +  pH +
+                log(Al) ~ season + prox.normal+location_2 +  pH +
                   (1|site),
                 REML = F)
 print(summary(al.gm.1))
-
+check_model(al.gm.1)
 al.gm.2.step <- step(al.gm.1)
 al.gm.2.step
 al.gm.2 <- get_model(al.gm.2.step)
@@ -620,7 +634,7 @@ As.gm.0 <- lmer(data = iws.gm,
 print(summary(As.gm.0))
 
 As.gm.1 <- lmer(data = iws.gm,
-                log(As) ~ season + prox.normal +  pH +
+                log(As) ~ season + prox.normal+location_2 +  pH +
                   (1|site),
                 REML = F)
 print(summary(As.gm.1))
@@ -629,10 +643,8 @@ As.gm.2.step <- step(As.gm.1)
 As.gm.2.step
 As.gm.2 <- get_model(As.gm.2.step)
 print(summary(As.gm.2))
-As.gm.2 <- lmer(data = iws.gm,
-                log(As) ~ season + prox.normal +  pH +
-                  (1|site),
-                REML = T)
+As.gm.2 <- lm(data = iws.gm,
+                log(As) ~ season +  pH + prox.normal)
 print(summary(As.gm.2))
 check_model(As.gm.2)
 anova(As.gm.1)
@@ -651,7 +663,7 @@ ba.gm.0 <- lmer(data = iws.gm,
 print(summary(ba.gm.0))
 
 ba.gm.1 <- lmer(data = iws.gm,
-                log(Ba) ~ season + prox.normal +  pH +
+                log(Ba) ~ season + prox.normal + location_2+  pH +
                   (1|site),
                 REML = F)
 print(summary(ba.gm.1))
@@ -661,7 +673,7 @@ ba.gm.2.step
 ba.gm.2 <- get_model(ba.gm.2.step)
 print(summary(ba.gm.2))
 ba.gm.2 <- lmer(data = iws.gm,
-                log(Ba) ~ season + prox.normal +  pH +
+                log(Ba) ~ season +  pH+prox.normal +
                   (1|site),
                 REML = T)
 print(summary(ba.gm.2))
@@ -682,7 +694,7 @@ Be.gm.0 <- lmer(data = iws.gm,
 print(summary(Be.gm.0))
 
 Be.gm.1 <- lmer(data = iws.gm,
-                log(Be) ~ season + prox.normal +  pH +
+                log(Be) ~ season + prox.normal +  location_2+pH +
                   (1|site),
                 REML = F)
 print(summary(Be.gm.1))
@@ -713,7 +725,7 @@ Cd.gm.0 <- lmer(data = iws.gm,
 print(summary(Cd.gm.0))
 
 Cd.gm.1 <- lmer(data = iws.gm,
-                log(Cd) ~ season + prox.normal +  pH +
+                log(Cd) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Cd.gm.1))
@@ -744,7 +756,7 @@ Co.gm.0 <- lmer(data = iws.gm,
 print(summary(Co.gm.0))
 
 Co.gm.1 <- lmer(data = iws.gm,
-                log(Co) ~ season + prox.normal +  pH +
+                log(Co) ~ season + prox.normal +  location_2+pH +
                   (1|site),
                 REML = F)
 print(summary(Co.gm.1))
@@ -774,7 +786,7 @@ Cr.gm.0 <- lmer(data = iws.gm,
 print(summary(Cr.gm.0))
 
 Cr.gm.1 <- lmer(data = iws.gm,
-                log(Cr) ~ season + prox.normal +  pH +
+                log(Cr) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Cr.gm.1))
@@ -804,7 +816,7 @@ Cu.gm.0 <- lmer(data = iws.gm,
 print(summary(Cu.gm.0))
 
 Cu.gm.1 <- lmer(data = iws.gm,
-                log(Cu) ~ season + prox.normal +  pH +
+                log(Cu) ~ season + prox.normal +  location_2+pH +
                   (1|site),
                 REML = F)
 print(summary(Cu.gm.1))
@@ -840,7 +852,7 @@ Fe.gm.0 <- lmer(data = iws.gm,
 print(summary(Fe.gm.0))
 
 Fe.gm.1 <- lmer(data = iws.gm,
-                log(Fe) ~ season + prox.normal +  pH +
+                log(Fe) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Fe.gm.1))
@@ -863,7 +875,7 @@ Mn.gm.0 <- lmer(data = iws.gm,
 print(summary(Mn.gm.0))
 
 Mn.gm.1 <- lmer(data = iws.gm,
-                log(Mn) ~ season + prox.normal +  pH +
+                log(Mn) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Mn.gm.1))
@@ -883,6 +895,7 @@ print(anova(Mn.gm.2))
 perf <- performance(Mn.gm.2)
 perf
 write.csv(perf, "mngm_diag.csv")
+plot(allEffects(Mn.gm.2))
 #season only
 
 
@@ -894,7 +907,7 @@ mo.gm.0 <- lmer(data = iws.gm,
 print(summary(mo.gm.0))
 
 mo.gm.1 <- lmer(data = iws.gm,
-                log(Mo) ~ season + prox.normal +  pH +
+                log(Mo) ~ season + prox.normal +  location_2+pH +
                   (1|site),
                 REML = F)
 print(summary(mo.gm.1))
@@ -904,7 +917,7 @@ mo.gm.2.step
 mo.gm.2 <- get_model(mo.gm.2.step)
 print(summary(mo.gm.2))
 mo.gm.2 <- lmer(data = iws.gm,
-                log(Mo) ~ season + prox.normal +  pH +
+                log(Mo) ~ season +  pH + prox.normal+
                   (1|site),
                 REML = T)
 print(summary(mo.gm.2))
@@ -925,7 +938,7 @@ ni.gm.0 <- lmer(data = iws.gm,
 print(summary(ni.gm.0))
 
 ni.gm.1 <- lmer(data = iws.gm,
-                log(Ni) ~ season + prox.normal +  pH +
+                log(Ni) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(ni.gm.1))
@@ -955,7 +968,7 @@ Pb.gm.0 <- lmer(data = iws.gm,
 print(summary(Pb.gm.0))
 
 Pb.gm.1 <- lmer(data = iws.gm,
-                log(Pb) ~ season + prox.normal +  pH +
+                log(Pb) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Pb.gm.1))
@@ -986,7 +999,7 @@ Sb.gm.0 <- lmer(data = iws.gm,
 print(summary(Sb.gm.0))
 
 Sb.gm.1 <- lmer(data = iws.gm,
-                log(Sb) ~ season + prox.normal +  pH +
+                log(Sb) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Sb.gm.1))
@@ -1010,7 +1023,7 @@ Se.gm.0 <- lmer(data = iws.gm,
 print(summary(Se.gm.0))
 
 Se.gm.1 <- lmer(data = iws.gm,
-                log(Se) ~ season + prox.normal +  pH +
+                log(Se) ~ season + prox.normal + location_2+ pH +
                   (1|site),
                 REML = F)
 print(summary(Se.gm.1))
@@ -1033,7 +1046,7 @@ Sn.gm.0 <- lmer(data = iws.gm,
 print(summary(Sn.gm.0))
 
 Sn.gm.1 <- lmer(data = iws.gm,
-                log(Sn) ~ season + prox.normal +  pH +
+                log(Sn) ~ season + prox.normal +location_2+pH +
                   (1|site),
                 REML = F)
 print(summary(Sn.gm.1))
@@ -1042,17 +1055,26 @@ Sn.gm.2.step <- step(Sn.gm.1)
 Sn.gm.2.step
 Sn.gm.2 <- get_model(Sn.gm.2.step)
 print(summary(Sn.gm.2))
-Sn.gm.2 <- lmer(data = iws.gm,
-                log(Sn) ~ season +
+check_model(Sn.gm.2) #location is highly colinear, remove from model, keep proximity because it has a lower VIF
+
+Sn.gm.1 <- lmer(data = iws.gm,
+                log(Sn) ~ season + prox.normal ++pH +
                   (1|site),
-                REML = T)
+                REML = F)
+Sn.gm.2.step <- step(Sn.gm.1)
+Sn.gm.2.step
+Sn.gm.2 <- get_model(Sn.gm.2.step)
 print(summary(Sn.gm.2))
+check_model(Sn.gm.2)
+print(summary(Sn.gm.2))
+
 check_model(Sn.gm.2)
 anova(Sn.gm.1)
 print(anova(Sn.gm.2))
 perf<- performance(Sn.gm.2)
 perf
 write.csv(perf, "sngm_diag.csv")
+plot(allEffects(Sn.gm.2))
 #season
 
 ###V ----
@@ -1063,7 +1085,7 @@ v.gm.0 <- lmer(data = iws.gm,
 print(summary(v.gm.0))
 
 v.gm.1 <- lmer(data = iws.gm,
-               log(V) ~ season + prox.normal +  pH +
+               log(V) ~ season + prox.normal + location_2+ pH +
                  (1|site),
                REML = F)
 print(summary(v.gm.1))
@@ -1093,7 +1115,7 @@ Zn.gm.0 <- lmer(data = iws.gm,
 print(summary(Zn.gm.0))
 
 Zn.gm.1 <- lmer(data = iws.gm,
-                log(Zn) ~ season + prox.normal +  pH +
+                log(Zn) ~ season + prox.normal +  location_2+pH +
                   (1|site),
                 REML = F)
 print(summary(Zn.gm.1))
@@ -1187,6 +1209,10 @@ As.hw.2.step <- step(As.hw.1)
 As.hw.2.step
 As.hw.2 <- get_model(As.hw.2.step)
 print(summary(As.hw.2))
+As.hw.2 <- lm(data = iws.hw,
+                log(As) ~ season + prox.normal +  pH)
+As.hw.2.1 <- lm(data = iws.hw,
+              log(As) ~ season*prox.normal +  pH)
 check_model(As.hw.2)
 anova(As.hw.1)
 print(anova(As.hw.2))
@@ -1259,7 +1285,7 @@ Cd.hw.0 <- lmer(data = iws.hw,
 print(summary(Cd.hw.0))
 
 Cd.hw.1 <- lmer(data = iws.hw,
-                log(Cd) ~ season + prox.normal +  pH +
+                log(Cd) ~ season + prox.normal +  pH  + 
                   (1|site),
                 REML = F)
 print(summary(Cd.hw.1))
@@ -1390,6 +1416,7 @@ print(anova(Fe.hw.2))
 perf <- performance(Fe.hw.2)
 perf
 write.csv(perf, "fehw_diag.csv")
+plot(allEffects(Fe.hw.2))
 #pH season
 
 ###Mn ----
@@ -1644,7 +1671,7 @@ Ag.tu.0 <- lmer(data = iws.tu,
 print(summary(Ag.tu.0))
 
 Ag.tu.1 <- lmer(data = iws.tu,
-                log(Ag) ~ season + prox.normal +  pH + ward + location +
+                log(Ag) ~ season + prox.normal +  pH + ward + pH:prox.normal + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Ag.tu.1))
@@ -1670,7 +1697,7 @@ al.tu.0 <- lmer(data = iws.tu,
 print(summary(al.tu.0))
 
 al.tu.1 <- lmer(data = iws.tu,
-                log(Al) ~ season + prox.normal +  pH + ward + location +
+                log(Al) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(al.tu.1))
@@ -1683,15 +1710,32 @@ al.tu.2 <- lmer(data = iws.tu,
                 log(Al) ~  pH +
                   (1|site),
                 REML = T)
+al.tu.2.1 <- lmer(data = iws.tu,
+                log(Al) ~  pH + season*prox.normal+
+                  (1|site),
+                REML = F)
+al.tu.2.2 <- lmer(data = iws.tu,
+                log(Al) ~  pH + prox.normal+
+                  (1|site),
+                REML = F)
+print(summary(al.tu.2.2))
+plot(allEffects(al.tu.2.1))
+plot(allEffects(al.tu.2.2))
 print(summary(al.tu.2))
 check_model(al.tu.2)
 anova(al.tu.1)
 print(anova(al.tu.2))
+print(anova(al.tu.2.1))
+print(anova(al.tu.2.2))
+anova(al.tu.2, al.tu.2.1)
+anova(al.tu.2.2, al.tu.2.1)
+anova(al.tu.2.2, al.tu.2)
+#stick to pH
 perf <- performance(al.tu.2)
 perf
 write.csv(perf, "altu_diag.csv")
 plot(allEffects(al.tu.2))
-#prox and score
+#pH
 
 ###As ----
 As.tu.0 <- lmer(data = iws.tu,
@@ -1701,7 +1745,7 @@ As.tu.0 <- lmer(data = iws.tu,
 print(summary(As.tu.0))
 
 As.tu.1 <- lmer(data = iws.tu,
-                log(As) ~ season + prox.normal +  pH + ward + location +
+                log(As) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(As.tu.1))
@@ -1711,9 +1755,14 @@ As.tu.2.step
 As.tu.2 <- get_model(As.tu.2.step)
 print(summary(As.tu.2))
 As.tu.2 <- lmer(data = iws.tu,
-                log(As) ~ season + pH+
+                log(As) ~ season+pH+
                   (1|site),
                 REML = T)
+As.tu.2.1 <- lmer(data = iws.tu,
+                log(As) ~ season+pH+prox.normal+
+                  (1|site),
+                REML = F)
+anova(As.tu.2, As.tu.2.1)
 print(summary(As.tu.2))
 check_model(As.tu.2)
 anova(As.tu.1)
@@ -1732,7 +1781,7 @@ ba.tu.0 <- lmer(data = iws.tu,
 print(summary(ba.tu.0))
 
 ba.tu.1 <- lmer(data = iws.tu,
-                log(Ba) ~ season + prox.normal +  pH + ward + location +
+                log(Ba) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(ba.tu.1))
@@ -1763,7 +1812,7 @@ Be.tu.0 <- lmer(data = iws.tu,
 print(summary(Be.tu.0))
 
 Be.tu.1 <- lmer(data = iws.tu,
-                log(Be) ~ season + prox.normal +  pH + ward + location +
+                log(Be) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Be.tu.1))
@@ -1772,6 +1821,8 @@ Be.tu.2.step <- step(Be.tu.1)
 Be.tu.2.step
 Be.tu.2 <- get_model(Be.tu.2.step)
 print(summary(Be.tu.2))
+Be.tu.2 <- lm(data = iws.tu,
+                log(Be) ~ pH+prox.normal)
 check_model(Be.tu.2)
 anova(Be.tu.1)
 print(anova(Be.tu.2))
@@ -1787,9 +1838,10 @@ Cd.tu.0 <- lmer(data = iws.tu,
                   (1|site),
                 REML = F)
 print(summary(Cd.tu.0))
+check_model(Cd.tu.0)
 
 Cd.tu.1 <- lmer(data = iws.tu,
-                log(Cd) ~ season + prox.normal +  pH + ward + location +
+                log(Cd) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Cd.tu.1))
@@ -1799,18 +1851,40 @@ Cd.tu.2.step
 Cd.tu.2 <- get_model(Cd.tu.2.step)
 print(summary(Cd.tu.2))
 Cd.tu.2 <- lmer(data = iws.tu,
-                log(Cd) ~ pH + ward + location +
+                log(Cd) ~ prox.normal*pH +
                   (1|site),
                 REML = T)
-print(summary(Cd.tu.2))
+Cd.tu.2.1 <- lmer(data = iws.tu,
+                log(Cd) ~ pH+prox.normal +
+                  (1|site),
+                REML = T)
+Cd.tu.2.2 <- lmer(data = iws.tu,
+                log(Cd) ~ pH+prox.normal:pH +
+                  (1|site),
+                REML = T)
+Cd.tu.2.3 <- lmer(data = iws.tu,
+                log(Cd) ~ prox.normal*pH + ward+
+                  (1|site),
+                REML = T)
+print(summary(Cd.tu.2.3))
 check_model(Cd.tu.2)
+check_model(Cd.tu.2.3)
+vif(Cd.tu.2)
 anova(Cd.tu.1)
 print(anova(Cd.tu.2))
-perf <- performance(Cd.tu.2)
+anova(Cd.tu.2.3)
+print(anova(Cd.tu.2, Cd.tu.2.1))
+print(anova(Cd.tu.2, Cd.tu.2.2))
+print(anova(Cd.tu.2.1, Cd.tu.2.2))
+print(anova(Cd.tu.2, Cd.tu.2.3))
+print(anova(Cd.tu.2.1, Cd.tu.2.3))
+print(anova(Cd.tu.2.2, Cd.tu.2.3))
+compare_performance(Cd.tu.2, Cd.tu.2.3)
+perf <- performance(Cd.tu.2.3)
 perf
 write.csv(perf, "cdtu_diag.csv")
-plot(allEffects(Cd.tu.2))
-#season and prox and score
+plot(allEffects(Cd.tu.2.3))
+#pH and prox significant, ward almost signif, but adding into the model because it greatly improves the R2 and all other model diagnostics stay pretty similar
 
 ###Co ----
 Co.tu.0 <- lmer(data = iws.tu,
@@ -1820,7 +1894,7 @@ Co.tu.0 <- lmer(data = iws.tu,
 print(summary(Co.tu.0))
 
 Co.tu.1 <- lmer(data = iws.tu,
-                log(Co) ~ season + prox.normal +  pH + ward + location +
+                log(Co) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Co.tu.1))
@@ -1833,13 +1907,20 @@ Co.tu.2 <- lmer(data = iws.tu,
                 log(Co) ~ season +pH+
                   (1|site),
                 REML = T)
+Co.tu.2.1 <- lmer(data = iws.tu,
+                log(Co) ~ season +pH + prox.normal+
+                  (1|site),
+                REML = F)
 print(summary(Co.tu.2))
 check_model(Co.tu.2)
 anova(Co.tu.1)
 print(anova(Co.tu.2))
+print(anova(Co.tu.2.1, Co.tu.2))
+performance(Co.tu.2.1)
 perf <- performance(Co.tu.2)
 perf
 write.csv(perf, "cotu_diag.csv")
+plot(allEffects(Co.tu.2))
 #season pH
 
 ###Cr ----
@@ -1850,7 +1931,7 @@ Cr.tu.0 <- lmer(data = iws.tu,
 print(summary(Cr.tu.0))
 
 Cr.tu.1 <- lmer(data = iws.tu,
-                log(Cr) ~ season + prox.normal +  pH + ward + location +
+                log(Cr) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Cr.tu.1))
@@ -1860,16 +1941,24 @@ Cr.tu.2.step
 Cr.tu.2 <- get_model(Cr.tu.2.step)
 print(summary(Cr.tu.2))
 Cr.tu.2 <- lmer(data = iws.tu,
-                log(Cr) ~ season +  pH  +
+                log(Cr) ~ season + prox.normal*pH  +
                   (1|site),
                 REML = T)
+Cr.tu.2.1 <- lmer(data = iws.tu,
+                log(Cr) ~ season + pH+ pH:prox.normal  +
+                  (1|site),
+                REML = F)
 print(summary(Cr.tu.2))
 check_model(Cr.tu.2)
+vif(Cr.tu.2)
+vif(Cr.tu.2.1)
 anova(Cr.tu.1)
 print(anova(Cr.tu.2))
+print(anova(Cr.tu.2, Cr.tu.2.1))
 perf <- performance(Cr.tu.2)
 perf
 write.csv(perf, "crtu_diag.csv")
+plot(allEffects(Cr.tu.2))
 #season
 
 ###Cu ----
@@ -1880,7 +1969,7 @@ Cu.tu.0 <- lmer(data = iws.tu,
 print(summary(Cu.tu.0))
 
 Cu.tu.1 <- lmer(data = iws.tu,
-                log(Cu) ~ season + prox.normal +  pH + ward + location +
+                log(Cu) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Cu.tu.1))
@@ -1890,16 +1979,21 @@ Cu.tu.2.step
 Cu.tu.2 <- get_model(Cu.tu.2.step)
 print(summary(Cu.tu.2))
 Cu.tu.2 <- lmer(data = iws.tu,
-                log(Cu) ~ pH +
-                  (1|site),
+                log(Cu) ~ season + prox.normal + pH + (1 | site) + prox.normal:pH + season:prox.normal,
                 REML = T)
+Cu.tu.2.1 <- lmer(data = iws.tu,
+                log(Cu) ~ season + prox.normal + pH + (1 | site) + season:prox.normal,
+                REML = F)
 print(summary(Cu.tu.2))
 check_model(Cu.tu.2)
+vif(Cu.tu.2)
 anova(Cu.tu.1)
 print(anova(Cu.tu.2))
+print(anova(Cu.tu.2, Cu.tu.2.1))
 perf <- performance(Cu.tu.2)
 perf
 write.csv(perf, "cutu_diag.csv")
+plot(allEffects(Cu.tu.2))
 #season prox
 
 ###Fe ----
@@ -1910,7 +2004,7 @@ Fe.tu.0 <- lmer(data = iws.tu,
 print(summary(Fe.tu.0))
 
 Fe.tu.1 <- lmer(data = iws.tu,
-                log(Fe) ~ season + prox.normal +  pH + ward + location +
+                log(Fe) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Fe.tu.1))
@@ -1940,7 +2034,7 @@ Mn.tu.0 <- lmer(data = iws.tu,
 print(summary(Mn.tu.0))
 
 Mn.tu.1 <- lmer(data = iws.tu,
-                log(Mn) ~ season + prox.normal +  pH + ward + location +
+                log(Mn) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Mn.tu.1))
@@ -1950,7 +2044,7 @@ Mn.tu.2.step
 Mn.tu.2 <- get_model(Mn.tu.2.step)
 print(summary(Mn.tu.2))
 Mn.tu.2 <- lmer(data = iws.tu,
-                log(Mn) ~ season + pH + 
+                log(Mn) ~ season + pH+ 
                   (1|site),
                 REML = T)
 print(summary(Mn.tu.2))
@@ -1960,6 +2054,7 @@ print(anova(Mn.tu.2))
 perf <- performance(Mn.tu.2)
 perf
 write.csv(perf, "mntu_diag.csv")
+plot(allEffects(Mn.tu.2))
 #season prox only
 
 
@@ -1971,7 +2066,7 @@ mo.tu.0 <- lmer(data = iws.tu,
 print(summary(mo.tu.0))
 
 mo.tu.1 <- lmer(data = iws.tu,
-                log(Mo) ~ season + prox.normal +  pH + ward + location +
+                log(Mo) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(mo.tu.1))
@@ -1981,7 +2076,7 @@ mo.tu.2.step
 mo.tu.2 <- get_model(mo.tu.2.step)
 print(summary(mo.tu.2))
 mo.tu.2 <- lmer(data = iws.tu,
-                log(Mo) ~ season +  pH  + location +
+                log(Mo) ~ season +  pH+ ward +
                   (1|site),
                 REML = T)
 print(summary(mo.tu.2))
@@ -2002,7 +2097,7 @@ ni.tu.0 <- lmer(data = iws.tu,
 print(summary(ni.tu.0))
 
 ni.tu.1 <- lmer(data = iws.tu,
-                log(Ni) ~ season + prox.normal +  pH + ward + location +
+                log(Ni) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(ni.tu.1))
@@ -2022,6 +2117,7 @@ check_model(ni.tu.2)
 perf <- performance(ni.tu.2)
 perf
 write.csv(perf, "nitu_diag.csv")
+plot(allEffects(ni.tu.2))
 #season only, 
 
 ###Pb ----
@@ -2032,7 +2128,7 @@ Pb.tu.0 <- lmer(data = iws.tu,
 print(summary(Pb.tu.0))
 
 Pb.tu.1 <- lmer(data = iws.tu,
-                log(Pb) ~ season + prox.normal +  pH + ward + location +
+                log(Pb) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Pb.tu.1))
@@ -2042,7 +2138,7 @@ Pb.tu.2.step
 Pb.tu.2 <- get_model(Pb.tu.2.step)
 print(summary(Pb.tu.2))
 Pb.tu.2 <- lmer(data = iws.tu,
-                log(Pb) ~ season + prox.normal +  pH +
+                log(Pb) ~ season +  pH+prox.normal +
                   (1|site),
                 REML = T)
 print(summary(Pb.tu.2))
@@ -2064,7 +2160,7 @@ Sb.tu.0 <- lmer(data = iws.tu,
 print(summary(Sb.tu.0))
 
 Sb.tu.1 <- lmer(data = iws.tu,
-                log(Sb) ~ season + prox.normal +  pH + ward + location +
+                log(Sb) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Sb.tu.1))
@@ -2095,7 +2191,7 @@ Se.tu.0 <- lmer(data = iws.tu,
 print(summary(Se.tu.0))
 
 Se.tu.1 <- lmer(data = iws.tu,
-                log(Se) ~ season + prox.normal +  pH + ward + location +
+                log(Se) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Se.tu.1))
@@ -2110,6 +2206,7 @@ print(anova(Se.tu.2))
 perf <- performance(Se.tu.2)
 perf
 write.csv(perf, "setu_diag.csv")
+
 #season
 
 ###Sn ----
@@ -2120,7 +2217,7 @@ Sn.tu.0 <- lmer(data = iws.tu,
 print(summary(Sn.tu.0))
 
 Sn.tu.1 <- lmer(data = iws.tu,
-                log(Sn) ~ season + prox.normal +  pH + ward + location +
+                log(Sn) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Sn.tu.1))
@@ -2132,15 +2229,20 @@ print(summary(Sn.tu.2))
 Sn.tu.2 <- lmer(data = iws.tu,
                 log(Sn) ~ season +
                   (1|site),
-                REML = T)
+                REML = F)
+Sn.tu.2.1 <- lmer(data = iws.tu,
+                log(Sn) ~ season + prox.normal+
+                  (1|site),
+                REML = F)
+
 print(summary(Sn.tu.2))
-check_model(Sn.tu.2)
+check_model(Sn.tu.2.1)
 anova(Sn.tu.1)
-print(anova(Sn.tu.2))
-perf <- performance(Sn.tu.2)
+print(anova(Sn.tu.2, Sn.tu.2.1))
+perf <- performance(Sn.tu.2.1)
 perf
 write.csv(perf, "sntu_diag.csv")
-#season
+#season prox almost significant but kept in the model because it greatly improved teh r2 and model assumptions
 
 ###V ----
 v.tu.0 <- lmer(data = iws.tu,
@@ -2150,7 +2252,7 @@ v.tu.0 <- lmer(data = iws.tu,
 print(summary(v.tu.0))
 
 v.tu.1 <- lmer(data = iws.tu,
-               log(V) ~ season + prox.normal +  pH + ward + location +
+               log(V) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                  (1|site),
                REML = F)
 print(summary(v.tu.1))
@@ -2160,7 +2262,7 @@ v.tu.2.step
 v.tu.2 <- get_model(v.tu.2.step)
 print(summary(v.tu.2))
 v.tu.2 <- lmer(data = iws.tu,
-               log(V) ~ season +  pH + location +
+               log(V) ~ season +  pH+prox.normal +
                  (1|site),
                REML = T)
 print(summary(v.tu.2))
@@ -2170,6 +2272,7 @@ check_model(v.tu.2)
 perf <- performance(v.tu.2)
 perf
 write.csv(perf, "vtu_diag.csv")
+plot(allEffects(v.tu.2))
 #season
 
 ###Zn ----
@@ -2180,7 +2283,7 @@ Zn.tu.0 <- lmer(data = iws.tu,
 print(summary(Zn.tu.0))
 
 Zn.tu.1 <- lmer(data = iws.tu,
-                log(Zn) ~ season + prox.normal +  pH + ward + location +
+                log(Zn) ~ season + prox.normal +  pH + ward + prox.normal:pH + prox.normal:season +
                   (1|site),
                 REML = F)
 print(summary(Zn.tu.1))
@@ -2190,16 +2293,24 @@ Zn.tu.2.step
 Zn.tu.2 <- get_model(Zn.tu.2.step)
 print(summary(Zn.tu.2))
 Zn.tu.2 <- lmer(data = iws.tu,
-                log(Zn) ~  pH + location +
+                log(Zn) ~  season + prox.normal +  pH + prox.normal:pH + prox.normal:season +
                   (1|site),
-                REML = T)
+                REML = F)
+Zn.tu.2.1 <- lmer(data = iws.tu,
+                log(Zn) ~  season + prox.normal +  pH + prox.normal:season +
+                  (1|site),
+                REML = F)
 print(summary(Zn.tu.2))
 check_model(Zn.tu.2)
+check_model(Zn.tu.2.1)
+vif(Zn.tu.2)
 anova(Zn.tu.1)
 print(anova(Zn.tu.2))
+print(anova(Zn.tu.2.1, Zn.tu.2))
 perf <- performance(Zn.tu.2)
 perf
 write.csv(perf, "zntu_diag.csv")
+plot(allEffects(Zn.tu.2))
 #season
 
 #quick example plots

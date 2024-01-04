@@ -447,6 +447,12 @@ performance(dwal.dh.2)
 dwal.gm.0 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Al",],
                  exceedance ~ 1,
                  family = "binomial")
+summary(dwal.gm.0) #prox signif, model is not
+vif(dwal.gm.0)
+check_model(dwal.gm.0)
+exp(coef(dwal.gm.0))
+performance(dwal.gm.0)
+
 #maximal.gm model
 dwal.gm.1 <- glm(data = exgm[exgm$standard=="DW"&exgm$analyte=="Al",],
                  exceedance ~ prox.normal + season,
