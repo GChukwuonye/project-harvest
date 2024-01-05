@@ -768,6 +768,15 @@ check_model(plt3)
 anova(plt3)
 print(anova(plt3))
 performance(plt3)
+ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = prox.normal)) + 
+  geom_point(size = 1, color= "blue")+
+  facet_wrap(community~., scales = "free")+
+  stat_smooth(method=lm)
+
+ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = pH)) + 
+  geom_point(size = 1, color= "green")+
+  facet_wrap(community~., scales = "free")+
+  stat_smooth(method=lm,color= "black")
 
 #pli dewey modeling ----
 pli_dewey<- iw.dm[iw.dm$community=="Dewey-Humboldt",]
