@@ -9,6 +9,7 @@ library(table1)
 
 #load data ----
 #IW DM
+setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 iw.dm <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected means the corrected tab in the excel sheet
 #iw.dm <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected")
 # iw.dm.detects <- read_xlsx("data/data_clean/IW_DM_Y123.xlsx", sheet = "Detection", col_names = TRUE)
@@ -211,6 +212,96 @@ hds67[hds67$Q67=="1",]$Q67 <- "1"
 hds67[hds67$Q67=="2",]$Q67 <- "0"
 hds67$Q67 <- as.numeric(hds67$Q67)
 summary(as.factor(hds67$Q67))
+
+##Q60 What is your cistern made of: ----
+hds60<- hds
+hds60$Q60 <- as.character(hds60$Q60)
+
+
+##Q65 How old is your cistern:  ----
+hds65<- hds
+hds65 <- hds65 %>%
+  drop_na(Q65)
+hds65$Q65 <- as.character(hds65$Q65)
+hds65[hds65$Q65=="0",]$Q65 <- "NA"
+hds65[hds65$Q65=="1",]$Q65 <- "NA"
+hds65[hds65$Q65=="2",]$Q65 <- "0-2"
+hds65[hds65$Q65=="3",]$Q65 <- "0-2"
+hds65[hds65$Q65=="4",]$Q65 <- "0-2"
+hds65[hds65$Q65=="5",]$Q65 <- "2-5 years"
+hds65[hds65$Q65=="6",]$Q65 <- "2-5 years"
+hds65[hds65$Q65=="7",]$Q65 <- "5+ years"
+hds65 <- hds65 %>% filter(Q65 != "NA")
+
+
+##Q62What is the capacity of your cistern (in gallons)?  ----
+hds62<- hds
+hds62 <- hds62 %>%
+  drop_na(Q62)
+hds62[hds62$Q62=="0",]$Q62 <- "NA"
+hds62[hds62$Q62=="14",]$Q62 <- "NA"
+hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
+hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
+hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
+hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
+hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
+hds62 <- hds62 %>% filter(Q62 != "NA")
+hds62 <- hds62 %>% filter(Q62 != "N/A")
+hds62$Q62<- as.factor(hds62$Q62)
+summary(hds62$Q62)
+
+##Q78: How often do you clean parts of your roof draining system (like the debris filter, gutters, scuppers) ----
+hds78<- hds
+hds78 <- hds78 %>%
+  drop_na(Q78)
+hds78[hds78$Q78=="0",]$Q78 <- "No Answer"
+hds78[hds78$Q78=="100",]$Q78 <- "Unsure"
+hds78[hds78$Q78=="1",]$Q78 <- "As Needed"
+hds78[hds78$Q78=="2",]$Q78 <- "Monthly"
+hds78[hds78$Q78=="3",]$Q78 <- "Quarterly"
+hds78[hds78$Q78=="4",]$Q78 <- "Yearly"
+hds78 <- hds78 %>% filter(Q78 != "NA")
+hds78 <- hds78 %>% filter(Q78 != "N/A")
+hds78$Q78<- as.factor(hds78$Q78)
+summary(hds78$Q78)
+
+##Q78: What is the screen/filter made of? What type is it?- ----
+hds78<- hds
+hds78 <- hds78 %>%
+  drop_na(Q78)
+hds78[hds78$Q78=="0",]$Q78 <- "Unspecified"
+hds78[hds78$Q78=="100",]$Q78 <- "Unspecified"
+hds78[hds78$Q78=="1",]$Q78 <- "Metal"
+hds78[hds78$Q78=="2",]$Q78 <-  "Metal"
+hds78[hds78$Q78=="3",]$Q78 <-  "Metal"
+hds78[hds78$Q78=="4",]$Q78 <-  "Metal"
+hds78[hds78$Q78=="5",]$Q78 <- "Non-metal"
+hds78[hds78$Q78=="2, 5",]$Q78 <- "Non-metal"
+hds78[hds78$Q78=="1, 5",]$Q78 <- "Non-metal"
+hds78[hds78$Q78=="6",]$Q78 <-"Non-metal"
+hds78[hds78$Q78=="7",]$Q78 <- "Unspecified"
+hds78[hds78$Q78=="8",]$Q78 <- "No Screen"
+hds78[hds78$Q78=="9",]$Q78 <- "Non-metal"
+hds78[hds78$Q78=="10",]$Q78 <-  "Metal"
+hds78[hds78$Q78=="11",]$Q78 <-  "Metal"
+hds78[hds78$Q78=="12",]$Q78 <- "Unspecified"
+hds78[hds78$Q78=="13",]$Q78 <-  "Unspecified"
+hds78 <- hds78 %>% filter(Q78 != "NA")
+hds78 <- hds78 %>% filter(Q78 != "N/A")
+hds78$Q78<- as.factor(hds78$Q78)
+summary(hds78$Q78)
+
+
+
+
 
 ##Q71 Do you treat or wash your cistern with anything? ----
 hds71<- hds
@@ -479,7 +570,7 @@ violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.st
          fill = "",
          x = paste("\n",subset.title),
          y = paste("[",analyte,"] ",units,"\n", sep="")) +
-    scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+    scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4078B2"))+
     facet_wrap(facets = as.formula(paste("~", fac)),scales = "free")+
     theme_bw() +
     theme(text = element_text(family = "Avenir", size = 15),
@@ -528,7 +619,7 @@ boxplotFX <- function(dataDF, analyte.string, subset.string, subset.title.string
          fill = "",
          x = paste("\n",subset.title),
          y = paste("[",analyte,"] ",units,"\n", sep="")) +
-    scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4068B2"))+
+    scale_fill_manual(values=c("#F9A785", "#00A8C6", "#95CACA","#4078B2"))+
     theme_bw() +
     theme(text = element_text(family = "Avenir", size = 15),
           plot.title = element_text(hjust=.5, face = "bold"),
