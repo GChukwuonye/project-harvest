@@ -1013,3 +1013,138 @@ print(summary(globe2))
 performance(globe2)
 
 
+<<<<<<< HEAD
+=======
+
+#pli without hds=====
+#tucson=====
+pli_tucson<- iw.dm[iw.dm$community=="Tucson",]
+pli_tucson<- pli_tucson%>%
+  drop_na(prox.normal)
+pli_tucson<- pli_tucson%>%
+  drop_na(pli.ln)
+pli_tucson<- pli_tucson%>%
+  drop_na(season)
+pli_tucson<- pli_tucson%>%
+  drop_na(pH)
+
+plt0 <- lmer(data = pli_tucson,
+             pli.ln ~ (1|community:site),
+             REML = T) 
+
+plt2 <- lmer(data = pli_tucson,
+            pli.ln ~  season + prox.normal + season:prox.normal+ pH+
+            (1|site),
+            REML = F)
+plt.step <- step(plt2)
+plt.step
+plt3 <- get_model(plt.step)
+print(summary(plt3))
+check_model(plt3)
+anova(plt3)
+print(anova(plt3))
+performance(plt3)
+ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = prox.normal)) + 
+  geom_point(size = 1, color= "blue")+
+  facet_wrap(community~., scales = "free")+
+  stat_smooth(method=lm)
+
+ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = pH)) + 
+  geom_point(size = 1, color= "green")+
+  facet_wrap(community~., scales = "free")+
+  stat_smooth(method=lm,color= "black")
+
+#pli dewey modeling ----
+pli_dewey<- iw.dm[iw.dm$community=="Dewey-Humboldt",]
+pli_dewey<- pli_dewey%>%
+  drop_na(prox.normal)
+pli_dewey<- pli_dewey%>%
+  drop_na(pli.ln)
+pli_dewey<-pli_dewey%>%
+  drop_na(season)
+pli_dewey<-pli_dewey%>%
+  drop_na(pH)
+pld0 <- lmer(data =pli_dewey,
+             pli.ln ~ (1|community:site),
+             REML = T) #ML for comparison, REML for final
+summary(pld0)
+
+pld <- lmer(data = pli_dewey,
+            pli.ln ~  season + prox.normal + pH +
+              season:prox.normal
+            + (1|site),
+            REML = F) #ML for comparison, REML for final
+summary(pld)
+
+pld.step <- step(pld)
+pld.step
+pld2 <- get_model(pld.step)
+pld2
+print(summary(pld2))
+check_model(pld2)
+anova(pld2)
+print(anova(pld2))
+performance(pld2)
+
+#pli hayden modeling ----
+pli_hayden<- iw.dm[iw.dm$community=="Hayden/Winkelman",]
+pli_hayden<- pli_hayden%>%
+  drop_na(prox.normal)
+pli_hayden<- pli_hayden%>%
+  drop_na(pli.ln)
+pli_hayden<-pli_hayden%>%
+  drop_na(season)
+pli_hayden<-pli_hayden%>%
+  drop_na(pH)
+plh0 <- lmer(data =pli_hayden,
+             pli.ln ~ (1|community:site),
+             REML = T) #ML for comparison, REML for final
+summary(plh0)
+plh <- lmer(data = pli_hayden,
+           pli.ln ~  season + prox.normal + pH+ season:prox.normal
+            + (1|site),
+            REML = F) #ML for comparison, REML for final
+summary(plh)
+plh.step <- step(plh)
+plh.step
+plh2 <- get_model(plh.step)
+plh2
+print(summary(plh2))
+check_model(plh2)
+vif(plh2)
+anova(plh2)
+print(anova(plh2))
+performance(plh2)
+
+
+#pli globe modeling ----
+pli_globe<- iw.dm[iw.dm$community=="Globe/Miami",]
+pli_globe<- pli_globe%>%
+  drop_na(prox.normal)
+pli_globe<- pli_globe%>%
+  drop_na(pli.ln)
+pli_globe<-pli_globe%>%
+  drop_na(season)
+pli_globe<-pli_globe%>%
+  drop_na(pH)
+plg0 <- lmer(data =pli_globe,
+             pli.ln ~ (1|community:site),
+             REML = T) #ML for comparison, REML for final
+summary(plg0)
+
+
+plg <- lmer(data = pli_globe,
+         pli.ln ~  season + prox.normal+pH+ season:prox.normal
+            + (1|community:site),
+            REML = F) #ML for comparison, REML for final
+summary(plg)
+plg.step <- step(plg)
+plg.step
+plg2 <- get_model(plg.step)
+
+print(summary(plg2))
+check_model(plg2)
+anova(plg2)
+print(anova(plg2))
+performance(plg2)
+>>>>>>> c008f9a47e8c93eb2f43a2d39c905a79884dcbc2
