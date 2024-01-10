@@ -1823,6 +1823,7 @@ Be.tu.2 <- get_model(Be.tu.2.step)
 print(summary(Be.tu.2))
 Be.tu.2 <- lm(data = iws.tu,
                 log(Be) ~ pH+prox.normal)
+summary(Be.tu.2)
 check_model(Be.tu.2)
 anova(Be.tu.1)
 print(anova(Be.tu.2))
@@ -1866,25 +1867,32 @@ Cd.tu.2.3 <- lmer(data = iws.tu,
                 log(Cd) ~ prox.normal*pH + ward+
                   (1|site),
                 REML = T)
-print(summary(Cd.tu.2.3))
+Cd.tu.2.4 <- lmer(data = iws.tu,
+                  log(Cd) ~ prox.normal:pH +pH + ward+
+                    (1|site),
+                  REML = T)
+print(summary(Cd.tu.2.2))
 check_model(Cd.tu.2)
 check_model(Cd.tu.2.3)
-vif(Cd.tu.2)
+vif(Cd.tu.2.2)
 anova(Cd.tu.1)
 print(anova(Cd.tu.2))
-anova(Cd.tu.2.3)
+anova(Cd.tu.2.2)
 print(anova(Cd.tu.2, Cd.tu.2.1))
 print(anova(Cd.tu.2, Cd.tu.2.2))
 print(anova(Cd.tu.2.1, Cd.tu.2.2))
 print(anova(Cd.tu.2, Cd.tu.2.3))
 print(anova(Cd.tu.2.1, Cd.tu.2.3))
 print(anova(Cd.tu.2.2, Cd.tu.2.3))
-compare_performance(Cd.tu.2, Cd.tu.2.3)
-perf <- performance(Cd.tu.2.3)
+print(anova(Cd.tu.2.4, Cd.tu.2.3))
+print(anova(Cd.tu.2.2, Cd.tu.2.4))
+compare_performance(Cd.tu.2, Cd.tu.2.2)
+compare_performance(Cd.tu.2.4, Cd.tu.2.2)
+perf <- performance(Cd.tu.2.2)
 perf
 write.csv(perf, "cdtu_diag.csv")
-plot(allEffects(Cd.tu.2.3))
-#pH and prox significant, ward almost signif, but adding into the model because it greatly improves the R2 and all other model diagnostics stay pretty similar
+plot(allEffects(Cd.tu.2.2))
+#pH and prox significant, ward almost signif
 
 ###Co ----
 Co.tu.0 <- lmer(data = iws.tu,
@@ -1947,19 +1955,21 @@ Cr.tu.2 <- lmer(data = iws.tu,
 Cr.tu.2.1 <- lmer(data = iws.tu,
                 log(Cr) ~ season + pH+ pH:prox.normal  +
                   (1|site),
-                REML = F)
+                REML = T)
 print(summary(Cr.tu.2))
 check_model(Cr.tu.2)
 vif(Cr.tu.2)
 vif(Cr.tu.2.1)
 anova(Cr.tu.1)
 print(anova(Cr.tu.2))
+print(anova(Cr.tu.2.1))
 print(anova(Cr.tu.2, Cr.tu.2.1))
+compare_performance(Cr.tu.2, Cr.tu.2.1)
 perf <- performance(Cr.tu.2)
 perf
 write.csv(perf, "crtu_diag.csv")
 plot(allEffects(Cr.tu.2))
-#season
+#
 
 ###Cu ----
 Cu.tu.0 <- lmer(data = iws.tu,
@@ -1983,18 +1993,21 @@ Cu.tu.2 <- lmer(data = iws.tu,
                 REML = T)
 Cu.tu.2.1 <- lmer(data = iws.tu,
                 log(Cu) ~ season + prox.normal + pH + (1 | site) + season:prox.normal,
-                REML = F)
+                REML = T)
 print(summary(Cu.tu.2))
 check_model(Cu.tu.2)
 vif(Cu.tu.2)
+vif(Cu.tu.2.1)
 anova(Cu.tu.1)
 print(anova(Cu.tu.2))
+print(anova(Cu.tu.2.1))
 print(anova(Cu.tu.2, Cu.tu.2.1))
+compare_performance(Cu.tu.2, Cu.tu.2.1)
 perf <- performance(Cu.tu.2)
 perf
 write.csv(perf, "cutu_diag.csv")
 plot(allEffects(Cu.tu.2))
-#season prox
+#
 
 ###Fe ----
 Fe.tu.0 <- lmer(data = iws.tu,
@@ -2150,7 +2163,7 @@ perf
 write.csv(perf, "pbtu_diag.csv")
 plot(allEffects(Pb.tu.2))
 
-#season prox only
+#
 
 ###Sb ----
 Sb.tu.0 <- lmer(data = iws.tu,
@@ -2229,16 +2242,17 @@ print(summary(Sn.tu.2))
 Sn.tu.2 <- lmer(data = iws.tu,
                 log(Sn) ~ season +
                   (1|site),
-                REML = F)
+                REML = T)
 Sn.tu.2.1 <- lmer(data = iws.tu,
                 log(Sn) ~ season + prox.normal+
                   (1|site),
-                REML = F)
-
-print(summary(Sn.tu.2))
+                REML = T)
+print(summary(Sn.tu.2.1))
 check_model(Sn.tu.2.1)
-anova(Sn.tu.1)
+anova(Sn.tu.2)
+anova(Sn.tu.2.1)
 print(anova(Sn.tu.2, Sn.tu.2.1))
+compare_performance(Sn.tu.2, Sn.tu.2.1)
 perf <- performance(Sn.tu.2.1)
 perf
 write.csv(perf, "sntu_diag.csv")
@@ -2295,24 +2309,42 @@ print(summary(Zn.tu.2))
 Zn.tu.2 <- lmer(data = iws.tu,
                 log(Zn) ~  season + prox.normal +  pH + prox.normal:pH + prox.normal:season +
                   (1|site),
-                REML = F)
+                REML = T)
+Zn.tu.2.2 <- lmer(data = iws.tu,
+                log(Zn) ~  prox.normal +  pH + prox.normal:pH + prox.normal:season +
+                  (1|site),
+                REML = T)
+Zn.tu.2.3 <- lmer(data = iws.tu,
+                  log(Zn) ~  prox.normal +  pH + prox.normal:pH +
+                    (1|site),
+                  REML = T)
 Zn.tu.2.1 <- lmer(data = iws.tu,
                 log(Zn) ~  season + prox.normal +  pH + prox.normal:season +
                   (1|site),
-                REML = F)
-print(summary(Zn.tu.2))
+                REML = T)
+print(summary(Zn.tu.2.2))
 check_model(Zn.tu.2)
 check_model(Zn.tu.2.1)
+check_model(Zn.tu.2.2)
+check_model(Zn.tu.2.3)
 vif(Zn.tu.2)
 anova(Zn.tu.1)
 print(anova(Zn.tu.2))
+print(anova(Zn.tu.2.1))
+print(anova(Zn.tu.2.2))
 print(anova(Zn.tu.2.1, Zn.tu.2))
-perf <- performance(Zn.tu.2)
+print(anova(Zn.tu.2.2, Zn.tu.2))
+print(anova(Zn.tu.2.2, Zn.tu.2.3))
+compare_performance(Zn.tu.2.1, Zn.tu.2)
+compare_performance(Zn.tu.2.2, Zn.tu.2)
+compare_performance(Zn.tu.2.2, Zn.tu.2.3)
+perf <- performance(Zn.tu.2.2)
 perf
 write.csv(perf, "zntu_diag.csv")
-plot(allEffects(Zn.tu.2))
+plot(allEffects(Zn.tu.2.2))
 #season
 
+#plotting ----
 #quick example plots
 ggplot(iws.dh, mapping = aes(y = log(Mo), x = pH)) +
   geom_point(shape = 2, size = 4, color = "#F9A785") +
