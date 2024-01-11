@@ -2318,10 +2318,8 @@ Zn.tu.2.3 <- lmer(data = iws.tu,
                   log(Zn) ~  prox.normal +  pH + prox.normal:pH +
                     (1|site),
                   REML = T)
-Zn.tu.2.1 <- lmer(data = iws.tu,
-                log(Zn) ~  season + prox.normal +  pH + prox.normal:season +
-                  (1|site),
-                REML = T)
+Zn.tu.2.1 <- lm(data = iws.tu,
+                log(Zn) ~  season + prox.normal +  pH + prox.normal:season)
 print(summary(Zn.tu.2.2))
 check_model(Zn.tu.2)
 check_model(Zn.tu.2.1)
