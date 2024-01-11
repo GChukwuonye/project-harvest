@@ -282,7 +282,7 @@ tuc0<- lmer(data = pli_tucson67,
 summary(tuc0)
 
 tuc1<- lmer(data= pli_tucson67,
-              pli.ln~ season+ prox.normal+ Q67+ ward+ prox.normal:season+ pH+  Q67:season+ ward:Q67+
+              pli.ln~ season+ prox.normal+ Q67+ ward+ prox.normal:season+ pH+ ward:Q67+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 
@@ -314,7 +314,7 @@ tuc71 <- lmer(data = pli_tucson71,
 summary(tuc71)
 
 tuc71b<- lmer(data= pli_tucson71,
-              pli.ln~ prox.normal+ Q71+ ward+ prox.normal:season+ pH+  Q71:season+ season:ward+ 
+              pli.ln~ prox.normal+ Q71+ ward+ prox.normal:season+ pH+  season:ward+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(tuc71b)                
@@ -344,7 +344,7 @@ model1 <- lmer(data = pli_tucson79,
 summary(model1)
 
 model2<- lmer(data= pli_tucson79,
-              pli~  prox.normal+ Q79+ ward+ prox.normal:season+ pH+  Q79:season+ season:ward+ 
+              pli~  prox.normal+ Q79+ ward+ prox.normal:season+ pH+ season:ward+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -375,7 +375,7 @@ model1 <- lmer(data = pli_tucson76,
 summary(model1)
 
 model2<- lmer(data= pli_tucson76,
-              pli~  prox.normal+ Q76+  ward+ prox.normal:season+ pH+  Q79:season+ season:ward+ 
+              pli~  prox.normal+ Q76+  ward+ prox.normal:season+ pH+  Q76:ward +season:ward+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -407,7 +407,7 @@ model1 <- lmer(data = pli_tucson77,
 summary(model1)
 
 model2<- lmer(data= pli_tucson77,
-              pli~ season+ prox.normal+ Q77+ward+ prox.normal:season+ pH+  Q77:season+ season:ward+ Q77:ward+
+              pli~ season+ prox.normal+ Q77+ward+ prox.normal:season+ pH+season:ward+ Q77:ward+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -439,7 +439,7 @@ model1 <- lmer(data = pli_tucson60,
 summary(model1)
 
 model2<- lmer(data= pli_tucson60,
-              pli~ season+ prox.normal+ Q60+ward+ prox.normal:season+ pH+  Q60:season+  Q60:ward+
+              pli~ season+ prox.normal+ Q60+ward+ prox.normal:season+ pH+   Q60:ward+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -470,7 +470,7 @@ model1 <- lmer(data = pli_tucson65,
 summary(model1)
 
 model2<- lmer(data= pli_tucson65,
-              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+  Q65:season+ 
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -503,7 +503,7 @@ dew1 <- lmer(data =dew,
 summary(dew1)
 
 dew2<- lmer(data= dew,
-              pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ pH+Q67:season+ 
+              pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ pH+
                 (1|site),
               REML = F) #ML for comparison, REML for final
 summary(dew2)                
@@ -521,12 +521,13 @@ performance(dew3)
 #Q71====
 #Do you treat or wash your cistern with anything?
 dew71<-full_join(deweydat, hds71, by = c("site"))
-dew71 <- dew71 %>%
-  drop_na(prox.normal)
-dew71 <- dew71%>%
-  drop_na(season)
+# dew71 <- dew71 %>%
+#   drop_na(prox.normal)
+# dew71 <- dew71%>%
+#   drop_na(season)
 pli_dewey <- dew71%>%
   drop_na(Q71)
+pli_dewey$Q71<- as.factor(pli_dewey$Q71)
 summary(pli_dewey$Q71)
 dew71 <- lmer(data = pli_dewey,
                pli.ln ~ (1|community:site),
@@ -534,7 +535,7 @@ dew71 <- lmer(data = pli_dewey,
 summary(dew71)
 
 dew71b<- lmer(data= pli_dewey,
-              pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+Q67:season+
+              pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(dew71b)                
@@ -570,7 +571,7 @@ dew79 <- lmer(data = pli_dewey,
 summary(dew79)
 
 dew79b<- lmer(data=pli_dewey,
-              pli.ln~ season+ prox.normal+ Q79+ prox.normal:season+ pH+Q79:season+
+              pli.ln~ season+ prox.normal+ Q79+ prox.normal:season+ pH+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(dew79b)  
@@ -636,7 +637,7 @@ dew77 <- lmer(data = pli_dewey,
 summary(dew77)
 
 dew77b<- lmer(data= pli_dewey,
-              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+Q77:season+ 
+              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(dew77b)                
@@ -666,7 +667,7 @@ model1 <- lmer(data = pli_dewey60,
 summary(model1)
 
 model2<- lmer(data= pli_dewey60,
-              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+  Q60:season+  
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -760,7 +761,7 @@ hay79a<- lmer(data =  hay79,
 summary(hay79a)
 
 hay79b<- lmer(data= hay79,
-              pli.ln~ season+ prox.normal+ Q79+  prox.normal:season+ pH+Q79:season+ 
+              pli.ln~ season+ prox.normal+ Q79+  prox.normal:season+ pH+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(hay79b)                
@@ -825,7 +826,7 @@ hay77a<- lmer(data =  hay77,
 summary(hay77a)
 
 hay77b<- lmer(data= hay77,
-              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+Q77:season+ season:Q77+
+              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+Q77:season+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(hay77b)                
@@ -862,14 +863,18 @@ globea <- lmer(data = globe,
 summary(globea)
 
 globe67<- lmer(data= globe,
-              pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ pH+Q67:season+ season:Q67+location_2+location_2:Q67+
+              pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ pH+location_2+location_2:Q67+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
-summary(globe67)                
+summary(globe67)    
 
-globe.step <- step(globe67)
+globe67c<- lmer(data= globe,
+               pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ 
+                 (1|community:site),
+               REML = F) #ML for comparison, REML for final
+summary(globe67c)  
+globe.step<- step(globe67c)
 globe.step
-
 globe2 <- get_model(globe.step)
 globe2
 print(summary(globe2))
@@ -895,12 +900,18 @@ globe71a <- lmer(data = globe71,
 summary(globe71a)
 
 globe71b<- lmer(data= globe71,
-              pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+Q71:season+ season:Q71+location_2+location_2:Q71+
+              pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+location_2+location_2:Q71+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
-summary(globe71b)                
+summary(globe71b)         
 
-globe.step <- step(globe71b)
+globe71c<- lmer(data= globe71,
+                pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+
+                  (1|community:site),
+                REML = F) #ML for comparison, REML for final
+summary(globe71c)  
+vif(globe71c)
+globe.step <- step(globe71c)
 globe.step
 globe2 <- get_model(globe.step)
 
@@ -929,7 +940,7 @@ globe <- lmer(data = globe79,
 summary(globe)
 
 globe79b<- lmer(data=globe79,
-              pli.ln~  prox.normal+ Q79+ prox.normal:season+ pH+Q79:season+ season:Q79+location_2:Q79+
+              pli.ln~  prox.normal+ Q79+ prox.normal:season+ pH+ location_2:Q79+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe79b)                
@@ -938,11 +949,12 @@ globe.step <- step(globe79b)
 globe.step
 globe2 <- get_model(globe.step)
 
-print(summary(globe2))
+
 check_model(globe2)
 vif(globe2)
 anova(globe2)
 print(anova(globe2))
+print(summary(globe2))
 performance(globe2)
 
 #Q76====
@@ -961,12 +973,20 @@ globe <- lmer(data = globe76,
 summary(globe)
 
 globe76b<- lmer(data= globe76,
-              pli.ln~ season+ prox.normal+ Q76+ prox.normal:season+ pH+Q76:season+ season:Q76+location_2:Q76+
+              pli.ln~ season+ prox.normal+ Q76+ prox.normal:season+ pH+location_2:Q76+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe76b)                
+vif(globe76b)
+globe76c<- lmer(data= globe76,
+                pli.ln~ season+ prox.normal+ Q76+ prox.normal:season+ 
+                  (1|community:site),
+                REML = F) #ML for comparison, REML for final
+summary(globe76c)                
+vif(globe76c)
 
-globe.step <- step(globe76b)
+
+globe.step <- step(globe76c)
 globe.step
 globe2 <- get_model(globe.step)
 check_model(globe2)
@@ -994,13 +1014,15 @@ globe <- lmer(data = globe77,
 summary(globe)
 
 globe77b<- lmer(data= globe77,
-              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+Q77:season+ season:Q77+location_2:Q77+
+              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+location_2:Q77+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe77b)   
 anova(globe77b)
+vif(globe77b)
+
 globe2<- lmer(data= globe77,
-                pli.ln~ season+ Q77+ prox.normal:season+ Q77:season+ season:Q77+
+                pli.ln~ season+ Q77+ prox.normal:season+ 
                   (1|community:site),
                 REML = F) #ML for comparison, REML for final
 
