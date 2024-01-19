@@ -4,8 +4,10 @@
 #analyzing the following demographics: zipcode, primary language, race/ethnicity, BIPOC, education, household size, income level
 #notes
 #87 sites with values for all the demographics listed above - might be possible to analyze all of them at once with pli/specific analytes
-#control by season and then list all these variables
+#control by season and then list all these variables???
 #community can be a proxy for race, language, income, zipcode
+#for education - do pre and post high school + trade school
+
 
 #load libraries ----
 library(readxl)
@@ -186,7 +188,7 @@ xtest(dataDF = demo,
 #prox x language not collinear?
 
 plang <- lm(data = demo,
-            prox.normal~`Primary Language`*community_2)
+            prox.normal~`Primary Language`+community)
 summary(plang)
 
 ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Primary Language`))+
@@ -237,9 +239,11 @@ iwm.demo <- iw.demo %>%
   semi_join(demo %>%
               count(Zip) %>%
               filter(n >=3))
-  
+
+#Language removed because spanish speakers are only in tucson
+
 pli.demo.1 <- lm(data = iwm.demo,
-            log(pli) ~ community_2+ BIPOC + `Low Income`+ `Primary Language` + `Education_grouped`+Zip+prox.normal)
+            log(pli) ~ season + community_2+ BIPOC + `Low Income`+ `Education_grouped`+Zip+prox.normal)
 summary(pli.demo.1)
 vif(pli.demo.1)
 check_model(pli.demo.1)
@@ -270,14 +274,19 @@ performance(pli.demo.4)
 step(pli.demo.1)
 ###best linear model ----
 pli.demo.5 <- lm(data = iwm.demo,
-                 log(pli) ~ BIPOC+Zip)
+                 log(pli) ~ BIPOC+Zip+season)
 summary(pli.demo.5)
 vif(pli.demo.5)
 check_model(pli.demo.5)
 anova(pli.demo.5)
 performance(pli.demo.5)
 plot(allEffects(pli.demo.5))
-#ZIP and BIPOC significant
+#season and ZIP and BIPOC significant
+
+pli.demo.5.1 <- lm(data = iwm.demo,
+                 log(pli) ~ BIPOC+Zip)
+anova(pli.demo.5, pli.demo.5.1)
+compare_performance(pli.demo.5, pli.demo.5.1)
 
 pli.demo.6 <- lm(data = iwm.demo,
                  log(pli) ~ BIPOC*Zip)
@@ -287,11 +296,16 @@ check_model(pli.demo.6)
 anova(pli.demo.6)
 
 pli.demo.7 <- lm(data = iwm.demo,
-                 log(pli) ~ BIPOC+Zip+community_2)
+                 log(pli) ~ BIPOC+community_2+season+Zip+prox.normal)
 summary(pli.demo.7)
 vif(pli.demo.7)
 check_model(pli.demo.7)
-anova(pli.demo.7)
+anova(pli.demo.7) #proximity is NOT significant
+
+pli.demo.7.1 <- lm(data = iwm.demo,
+                 log(pli) ~ prox.normal)
+summary(pli.demo.7.1)
+
 
 ##pli bivariate ----
 pli.demorace.1 <- lm(data = iwm.demo,
@@ -419,14 +433,16 @@ xtest <- function(dataDF, var1.string, var2.string, filename.string){
     drop_na(all_of(var2))
     
   X2 <- chisq.test(table(pull(dat,var1), pull(dat,var2)))
+  print(X2)
   X2$residuals
-  corrplot(X2$residuals, is.cor = FALSE)
+  p1 <- corrplot(X2$residuals, is.cor = FALSE)
+  print(p1)
   dev.print(jpeg, paste(filename, ".jpg", sep = ""), res=300, height=7, width=7, units="in")
   
-  contrib <- 100*X2$residuals^2/X2$statistic
-  corrplot(contrib, is.cor = FALSE)
-  dev.print(jpeg, paste(filename, ".jpg", sep = ""), res=300, height=7, width=7, units="in")
-  
+  # contrib <- 100*X2$residuals^2/X2$statistic
+  # corrplot(contrib, is.cor = FALSE)
+  # dev.print(jpeg, paste(filename, ".jpg", sep = ""), res=300, height=7, width=7, units="in")
+  # 
   
 }
 
