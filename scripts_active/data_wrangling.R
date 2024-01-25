@@ -207,7 +207,8 @@ demo <- demo %>%
   filter(Consent!="No") %>%
   filter(`Dropped Out` != "Yes") %>%
   mutate(Zip = factor(Zip))%>%
-  mutate(`Household Size`=factor(`Household Size`))
+  mutate(`Household Size`=factor(`Household Size`))%>%
+  mutate(`Household Size 2`=factor(`Household Size 2`))
 
 #make demo data longer for summaries
 demo.long <- pivot_longer(demo,
@@ -224,17 +225,16 @@ demo.long <- demo.long %>%
 #combine demo to concentration data
 iw.demo <- full_join(iw.dm, demo, by = c("site", "community"))
 
+#add prox to just demo data
+demo <- full_join(demo, com, by = c("site"))
+demo <- demo %>%
+  drop_na(Consent)
+
 #remove demo data that does not match to any samples and any samples that do not have demo data
 iw.demo <- iw.demo %>%
   drop_na(mlod.name) %>%
   drop_na(Consent)
 iw.demo$Zip <- as.factor(iw.demo$Zip)
-iw.demo$`Household Size` <- as.factor(iw.demo$`Household Size`)
-iw.demo$`Household Size 2` <- iw.demo$`Household Size`
-iw.demo$`Household Size 2` <- as.character(iw.demo$`Household Size 2`)
-iw.demo[iw.demo$`Household Size 2`=="5",]$`Household Size 2` <- "5-6"
-iw.demo[iw.demo$`Household Size 2`=="6",]$`Household Size 2` <- "5-6"
-iw.demo$`Household Size 2` <- as.factor(iw.demo$`Household Size 2`)
 
 #make longer
 iw.demo.long <- pivot_longer(iw.demo,
@@ -249,6 +249,7 @@ iw.demo.longer <- pivot_longer(iw.demo.long,
                           cols = c(Zip:`Low Income`),
                           values_to = "response",
                           names_to = "demographic")
+
 #clean up data for summaries
 iw.demo.longer <- iw.demo.longer %>%
   filter(response!='No response') %>%

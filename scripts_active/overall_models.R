@@ -1956,19 +1956,27 @@ Cr.tu.2.1 <- lmer(data = iws.tu,
                 log(Cr) ~ season + pH+ pH:prox.normal  +
                   (1|site),
                 REML = T)
+Cr.tu.2.2 <- lmer(data = iws.tu,
+                  log(Cr) ~ season + pH+ prox.normal  +
+                    (1|site),
+                  REML = T)
 print(summary(Cr.tu.2))
+print(summary(Cr.tu.2.2))
 check_model(Cr.tu.2)
+check_model(Cr.tu.2.2)
 vif(Cr.tu.2)
 vif(Cr.tu.2.1)
+vif(Cr.tu.2.2)
 anova(Cr.tu.1)
 print(anova(Cr.tu.2))
 print(anova(Cr.tu.2.1))
 print(anova(Cr.tu.2, Cr.tu.2.1))
+print(anova(Cr.tu.2.1, Cr.tu.2.2))
 compare_performance(Cr.tu.2, Cr.tu.2.1)
-perf <- performance(Cr.tu.2)
+perf <- performance(Cr.tu.2.2)
 perf
 write.csv(perf, "crtu_diag.csv")
-plot(allEffects(Cr.tu.2))
+plot(allEffects(Cr.tu.2.2))
 #
 
 ###Cu ----
@@ -1995,6 +2003,7 @@ Cu.tu.2.1 <- lmer(data = iws.tu,
                 log(Cu) ~ season + prox.normal + pH + (1 | site) + season:prox.normal,
                 REML = T)
 print(summary(Cu.tu.2))
+print(summary(Cu.tu.2.1))
 check_model(Cu.tu.2)
 vif(Cu.tu.2)
 vif(Cu.tu.2.1)
@@ -2003,10 +2012,10 @@ print(anova(Cu.tu.2))
 print(anova(Cu.tu.2.1))
 print(anova(Cu.tu.2, Cu.tu.2.1))
 compare_performance(Cu.tu.2, Cu.tu.2.1)
-perf <- performance(Cu.tu.2)
+perf <- performance(Cu.tu.2.1)
 perf
 write.csv(perf, "cutu_diag.csv")
-plot(allEffects(Cu.tu.2))
+plot(allEffects(Cu.tu.2.1))
 #
 
 ###Fe ----
@@ -2318,13 +2327,18 @@ Zn.tu.2.3 <- lmer(data = iws.tu,
                   log(Zn) ~  prox.normal +  pH + prox.normal:pH +
                     (1|site),
                   REML = T)
+Zn.tu.2.4 <- lmer(data = iws.tu,
+                log(Zn) ~  season + prox.normal +  pH + prox.normal:season +
+                  (1|site),
+                REML = T)
 Zn.tu.2.1 <- lm(data = iws.tu,
                 log(Zn) ~  season + prox.normal +  pH + prox.normal:season)
-print(summary(Zn.tu.2.2))
+print(summary(Zn.tu.2.4))
 check_model(Zn.tu.2)
 check_model(Zn.tu.2.1)
 check_model(Zn.tu.2.2)
 check_model(Zn.tu.2.3)
+check_model(Zn.tu.2.4)
 vif(Zn.tu.2)
 anova(Zn.tu.1)
 print(anova(Zn.tu.2))
@@ -2336,10 +2350,10 @@ print(anova(Zn.tu.2.2, Zn.tu.2.3))
 compare_performance(Zn.tu.2.1, Zn.tu.2)
 compare_performance(Zn.tu.2.2, Zn.tu.2)
 compare_performance(Zn.tu.2.2, Zn.tu.2.3)
-perf <- performance(Zn.tu.2.2)
+perf <- performance(Zn.tu.2.4)
 perf
 write.csv(perf, "zntu_diag.csv")
-plot(allEffects(Zn.tu.2.2))
+plot(allEffects(Zn.tu.2.4))
 #season
 
 #plotting ----
