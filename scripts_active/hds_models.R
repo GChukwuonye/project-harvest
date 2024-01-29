@@ -29,7 +29,7 @@ iw.score.long <- pivot_longer(data = iw.dm,
                               names_to = "analyte")
 
 #split dataframe into different ones for each community
-iws.c <- iw.dm79 %>%
+iws.c <- iw.dm77 %>%
   drop_na(pH) %>%
   group_by(community) %>%
   group_split()
@@ -47,7 +47,7 @@ iws.gm <- iws.gm %>%
   drop_na(location_2)
 iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
 
-iws.gm$Q79 <- as.factor(iws.gm$Q79)
+iws.gm$Q77 <- as.factor(iws.gm$Q77)
 
 #tucson specific
 iws.tu <- iws.tu %>%
@@ -1185,9 +1185,18 @@ print(summary(ba.gm.1))
 ba.gm.2.step <- step(ba.gm.1)
 ba.gm.2.step
 ba.gm.2 <- get_model(ba.gm.2.step)
+ba.gm.2 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + Q79 +
+                  (1|site),
+                REML = T)
 print(summary(ba.gm.2))
 print(anova(ba.gm.2))
 check_model(ba.gm.2)
+perf <- performance(ba.gm.2)
+perf
+write.csv(perf, "bagm79_diag.csv")
+plot(allEffects(ba.gm.2))
+#prox q79 season
 
 ###Be ----
 Be.gm.0 <- lmer(data = iws.gm,
@@ -1209,9 +1218,7 @@ print(summary(Be.gm.2))
 check_model(Be.gm.2)
 anova(Be.gm.1)
 print(anova(Be.gm.2))
-perf <- performance(Be.gm.2)
-perf
-write.csv(perf, "Begm79_diag.csv")
+performance(Be.gm.2)
 plot(allEffects(Be.gm.2))
 #prox season score
 
