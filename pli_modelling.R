@@ -809,6 +809,39 @@ print(summary(model3))
 performance(model3 )
 
 
+#Q65: How old is your cistern:----
+pli_dewey65 <- full_join(deweydat, hds65, by = c("site"))
+pli_dewey65 <- pli_dewey65 %>%
+  drop_na(prox.normal)
+pli_dewey65 <- pli_dewey65 %>%
+  drop_na(season)
+pli_dewey65 <- pli_dewey65%>%
+  drop_na(Q65)
+pli_dewey65$Q65<- as.factor(pli_dewey65$Q65)
+summary(pli_dewey65$Q65)
+model1 <- lmer(data = pli_dewey65,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_dewey65,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+tuc.step2 <- step(model2)
+tuc.step2
+model3 <- get_model(tuc.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+
 #hayden individual model=====
 
 #Q67====
@@ -969,6 +1002,68 @@ anova(hay2)
 print(anova(hay2))
 performance(hay2)
 
+#Q60: What is your cistern made of?----
+pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
+pli_hayden60 <- pli_hayden60 %>%
+  drop_na(prox.normal)
+pli_hayden60 <- pli_hayden60 %>%
+  drop_na(season)
+pli_hayden60 <- pli_hayden60%>%
+  drop_na(Q60)
+pli_hayden60$Q60<- as.factor(pli_hayden60$Q60)
+summary(pli_hayden60$Q60)
+model1 <- lmer(data = pli_hayden60,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_hayden60,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+dew.step2 <- step(model2)
+dew.step2
+model3 <- get_model(dew.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+#Q65: How old is your cistern:----
+pli_hayden65 <- full_join(haydendat, hds65, by = c("site"))
+pli_hayden65 <- pli_hayden65 %>%
+  drop_na(prox.normal)
+pli_hayden65 <- pli_hayden65 %>%
+  drop_na(season)
+pli_hayden65 <- pli_hayden65%>%
+  drop_na(Q65)
+pli_hayden65$Q65<- as.factor(pli_hayden65$Q65)
+summary(pli_hayden65$Q65)
+model1 <- lmer(data = pli_hayden65,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_hayden65,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+tuc.step2 <- step(model2)
+tuc.step2
+model3 <- get_model(tuc.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
 
 #globe individual model=====
 
@@ -1160,6 +1255,78 @@ vif(globe2)
 print(anova(globe2))
 print(summary(globe2))
 performance(globe2)
+
+#Q60: What is your cistern made of?----
+pli_globe60 <- full_join(globedat, hds60, by = c("site"))
+pli_globe60 <- pli_globe60 %>%
+  drop_na(prox.normal)
+pli_globe60 <- pli_globe60 %>%
+  drop_na(season)
+pli_globe60 <- pli_globe60%>%
+  drop_na(Q60)
+pli_globe60$Q60<- as.factor(pli_globe60$Q60)
+summary(pli_globe60$Q60)
+model1 <- lmer(data = pli_globe60,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_globe60,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+location_2:Q60+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+glo.step2 <- step(model2)
+glo.step2
+model3 <- get_model(glo.step2)
+
+model3<- lmer(data= pli_globe60,
+              pli~ season+ Q60+ prox.normal:season+
+                (1|community:site),
+              REML = F) 
+
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+
+#Q65: How old is your cistern:----
+pli_globe65 <- full_join(globedat, hds65, by = c("site"))
+pli_globe65 <- pli_globe65 %>%
+  drop_na(prox.normal)
+pli_globe65 <- pli_globe65 %>%
+  drop_na(season)
+pli_globe65 <- pli_globe65%>%
+  drop_na(Q65)
+pli_globe65$Q65<- as.factor(pli_globe65$Q65)
+summary(pli_globe65$Q65)
+model1 <- lmer(data = pli_globe65,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_globe65,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ location_2:Q65+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+model3<- lmer(data= pli_globe65,
+              pli~ season+ prox.normal+prox.normal:season+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
 
 
 =======
