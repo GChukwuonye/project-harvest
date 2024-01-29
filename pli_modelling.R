@@ -45,6 +45,30 @@ vif(plt3)
 anova(plt3)
 print(anova(plt3))
 performance(plt3)
+
+#tucson effect plot====
+predict.dat.tu <- ggeffect(model = plt3,
+                        terms = c("prox.normal"),
+                        back.transform = F,
+                        type = "re")
+
+ggplot(data = pli_tucson, aes(x = prox.normal, y = pli.ln))+
+  geom_point()+
+  geom_ribbon(data = predict.dat.tu, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+  geom_line(data = predict.dat.tu, mapping = aes(x=x, y = predicted))+
+  labs(title = "",
+       y = "ln(PLI)\n",
+       x = "\n Normalized Distance From Tucson International Airport (km)")+
+  facet_grid(season ~ .) +  
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none")
+dev.print(png, "PLI_TUdisteffectln.png", res=300, height=6, width=8, units="in")
+
+
 # ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = prox.normal)) + 
 #   geom_point(size = 1, color= "blue")+
 #   facet_wrap(community~., scales = "free")+
@@ -87,6 +111,33 @@ anova(pld2)
 print(anova(pld2))
 performance(pld2)
 
+pli_dewey$season <- as.factor(pli_dewey$season)
+str(pli_dewey)
+str(predict.dat.dh)
+
+#deweyeffect plot====
+predict.dat.dh <- ggeffect(model = pld2,
+                           terms = c("prox.normal"),
+                           back.transform = F,
+                           type = "re")
+
+ggplot(data = pli_dewey, aes(x = prox.normal, y = pli.ln)) +
+  geom_point() +
+  geom_ribbon(data = predict.dat.dh, mapping = aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), alpha = .5, fill = "#95CACA") +
+  geom_line(data = predict.dat.dh, mapping = aes(x = x, y = predicted)) +
+  labs(title = "",
+       y = "ln(PLI)\n",
+       x = "\n Normalized Distance From Smelter (km)") +
+  facet_grid(season ~ .) +  
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none")
+
+dev.print(png, "PLI_DWdisteffectln.png", res=300, height=6, width=8, units="in")
+
 #pli hayden modeling ----
 pli_hayden<- haydendat
 pli_hayden<- pli_hayden%>%
@@ -119,6 +170,31 @@ print(anova(plh2))
 performance(plh2)
 
 
+#haydeneffect plot====
+predict.dat.hw <- ggeffect(model = plh2,
+                           terms = c("prox.normal"),
+                           back.transform = F,
+                           type = "re")
+
+ggplot(data = pli_hayden, aes(x = prox.normal, y = pli.ln))+
+  geom_point()+
+  geom_ribbon(data = predict.dat.hw, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+  geom_line(data = predict.dat.hw, mapping = aes(x=x, y = predicted))+
+  labs(title = "",
+       y = "ln(PLI)\n",
+       x = "\n Normalized Distance From Smelter (km)")+
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none")
+dev.print(png, "PLI_HWdisteffectln.png", res=300, height=6, width=8, units="in")
+
+
+
+
+
 #pli globe modeling ----
 pli_globe<- globedat
 pli_globe<- pli_globe%>%
@@ -136,7 +212,7 @@ summary(plg0)
 
 
 plg <- lmer(data = pli_globe,
-            pli.ln ~  season + prox.normal+pH+ season:prox.normal+pH:prox.normal+ location_2+ location__2:season+
+            pli.ln ~  season + prox.normal+pH+ season:prox.normal+pH:prox.normal+ location_2+ 
             + (1|community:site),
             REML = F) #ML for comparison, REML for final
 summary(plg)
@@ -150,6 +226,28 @@ anova(plg2)
 print(anova(plg2))
 performance(plg2)
 
+#globeeffect plot====
+predict.dat.gm <- ggeffect(model = plg2,
+                           terms = c("prox.normal"),
+                           back.transform = F,
+                           type = "re")
+
+ggplot(data = pli_globe, aes(x = prox.normal, y = pli.ln))+
+  geom_point()+
+  geom_ribbon(data = predict.dat.gm, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+  geom_line(data = predict.dat.gm, mapping = aes(x=x, y = predicted))+
+  labs(title = "",
+       y = "ln(PLI)\n",
+       x = "\n Normalized Distance From Mine (km)")+
+  theme_bw()+
+  facet_grid(season ~ .) + 
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none")
+
+dev.print(png, "PLI_GMdisteffectln.png", res=300, height=6, width=8, units="in")
 
 
 # #pli tucson modeling ----
@@ -296,6 +394,34 @@ vif(tuc2)
 anova(tuc2)
 print(anova(tuc2))
 performance(tuc2)
+
+
+#tucson hds plot====
+predict.dat.tu3 <- ggeffect(model = tuc2,
+                           terms = c("Q67"),
+                           back.transform = F,
+                           type = "re")
+
+ggplot(data = pli_tucson67, aes(x = Q67, y = pli.ln))+
+  geom_point()+
+  geom_ribbon(data = predict.dat.tu3, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+  geom_line(data = predict.dat.tu3, mapping = aes(x=x, y = predicted))+
+  labs(title = "",
+       x = "Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?\n",
+       y = "\n Normalized Distance From Mine (km)")+
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none")
+
+dev.print(png, "PLI_HDSTUQ67effectln.png", res=300, height=6, width=8, units="in")
+
+
+
+
+
 
 #Q71====
 #Do you treat or wash your cistern with anything?
@@ -683,6 +809,39 @@ print(summary(model3))
 performance(model3 )
 
 
+#Q65: How old is your cistern:----
+pli_dewey65 <- full_join(deweydat, hds65, by = c("site"))
+pli_dewey65 <- pli_dewey65 %>%
+  drop_na(prox.normal)
+pli_dewey65 <- pli_dewey65 %>%
+  drop_na(season)
+pli_dewey65 <- pli_dewey65%>%
+  drop_na(Q65)
+pli_dewey65$Q65<- as.factor(pli_dewey65$Q65)
+summary(pli_dewey65$Q65)
+model1 <- lmer(data = pli_dewey65,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_dewey65,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+tuc.step2 <- step(model2)
+tuc.step2
+model3 <- get_model(tuc.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+
 #hayden individual model=====
 
 #Q67====
@@ -843,6 +1002,68 @@ anova(hay2)
 print(anova(hay2))
 performance(hay2)
 
+#Q60: What is your cistern made of?----
+pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
+pli_hayden60 <- pli_hayden60 %>%
+  drop_na(prox.normal)
+pli_hayden60 <- pli_hayden60 %>%
+  drop_na(season)
+pli_hayden60 <- pli_hayden60%>%
+  drop_na(Q60)
+pli_hayden60$Q60<- as.factor(pli_hayden60$Q60)
+summary(pli_hayden60$Q60)
+model1 <- lmer(data = pli_hayden60,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_hayden60,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+dew.step2 <- step(model2)
+dew.step2
+model3 <- get_model(dew.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+#Q65: How old is your cistern:----
+pli_hayden65 <- full_join(haydendat, hds65, by = c("site"))
+pli_hayden65 <- pli_hayden65 %>%
+  drop_na(prox.normal)
+pli_hayden65 <- pli_hayden65 %>%
+  drop_na(season)
+pli_hayden65 <- pli_hayden65%>%
+  drop_na(Q65)
+pli_hayden65$Q65<- as.factor(pli_hayden65$Q65)
+summary(pli_hayden65$Q65)
+model1 <- lmer(data = pli_hayden65,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_hayden65,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+tuc.step2 <- step(model2)
+tuc.step2
+model3 <- get_model(tuc.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
 
 #globe individual model=====
 
@@ -947,15 +1168,16 @@ summary(globe79b)
 
 globe.step <- step(globe79b)
 globe.step
-globe2 <- get_model(globe.step)
+globe79c <- get_model(globe.step)
 
 
-check_model(globe2)
-vif(globe2)
-anova(globe2)
-print(anova(globe2))
-print(summary(globe2))
-performance(globe2)
+check_model(globe79c)
+vif(globe79c)
+anova(globe79c)
+print(anova(globe79c))
+print(summary(globe79c))
+performance(globe79c)
+
 
 #Q76====
 #Does your cistern have a first flush?
@@ -1034,8 +1256,79 @@ print(anova(globe2))
 print(summary(globe2))
 performance(globe2)
 
+#Q60: What is your cistern made of?----
+pli_globe60 <- full_join(globedat, hds60, by = c("site"))
+pli_globe60 <- pli_globe60 %>%
+  drop_na(prox.normal)
+pli_globe60 <- pli_globe60 %>%
+  drop_na(season)
+pli_globe60 <- pli_globe60%>%
+  drop_na(Q60)
+pli_globe60$Q60<- as.factor(pli_globe60$Q60)
+summary(pli_globe60$Q60)
+model1 <- lmer(data = pli_globe60,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
 
-<<<<<<< HEAD
+model2<- lmer(data= pli_globe60,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+location_2:Q60+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+glo.step2 <- step(model2)
+glo.step2
+model3 <- get_model(glo.step2)
+
+model3<- lmer(data= pli_globe60,
+              pli~ season+ Q60+ prox.normal:season+
+                (1|community:site),
+              REML = F) 
+
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+
+#Q65: How old is your cistern:----
+pli_globe65 <- full_join(globedat, hds65, by = c("site"))
+pli_globe65 <- pli_globe65 %>%
+  drop_na(prox.normal)
+pli_globe65 <- pli_globe65 %>%
+  drop_na(season)
+pli_globe65 <- pli_globe65%>%
+  drop_na(Q65)
+pli_globe65$Q65<- as.factor(pli_globe65$Q65)
+summary(pli_globe65$Q65)
+model1 <- lmer(data = pli_globe65,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_globe65,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ location_2:Q65+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)                
+anova(model2) #Q77 not  significant
+model3<- lmer(data= pli_globe65,
+              pli~ season+ prox.normal+prox.normal:season+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+
+
 =======
 
 #pli without hds=====
