@@ -410,8 +410,8 @@ hds77[hds77$Q77=="3",]$Q77 <- "0"
 hds77$Q77 <- as.numeric(hds77$Q77)
 summary(as.factor(hds77$Q77))
 
-##Q79 Do you ever NOT remove the screen/filter and leave your cistern without the filter? ----
-##question edited so that the Y/N response goes the same direction as the other questions
+##Q79 Do you ever remove the screen/filter and leave your cistern without the filter? ----
+##note, when we were doing the HDS score models, this question was edited so that the Y/N response goes the same direction as the other questions - doing the best practice was a +1. We added a NOT to the question and the responses were reversed.
 
 hds79<- hds
 hds79$Q79 <- as.character(hds79$Q79)
@@ -419,8 +419,8 @@ hds79 <- hds79 %>%
   drop_na(Q79)
 #hds79[is.na(hds79$Q79),]$Q79 <- "0"
 hds79[hds79$Q79=="0",]$Q79 <- "0"
-hds79[hds79$Q79=="1",]$Q79 <- "0"
-hds79[hds79$Q79=="2",]$Q79 <- "1"
+hds79[hds79$Q79=="1",]$Q79 <- "1"
+hds79[hds79$Q79=="2",]$Q79 <- "0"
 hds79[hds79$Q79=="100",]$Q79 <- "0"
 hds79$Q79 <- as.numeric(hds79$Q79)
 summary(as.factor(hds79$Q79))

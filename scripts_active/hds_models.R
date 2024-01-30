@@ -29,7 +29,7 @@ iw.score.long <- pivot_longer(data = iw.dm,
                               names_to = "analyte")
 
 #split dataframe into different ones for each community
-iws.c <- iw.dm77 %>%
+iws.c <- iw.dm79 %>%
   drop_na(pH) %>%
   group_by(community) %>%
   group_split()
@@ -47,7 +47,7 @@ iws.gm <- iws.gm %>%
   drop_na(location_2)
 iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
 
-iws.gm$Q77 <- as.factor(iws.gm$Q77)
+iws.gm$Q79 <- as.factor(iws.gm$Q79)
 
 #tucson specific
 iws.tu <- iws.tu %>%
