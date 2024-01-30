@@ -418,10 +418,10 @@ hds79$Q79 <- as.character(hds79$Q79)
 hds79 <- hds79 %>%
   drop_na(Q79)
 #hds79[is.na(hds79$Q79),]$Q79 <- "0"
-hds79[hds79$Q79=="0",]$Q79 <- "0"
+hds79[hds79$Q79=="0",]$Q79 <- "1"
 hds79[hds79$Q79=="1",]$Q79 <- "1"
 hds79[hds79$Q79=="2",]$Q79 <- "0"
-hds79[hds79$Q79=="100",]$Q79 <- "0"
+hds79[hds79$Q79=="100",]$Q79 <- "1"
 hds79$Q79 <- as.numeric(hds79$Q79)
 summary(as.factor(hds79$Q79))
 

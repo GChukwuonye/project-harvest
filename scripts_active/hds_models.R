@@ -1192,9 +1192,6 @@ ba.gm.2 <- lmer(data = iws.gm,
 print(summary(ba.gm.2))
 print(anova(ba.gm.2))
 check_model(ba.gm.2)
-perf <- performance(ba.gm.2)
-perf
-write.csv(perf, "bagm79_diag.csv")
 plot(allEffects(ba.gm.2))
 #prox q79 season
 
@@ -1218,8 +1215,11 @@ print(summary(Be.gm.2))
 check_model(Be.gm.2)
 anova(Be.gm.1)
 print(anova(Be.gm.2))
-performance(Be.gm.2)
+perf <- performance(Be.gm.2)
+perf
+write.csv(perf, "Begm79_diag.csv")
 plot(allEffects(Be.gm.2))
+
 #prox season score
 
 ###Cd ----
