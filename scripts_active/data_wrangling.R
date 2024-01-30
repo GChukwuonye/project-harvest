@@ -285,6 +285,7 @@ summary(as.factor(hds67$Q67))
 ##Q60 What is your cistern made of: ----
 hds60<- hds
 hds60$Q60 <- as.character(hds60$Q60)
+summary(as.factor(hds60$Q60))
 
 
 ##Q65 How old is your cistern:  ----
@@ -469,8 +470,13 @@ iw.dm79 <- iw.dm79[!is.na(iw.dm79$community),]
 iw.dm79<-iw.dm79 %>%
   drop_na(Q79)
 
+#iw.dm65- combining iw.dm with Q65=====
+iw.dm65 <- full_join(iw.dm, hds65, by = c("site"))
+iw.dm65 <- iw.dm65[!is.na(iw.dm65$community),]
+iw.dm65<-iw.dm65 %>%
+  drop_na(Q65)
 
-
+summary(as.factor(iw.dm65[iw.dm65$community=="Dewey-Humboldt",]$Q65))
 
 #write.csv(iw.score, "score_test.csv")
 #iw.dm[is.na(iw.dm$score_bin),]$score_bin <- "None"

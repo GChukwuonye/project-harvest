@@ -29,7 +29,7 @@ iw.score.long <- pivot_longer(data = iw.dm,
                               names_to = "analyte")
 
 #split dataframe into different ones for each community
-iws.c <- iw.dm79 %>%
+iws.c <- iw.dm65 %>%
   drop_na(pH) %>%
   group_by(community) %>%
   group_split()
@@ -1559,7 +1559,8 @@ anova(Zn.gm.1)
 print(anova(Zn.gm.2))
 performance(Zn.gm.2)
 #season
-## dh ----
+
+## dh q65 ----
 ###Ag ----
 Ag.dh.0 <- lmer(data = iws.dh,
                 log(Ag) ~
@@ -1568,7 +1569,7 @@ Ag.dh.0 <- lmer(data = iws.dh,
 print(summary(Ag.dh.0))
 
 Ag.dh.1 <- lmer(data = iws.dh,
-                log(Ag) ~ season + prox.normal + score_bin + pH +
+                log(Ag) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Ag.dh.1))
@@ -1590,7 +1591,7 @@ al.dh.0 <- lmer(data = iws.dh,
 print(summary(al.dh.0))
 
 al.dh.1 <- lmer(data = iws.dh,
-                log(Al) ~ season + prox.normal + score_bin + pH +
+                log(Al) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(al.dh.1))
@@ -1612,7 +1613,7 @@ As.dh.0 <- lmer(data = iws.dh,
 print(summary(As.dh.0))
 
 As.dh.1 <- lmer(data = iws.dh,
-                log(As) ~ season + prox.normal + score_bin + pH +
+                log(As) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(As.dh.1))
@@ -1635,7 +1636,7 @@ ba.dh.0 <- lmer(data = iws.dh,
 print(summary(ba.dh.0))
 
 ba.dh.1 <- lmer(data = iws.dh,
-                log(Ba) ~ season + prox.normal + score_bin + pH +
+                log(Ba) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(ba.dh.1))
@@ -1658,7 +1659,7 @@ Be.dh.0 <- lmer(data = iws.dh,
 print(summary(Be.dh.0))
 
 Be.dh.1 <- lmer(data = iws.dh,
-                log(Be) ~ season + prox.normal + score_bin + pH +
+                log(Be) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Be.dh.1))
@@ -1681,7 +1682,7 @@ Cd.dh.0 <- lmer(data = iws.dh,
 print(summary(Cd.dh.0))
 
 Cd.dh.1 <- lmer(data = iws.dh,
-                log(Cd) ~ season + prox.normal + score_bin + pH +
+                log(Cd) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Cd.dh.1))
@@ -1704,7 +1705,7 @@ Co.dh.0 <- lmer(data = iws.dh,
 print(summary(Co.dh.0))
 
 Co.dh.1 <- lmer(data = iws.dh,
-                log(Co) ~ season + prox.normal + score_bin + pH +
+                log(Co) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Co.dh.1))
@@ -1727,7 +1728,7 @@ Cr.dh.0 <- lmer(data = iws.dh,
 print(summary(Cr.dh.0))
 
 Cr.dh.1 <- lmer(data = iws.dh,
-                log(Cr) ~ season + prox.normal + score_bin + pH +
+                log(Cr) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Cr.dh.1))
@@ -1750,7 +1751,7 @@ Cu.dh.0 <- lmer(data = iws.dh,
 print(summary(Cu.dh.0))
 
 Cu.dh.1 <- lmer(data = iws.dh,
-                log(Cu) ~ season + prox.normal + score_bin + pH +
+                log(Cu) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Cu.dh.1))
@@ -1762,7 +1763,10 @@ print(summary(Cu.dh.2))
 check_model(Cu.dh.2)
 anova(Cu.dh.1)
 print(anova(Cu.dh.2))
-performance(Cu.dh.2)
+perf <- performance(Cu.dh.2)
+perf
+write.csv(perf, "Cudh65_diag.csv")
+plot(allEffects(Cu.dh.2))
 #nothing
 
 ###Fe ----
@@ -1773,7 +1777,7 @@ Fe.dh.0 <- lmer(data = iws.dh,
 print(summary(Fe.dh.0))
 
 Fe.dh.1 <- lmer(data = iws.dh,
-                log(Fe) ~ season + prox.normal + score_bin + pH +
+                log(Fe) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Fe.dh.1))
@@ -1796,7 +1800,7 @@ Mn.dh.0 <- lmer(data = iws.dh,
 print(summary(Mn.dh.0))
 
 Mn.dh.1 <- lmer(data = iws.dh,
-             log(Mn) ~ season + prox.normal + score_bin + pH +
+             log(Mn) ~ season + prox.normal + Q65 + pH +
                (1|site),
              REML = F)
 print(summary(Mn.dh.1))
@@ -1820,7 +1824,7 @@ mo.dh.0 <- lmer(data = iws.dh,
 print(summary(mo.dh.0))
 
 mo.dh.1 <- lmer(data = iws.dh,
-                log(Mo) ~ season + prox.normal + score_bin + pH +
+                log(Mo) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(mo.dh.1))
@@ -1843,7 +1847,7 @@ ni.dh.0 <- lmer(data = iws.dh,
 print(summary(ni.dh.0))
 
 ni.dh.1 <- lmer(data = iws.dh,
-                log(Ni) ~ season + prox.normal + score_bin + pH +
+                log(Ni) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(ni.dh.1))
@@ -1866,7 +1870,7 @@ Pb.dh.0 <- lmer(data = iws.dh,
 print(summary(Pb.dh.0))
 
 Pb.dh.1 <- lmer(data = iws.dh,
-                log(Pb) ~ season + prox.normal + score_bin + pH +
+                log(Pb) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Pb.dh.1))
@@ -1878,7 +1882,9 @@ print(summary(Pb.dh.2))
 check_model(Pb.dh.2)
 anova(Pb.dh.1)
 print(anova(Pb.dh.2))
-performance(Pb.dh.2)
+perf <- performance(Pb.dh.2)
+perf
+write.csv(perf, "Pbdh65_diag.csv")
 plot(allEffects(Pb.dh.2))
 #score only
 
@@ -1890,7 +1896,7 @@ Sb.dh.0 <- lmer(data = iws.dh,
 print(summary(Sb.dh.0))
 
 Sb.dh.1 <- lmer(data = iws.dh,
-                log(Sb) ~ season + prox.normal + score_bin + pH +
+                log(Sb) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Sb.dh.1))
@@ -1902,7 +1908,9 @@ print(summary(Sb.dh.2))
 check_model(Sb.dh.2)
 anova(Sb.dh.1)
 print(anova(Sb.dh.2))
-performance(Sb.dh.2)
+perf <- performance(Sb.dh.2)
+perf
+write.csv(perf, "Sbdh65_diag.csv")
 #nothing
 
 ###Se ----
@@ -1913,7 +1921,7 @@ Se.dh.0 <- lmer(data = iws.dh,
 print(summary(Se.dh.0))
 
 Se.dh.1 <- lmer(data = iws.dh,
-                log(Se) ~ season + prox.normal + score_bin + pH +
+                log(Se) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Se.dh.1))
@@ -1936,7 +1944,7 @@ Sn.dh.0 <- lmer(data = iws.dh,
 print(summary(Sn.dh.0))
 
 Sn.dh.1 <- lmer(data = iws.dh,
-                log(Sn) ~ season + prox.normal + score_bin + pH +
+                log(Sn) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Sn.dh.1))
@@ -1959,7 +1967,7 @@ v.dh.0 <- lmer(data = iws.dh,
 print(summary(v.dh.0))
 
 v.dh.1 <- lmer(data = iws.dh,
-                log(V) ~ season + prox.normal + score_bin + pH +
+                log(V) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(v.dh.1))
@@ -1982,7 +1990,7 @@ Zn.dh.0 <- lmer(data = iws.dh,
 print(summary(Zn.dh.0))
 
 Zn.dh.1 <- lmer(data = iws.dh,
-                log(Zn) ~ season + prox.normal + score_bin + pH +
+                log(Zn) ~ season + prox.normal + Q65 + pH +
                   (1|site),
                 REML = F)
 print(summary(Zn.dh.1))
