@@ -46,7 +46,7 @@ anova(plt3)
 print(anova(plt3))
 performance(plt3)
 
-#tucson effect plot====
+#tucson effect plots====
 predict.dat.tu <- ggeffect(model = plt3,
                         terms = c("prox.normal"),
                         back.transform = F,
@@ -59,7 +59,6 @@ ggplot(data = pli_tucson, aes(x = prox.normal, y = pli.ln))+
   labs(title = "",
        y = "ln(PLI)\n",
        x = "\n Normalized Distance From Tucson International Airport (km)")+
-  facet_grid(season ~ .) +  
   theme_bw()+
   theme(text = element_text(family = "Avenir", size = 13),
         panel.grid = element_blank(),
@@ -67,6 +66,65 @@ ggplot(data = pli_tucson, aes(x = prox.normal, y = pli.ln))+
         plot.subtitle = element_text(hjust = 0.5),
         legend.position = "none")
 dev.print(png, "PLI_TUdisteffectln.png", res=300, height=6, width=8, units="in")
+
+
+
+
+
+predict.dat.tu <- ggeffect(model = plt3,
+                           terms = c("pH"),
+                           back.transform = F,
+                           type = "re")
+
+ggplot(data = pli_tucson, aes(x = pH, y = pli.ln))+
+  geom_point()+
+  geom_ribbon(data = predict.dat.tu, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+  geom_line(data = predict.dat.tu, mapping = aes(x=x, y = predicted))+
+  labs(title = "",
+       y = "ln(PLI)\n",
+       x = "\n pH")+
+  theme_bw()+
+  theme(text = element_text(family = "Avenir", size = 13),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none")
+dev.print(png, "PLI_TUpHeffectln.png", res=300, height=6, width=8, units="in")
+
+model.effects <- ggeffect(model = plt3,
+                          back.transform = F,
+                          type = "re")
+season.effect <- model.effects$season
+season.effect$season <- factor(season.effect$x, levels = c("Winter", "Monsoon"))
+
+ggplot(data = pli_tucson, mapping = aes(x = season, y = pli.ln)) +
+   geom_pointrange(data = season.effect, aes(x = season, y = predicted, color = season, ymin = conf.low, ymax = conf.high), position = position_dodge(width = 0.75), size = 1) +
+   geom_ribbon(data = season.effect, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+   geom_line(data = season.effect,  mapping = aes(x=x, y = predicted))+
+   labs(x = "\nTucson",
+        y = "\nPLI",) +
+   theme_bw() +
+   theme(text = element_text(family = "Avenir", size = 12, color = "black", face = "bold"),
+         strip.background = element_blank(),
+         panel.border = element_rect(color = "black"),
+         strip.text = element_blank(),
+         panel.grid.major.x = element_blank(),
+         plot.subtitle = element_text(hjust = 0.5),
+         axis.text.x = element_text(size = 12, color = "black", hjust = .5, vjust = .5),
+         legend.position = "none")
+
+dev.print(png, "PLI_TUseasoneffectln.png", res=300, height=6, width=8, units="in")
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = prox.normal)) + 
@@ -137,6 +195,54 @@ ggplot(data = pli_dewey, aes(x = prox.normal, y = pli.ln)) +
         legend.position = "none")
 
 dev.print(png, "PLI_DWdisteffectln.png", res=300, height=6, width=8, units="in")
+
+
+model.effects <- ggeffect(model = pld2,
+                          back.transform = F,
+                          type = "re")
+
+
+location.effect <- model.effects$location
+location.effect$location <- factor(location.effect$x, levels = c("East", "North East", "North", "North West", "South"))
+
+ggplot(data = pli_dewey, mapping = aes(x = location, y = pli.ln)) +
+  geom_pointrange(data = location.effect, aes(x = location, y = predicted, color = location, ymin = conf.low, ymax = conf.high), position = position_dodge(width = 0.75), size = 1) +
+  geom_ribbon(data = location.effect, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
+  geom_line(data = location.effect,  mapping = aes(x=x, y = predicted))+
+  labs(x = "\nTucson Location",
+       y = "\nPLI",) +
+  theme_bw() +
+  theme(text = element_text(family = "Avenir", size = 12, color = "black", face = "bold"),
+        strip.background = element_blank(),
+        panel.border = element_rect(color = "black"),
+        strip.text = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(size = 12, color = "black", hjust = .5, vjust = .5),
+        legend.position = "none")
+
+dev.print(png, "PLI_TUseasoneffectln.png", res=300, height=6, width=8, units="in")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #pli hayden modeling ----
 pli_hayden<- haydendat
