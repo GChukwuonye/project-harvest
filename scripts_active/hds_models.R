@@ -1812,7 +1812,10 @@ print(summary(Mn.dh.2))
 check_model(Mn.dh.2)
 anova(Mn.dh.1)
 print(anova(Mn.dh.2))
-performance(Mn.dh.2)
+perf <- performance(Mn.dh.2)
+perf
+write.csv(perf, "Mndh65_diag.csv")
+plot(allEffects(Mn.dh.2))
 #season only
 
 

@@ -226,7 +226,8 @@ ggplot(data = demo, mapping = aes(x = proximity.km, fill = `Low Income`))+
   theme(legend.position = "bottom")
 
 #ANOVAs ----
-##pli, multivariate ----
+##all communities ----
+###pli, multivariate ----
 iwm.demo <- iw.demo %>%
   filter(BIPOC!="Other") %>%
   drop_na(Zip)%>%
@@ -272,7 +273,7 @@ anova(pli.demo.4)
 performance(pli.demo.4)
 
 step(pli.demo.1)
-###best linear model ----
+####best linear model ----
 pli.demo.5 <- lm(data = iwm.demo,
                  log(pli) ~ BIPOC+Zip+season)
 summary(pli.demo.5)
@@ -307,7 +308,7 @@ pli.demo.7.1 <- lm(data = iwm.demo,
 summary(pli.demo.7.1)
 
 
-##pli bivariate ----
+###pli bivariate ----
 pli.demorace.1 <- lm(data = iwm.demo,
                  log(pli) ~ BIPOC*community_2)
 summary(pli.demorace.1)
@@ -324,6 +325,14 @@ anova(pli.demorace.2)
 performance(pli.demorace.2)
 
 step(pli.demorace.1)
+
+##dewey-humboldt ----
+
+##globe/miami ----
+
+##hayden/winkelman ----
+
+##tucson english/spanish ----
 
 #Functions----
 sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string, filename.string){
