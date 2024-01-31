@@ -15,6 +15,84 @@ library(tidyverse)
 library(EnvStats)
 library(corrplot)
 
+#data formatting
+#make sure there are no NA/blank values and remove samples with zipcodes with less than 3 sites
+
+#split dataframe into different ones for each community
+iws.c <- iw.demo %>%
+  group_by(community) %>%
+  group_split()
+
+iws.dh <- iws.c[[1]]
+iws.gm <- iws.c[[2]]
+iws.hw <- iws.c[[3]]
+iws.tu <- iws.c[[4]]
+
+#dh - education, household size, income, zipcode
+#note - not enough samples to focus on all of these, prioritize education, income?? sample size goes from 42 to 25, with DH may need to do univariate models controlling for season and proximity
+iw.demo.dh <- iws.dh %>%
+  drop_na(Zip)%>%
+  drop_na(Education_grouped)%>%
+  drop_na(prox.normal)%>%
+  drop_na(community_2) %>%
+  drop_na(`Low Income`)%>%
+  semi_join(demo %>%
+              count(Zip) %>%
+              filter(n >=3))
+
+#gm - bipoc, education, household size, income, race?, zip?
+#sample size descreases from 102 to 57 when removing NAs for all variables of interest...may need to do individual modeling controlling for season and proximity
+iw.demo.gm <- iws.gm %>%
+  filter(BIPOC!="Other") %>%
+  drop_na(Zip)%>%
+  drop_na(BIPOC)%>%
+  drop_na(Education_grouped)%>%
+  drop_na(`Low Income`)%>%
+  semi_join(demo %>%
+              count(Zip) %>%
+              filter(n >=3))
+#hw - education, household size, income, zip?
+#tu - bipoc, education, household size, income, language, zip
+
+
+
+iwm.demo <- iw.demo %>%
+  filter(BIPOC!="Other") %>%
+  drop_na(Zip)%>%
+  drop_na(`Primary Language`)%>%
+  drop_na(BIPOC)%>%
+  drop_na(Education_grouped)%>%
+  drop_na(prox.normal)%>%
+  drop_na(community_2) %>%
+  drop_na(`Low Income`)%>%
+  semi_join(demo %>%
+              count(Zip) %>%
+              filter(n >=3))
+#globe specific
+glo <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "globe", col_names = TRUE)
+iws.gm <- full_join(iws.gm, glo, by = c("site"))
+iws.gm <- iws.gm %>%
+  drop_na(community) %>%
+  drop_na(location_2)
+iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
+
+iws.gm$Q79 <- as.factor(iws.gm$Q79)
+
+#tucson specific
+iws.tu <- iws.tu %>%
+  drop_na(prox.normal)
+
+iws.tu$Q67 <- as.factor(iws.tu$Q67)
+
+tuc <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "tucson", col_names = TRUE)
+iws.tu <- full_join(iws.tu, tuc, by = c("site"))
+iws.tu <- iws.tu %>%
+  drop_na(ward) %>%
+  drop_na(community) %>%
+  drop_na(location)
+iws.tu$ward <- factor(iws.tu$ward, levels = c("One", "Two", "Three", "Four", "Five", "Six"))
+
+
 #summaries----
 ##demo summaries ----
 ###overall ----
@@ -228,19 +306,6 @@ ggplot(data = demo, mapping = aes(x = proximity.km, fill = `Low Income`))+
 #ANOVAs ----
 ##all communities ----
 ###pli, multivariate ----
-iwm.demo <- iw.demo %>%
-  filter(BIPOC!="Other") %>%
-  drop_na(Zip)%>%
-  drop_na(`Primary Language`)%>%
-  drop_na(BIPOC)%>%
-  drop_na(Education_grouped)%>%
-  drop_na(prox.normal)%>%
-  drop_na(community_2) %>%
-  drop_na(`Low Income`)%>%
-  semi_join(demo %>%
-              count(Zip) %>%
-              filter(n >=3))
-
 #Language removed because spanish speakers are only in tucson
 
 pli.demo.1 <- lm(data = iwm.demo,
@@ -327,6 +392,8 @@ performance(pli.demorace.2)
 step(pli.demorace.1)
 
 ##dewey-humboldt ----
+
+
 
 ##globe/miami ----
 
