@@ -18,16 +18,17 @@ library(patchwork)
 
 #pli without hds=====
 #tucson=====
-pli_tucson<- tucsondat
-pli_tucson<- pli_tucson%>%
-  drop_na(prox.normal)
-pli_tucson<- pli_tucson%>%
-  drop_na(pli.ln)
-pli_tucson<-pli_tucson%>%
-  drop_na(season)
-pli_tucson<- pli_tucson%>%
-  drop_na(pH)
-
+# pli_tucson<- tucsondat
+# pli_tucson<- pli_tucson%>%
+#   drop_na(prox.normal)
+# pli_tucson<- pli_tucson%>%
+#   drop_na(pli.ln)
+# pli_tucson<-pli_tucson%>%
+#   drop_na(season)
+# pli_tucson<- pli_tucson%>%
+#   drop_na(pH)
+pli_tucson<-iws.tu
+pli_tucson$pli.ln<- na.omit(pli_tucson$pli.ln)
 plt0 <- lmer(data = pli_tucson,
              pli.ln ~ (1|community:site),
              REML = T) 
@@ -42,12 +43,20 @@ plt3 <- get_model(plt.step)
 print(summary(plt3))
 check_model(plt3)
 vif(plt3)
-anova(plt3)
-print(anova(plt3))
-performance(plt3)
+plt4 <- lmer(data = pli_tucson,
+             pli.ln ~  season + prox.normal + season:prox.normal+ pH+
+               (1|community:site),
+             REML = F)
+anova(plt4)
+vif(plt4)
+AIC(plt3, plt4)
+print(summary(plt4))
+check_model(plt4)
+print(anova(plt4))
+performance(plt4)
 
-#tucson effect plots====
-predict.dat.tu <- ggeffect(model = plt3,
+#tucson effect plot====
+predict.dat.tu <- ggeffect(model = plt4,
                         terms = c("prox.normal"),
                         back.transform = F,
                         type = "re")
@@ -59,6 +68,7 @@ ggplot(data = pli_tucson, aes(x = prox.normal, y = pli.ln))+
   labs(title = "",
        y = "ln(PLI)\n",
        x = "\n Normalized Distance From Tucson International Airport (km)")+
+  facet_grid(season ~ .) +  
   theme_bw()+
   theme(text = element_text(family = "Avenir", size = 13),
         panel.grid = element_blank(),
@@ -66,65 +76,6 @@ ggplot(data = pli_tucson, aes(x = prox.normal, y = pli.ln))+
         plot.subtitle = element_text(hjust = 0.5),
         legend.position = "none")
 dev.print(png, "PLI_TUdisteffectln.png", res=300, height=6, width=8, units="in")
-
-
-
-
-
-predict.dat.tu <- ggeffect(model = plt3,
-                           terms = c("pH"),
-                           back.transform = F,
-                           type = "re")
-
-ggplot(data = pli_tucson, aes(x = pH, y = pli.ln))+
-  geom_point()+
-  geom_ribbon(data = predict.dat.tu, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
-  geom_line(data = predict.dat.tu, mapping = aes(x=x, y = predicted))+
-  labs(title = "",
-       y = "ln(PLI)\n",
-       x = "\n pH")+
-  theme_bw()+
-  theme(text = element_text(family = "Avenir", size = 13),
-        panel.grid = element_blank(),
-        plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        legend.position = "none")
-dev.print(png, "PLI_TUpHeffectln.png", res=300, height=6, width=8, units="in")
-
-model.effects <- ggeffect(model = plt3,
-                          back.transform = F,
-                          type = "re")
-season.effect <- model.effects$season
-season.effect$season <- factor(season.effect$x, levels = c("Winter", "Monsoon"))
-
-ggplot(data = pli_tucson, mapping = aes(x = season, y = pli.ln)) +
-   geom_pointrange(data = season.effect, aes(x = season, y = predicted, color = season, ymin = conf.low, ymax = conf.high), position = position_dodge(width = 0.75), size = 1) +
-   geom_ribbon(data = season.effect, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
-   geom_line(data = season.effect,  mapping = aes(x=x, y = predicted))+
-   labs(x = "\nTucson",
-        y = "\nPLI",) +
-   theme_bw() +
-   theme(text = element_text(family = "Avenir", size = 12, color = "black", face = "bold"),
-         strip.background = element_blank(),
-         panel.border = element_rect(color = "black"),
-         strip.text = element_blank(),
-         panel.grid.major.x = element_blank(),
-         plot.subtitle = element_text(hjust = 0.5),
-         axis.text.x = element_text(size = 12, color = "black", hjust = .5, vjust = .5),
-         legend.position = "none")
-
-dev.print(png, "PLI_TUseasoneffectln.png", res=300, height=6, width=8, units="in")
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = prox.normal)) + 
@@ -138,15 +89,13 @@ dev.print(png, "PLI_TUseasoneffectln.png", res=300, height=6, width=8, units="in
 #   stat_smooth(method=lm,color= "black")
 
 #pli dewey modeling ----
-pli_dewey<- deweydat
-pli_dewey<- pli_dewey%>%
-  drop_na(prox.normal)
-pli_dewey<- pli_dewey%>%
-  drop_na(pli.ln)
-pli_dewey<-pli_dewey%>%
-  drop_na(season)
-pli_dewey<-pli_dewey%>%
-  drop_na(pH)
+
+pli_dewey<- iws.dh
+pli_dewey$pli.ln<- na.omit(pli_dewey$pli.ln)
+
+
+deweydat <- full_join(dewey, pli_dewey, by = c("site"))
+pli_dewey<-deweydat
 pld0 <- lmer(data =pli_dewey,
              pli.ln ~ (1|community:site),
              REML = T) #ML for comparison, REML for final
@@ -158,20 +107,14 @@ pld <- lmer(data = pli_dewey,
             + (1|site),
             REML = F) #ML for comparison, REML for final
 summary(pld)
-
+vif(pld)
 pld.step <- step(pld)
 pld.step
 pld2 <- get_model(pld.step)
-pld2
 print(summary(pld2))
-check_model(pld2)
-anova(pld2)
-print(anova(pld2))
 performance(pld2)
 
-pli_dewey$season <- as.factor(pli_dewey$season)
-str(pli_dewey)
-str(predict.dat.dh)
+
 
 #deweyeffect plot====
 predict.dat.dh <- ggeffect(model = pld2,
@@ -179,7 +122,7 @@ predict.dat.dh <- ggeffect(model = pld2,
                            back.transform = F,
                            type = "re")
 
-ggplot(data = pli_dewey, aes(x = prox.normal, y = pli.ln)) +
+ggplot(data = pli_hayden, aes(x = prox.normal, y = pli.ln)) +
   geom_point() +
   geom_ribbon(data = predict.dat.dh, mapping = aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high), alpha = .5, fill = "#95CACA") +
   geom_line(data = predict.dat.dh, mapping = aes(x = x, y = predicted)) +
@@ -196,64 +139,20 @@ ggplot(data = pli_dewey, aes(x = prox.normal, y = pli.ln)) +
 
 dev.print(png, "PLI_DWdisteffectln.png", res=300, height=6, width=8, units="in")
 
-
-model.effects <- ggeffect(model = pld2,
-                          back.transform = F,
-                          type = "re")
-
-
-location.effect <- model.effects$location
-location.effect$location <- factor(location.effect$x, levels = c("East", "North East", "North", "North West", "South"))
-
-ggplot(data = pli_dewey, mapping = aes(x = location, y = pli.ln)) +
-  geom_pointrange(data = location.effect, aes(x = location, y = predicted, color = location, ymin = conf.low, ymax = conf.high), position = position_dodge(width = 0.75), size = 1) +
-  geom_ribbon(data = location.effect, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
-  geom_line(data = location.effect,  mapping = aes(x=x, y = predicted))+
-  labs(x = "\nTucson Location",
-       y = "\nPLI",) +
-  theme_bw() +
-  theme(text = element_text(family = "Avenir", size = 12, color = "black", face = "bold"),
-        strip.background = element_blank(),
-        panel.border = element_rect(color = "black"),
-        strip.text = element_blank(),
-        panel.grid.major.x = element_blank(),
-        plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(size = 12, color = "black", hjust = .5, vjust = .5),
-        legend.position = "none")
-
-dev.print(png, "PLI_TUseasoneffectln.png", res=300, height=6, width=8, units="in")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #pli hayden modeling ----
-pli_hayden<- haydendat
-pli_hayden<- pli_hayden%>%
-  drop_na(prox.normal)
-pli_hayden<- pli_hayden%>%
-  drop_na(pli.ln)
-pli_hayden<-pli_hayden%>%
-  drop_na(season)
-pli_hayden<-pli_hayden%>%
-  drop_na(pH)
+pli_hayden<- iws.hw
+haydendat <- full_join(hdistance, pli_hayden, by = c("site"))
+pli_hayden<-haydendat
+pli_hayden <- pli_hayden[!is.na(pli_hayden$mlod.name), ]
+# pli_hayden<- haydendat
+# pli_hayden<- pli_hayden%>%
+#   drop_na(prox.normal)
+# pli_hayden<- pli_hayden%>%
+#   drop_na(pli.ln)
+# pli_hayden<-pli_hayden%>%
+#   drop_na(season)
+# pli_hayden<-pli_hayden%>%
+#   drop_na(pH)
 plh0 <- lmer(data =pli_hayden,
              pli.ln ~ (1|community:site),
              REML = T) #ML for comparison, REML for final
@@ -278,11 +177,11 @@ performance(plh2)
 
 #haydeneffect plot====
 predict.dat.hw <- ggeffect(model = plh2,
-                           terms = c("prox.normal"),
+                           terms = c("season"),
                            back.transform = F,
                            type = "re")
 
-ggplot(data = pli_hayden, aes(x = prox.normal, y = pli.ln))+
+ggplot(data = pli_hayden, aes(x = season, y = pli.ln))+
   geom_point()+
   geom_ribbon(data = predict.dat.hw, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
   geom_line(data = predict.dat.hw, mapping = aes(x=x, y = predicted))+
@@ -302,15 +201,21 @@ dev.print(png, "PLI_HWdisteffectln.png", res=300, height=6, width=8, units="in")
 
 
 #pli globe modeling ----
-pli_globe<- globedat
-pli_globe<- pli_globe%>%
-  drop_na(prox.normal)
-pli_globe<- pli_globe%>%
-  drop_na(pli.ln)
-pli_globe<-pli_globe%>%
-  drop_na(season)
-pli_globe<-pli_globe%>%
-  drop_na(pH)
+pli_globe<- iws.gm
+
+globedat <- full_join(glo, pli_globe, by = c("site"))
+pli_globe<-globendat
+pli_globe <- pli_globe[!is.na(pli_globe$pli.ln), ]
+
+# pli_globe<- globedat
+# pli_globe<- pli_globe%>%
+#   drop_na(prox.normal)
+# pli_globe<- pli_globe%>%
+#   drop_na(pli.ln)
+# pli_globe<-pli_globe%>%
+#   drop_na(season)
+# pli_globe<-pli_globe%>%
+#   drop_na(pH)
 plg0 <- lmer(data =pli_globe,
              pli.ln ~ (1|community:site),
              REML = T) #ML for comparison, REML for final
@@ -385,16 +290,16 @@ dev.print(png, "PLI_GMdisteffectln.png", res=300, height=6, width=8, units="in")
 # 
 # 
 # 
-# #pli dewey modeling ----
+# #pli hayden modeling ----
 # 
-# pli_dewey<- iw.dm[iw.dm$community=="Dewey-Humboldt",]
+# pli_hayden<- iw.dm[iw.dm$community=="hayden-Humboldt",]
 # 
-# pld0 <- lmer(data =pli_dewey,
+# pld0 <- lmer(data =pli_hayden,
 #              pli.ln ~ (1|community:site),
 #              REML = T) #ML for comparison, REML for final
 # summary(pld0)
 # 
-# pld <- lmer(data = pli_dewey,
+# pld <- lmer(data = pli_hayden,
 #             pli.ln ~  season + prox.normal + score_bin +
 #               season:score_bin+
 #               prox.normal:score_bin
@@ -471,24 +376,25 @@ dev.print(png, "PLI_GMdisteffectln.png", res=300, height=6, width=8, units="in")
 
 #Q67====
 #Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?
-pli_tucson67 <- full_join(tucsondat, hds67, by = c("site"))
-pli_tucson67 <- pli_tucson67 %>%
-  drop_na(prox.normal)
-pli_tucson67 <- pli_tucson67 %>%
-  drop_na(season)
-pli_tucson67 <- pli_tucson67 %>%
-  drop_na(Q67)
-pli_tucson67$Q67<- as.factor(pli_tucson67$Q67)
-summary(pli_tucson67$Q67)
-tuc0<- lmer(data = pli_tucson67,
+
+pli_tucson$Q67<- as.factor(pli_tucson$Q67)
+summary(pli_tucson$Q67)
+pli_tucson <- pli_tucson[!(pli_tucson$Q67==0), ]
+summary(pli_tucson$Q67)
+tuc0<- lmer(data = pli_tucson,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(tuc0)
 
-tuc1<- lmer(data= pli_tucson67,
-              pli.ln~ season+ prox.normal+ Q67+ ward+ prox.normal:season+ pH+ ward:Q67+
+tuc1<- lmer(data= pli_tucson,
+              pli.ln~ season+ prox.normal+ Q67+ ward+ prox.normal:season+ pH+ ward:Q67+prox.normal:pH+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
+
+tuc1<- lmer(data= pli_tucson,
+            pli.ln~ season+ prox.normal+ Q67+ ward+ prox.normal:season+ pH+ ward:Q67+prox.normal:pH+
+              (1|community:site),
+            REML = F) #ML for comp
 
 tuc.step <- step(tuc1, direction= "both")
 tuc.step
@@ -508,7 +414,7 @@ predict.dat.tu3 <- ggeffect(model = tuc2,
                            back.transform = F,
                            type = "re")
 
-ggplot(data = pli_tucson67, aes(x = Q67, y = pli.ln))+
+ggplot(data = pli_tucson, aes(x = Q67, y = pli.ln))+
   geom_point()+
   geom_ribbon(data = predict.dat.tu3, mapping = aes(x=x, y = predicted, ymin = conf.low, ymax =conf.high), alpha = .5, fill = "#95CACA")+ #adds shading for error
   geom_line(data = predict.dat.tu3, mapping = aes(x=x, y = predicted))+
@@ -531,21 +437,14 @@ dev.print(png, "PLI_HDSTUQ67effectln.png", res=300, height=6, width=8, units="in
 
 #Q71====
 #Do you treat or wash your cistern with anything?
-pli_tucson71 <- full_join(tucsondat, hds71, by = c("site"))
-pli_tucson71 <- pli_tucson71 %>%
-  drop_na(prox.normal)
-pli_tucson71 <- pli_tucson71 %>%
-  drop_na(season)
-pli_tucson71 <- pli_tucson71 %>%
-  drop_na(Q71)
-pli_tucson71$Q71<- as.factor(pli_tucson71$Q71)
-summary(pli_tucson71$Q71)
-tuc71 <- lmer(data = pli_tucson71,
+pli_tucson$Q71<- as.factor(pli_tucson$Q71)
+summary(pli_tucson$Q71)
+tuc71 <- lmer(data = pli_tucson,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(tuc71)
 
-tuc71b<- lmer(data= pli_tucson71,
+tuc71b<- lmer(data= pli_tucson,
               pli.ln~ prox.normal+ Q71+ ward+ prox.normal:season+ pH+  season:ward+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -563,19 +462,14 @@ performance(tuc71c)
 
 #Q79====
 #Do you ever remove the screen/filter and leave your cistern without the filter?
-pli_tucson79 <- full_join(tucsondat, hds79, by = c("site"))
-pli_tucson79 <- pli_tucson79 %>%
-  drop_na(prox.normal)
-pli_tucson79 <- pli_tucson79 %>%
-  drop_na(season)
-pli_tucson79 <- pli_tucson79 %>%
-  drop_na(Q79)
-model1 <- lmer(data = pli_tucson79,
+pli_tucson$Q79<- as.factor(pli_tucson$Q79)
+summary(pli_tucson$Q79)
+model1 <- lmer(data = pli_tucson,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_tucson79,
+model2<- lmer(data= pli_tucson,
               pli~  prox.normal+ Q79+ ward+ prox.normal:season+ pH+ season:ward+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -594,19 +488,16 @@ performance(model3 )
 
 #Q76====
 #Does your cistern have a first flush?
-pli_tucson76 <- full_join(tucsondat, hds76, by = c("site"))
-pli_tucson76 <- pli_tucson76 %>%
-  drop_na(prox.normal)
-pli_tucson76 <- pli_tucson76 %>%
-  drop_na(season)
-pli_tucson76 <- pli_tucson76 %>%
-  drop_na(Q76)
-model1 <- lmer(data = pli_tucson76,
+pli_tucson$Q76<- as.factor(pli_tucson$Q76)
+pli_tucson <- pli_tucson[!(pli_tucson$Q76==0), ]
+summary(pli_tucson$Q76)
+
+model1 <- lmer(data = pli_tucson,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_tucson76,
+model2<- lmer(data= pli_tucson,
               pli~  prox.normal+ Q76+  ward+ prox.normal:season+ pH+  Q76:ward +season:ward+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -626,19 +517,15 @@ performance(model3 )
 
 #Q77====
 #Does your cistern have a screen/filter for incoming water from down spout on top of the tank?
-pli_tucson77 <- full_join(tucsondat, hds77, by = c("site"))
-pli_tucson77 <- pli_tucson77 %>%
-  drop_na(prox.normal)
-pli_tucson77 <- pli_tucson77 %>%
-  drop_na(season)
-pli_tucson77 <- pli_tucson77 %>%
-  drop_na(Q77)
-model1 <- lmer(data = pli_tucson77,
+pli_tucson$Q77<- as.factor(pli_tucson$Q77)
+pli_tucson <- pli_tucson[!(pli_tucson$Q77==0), ]
+summary(pli_tucson$Q77)
+model1 <- lmer(data = pli_tucson,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_tucson77,
+model2<- lmer(data= pli_tucson,
               pli~ season+ prox.normal+ Q77+ward+ prox.normal:season+ pH+season:ward+ Q77:ward+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -656,21 +543,15 @@ print(anova(model3 ))
 performance(model3 )
 
 #Q60: What is your cistern made of?----
-pli_tucson60 <- full_join(tucsondat, hds60, by = c("site"))
-pli_tucson60 <- pli_tucson60 %>%
-  drop_na(prox.normal)
-pli_tucson60 <- pli_tucson60 %>%
-  drop_na(season)
-pli_tucson60 <- pli_tucson60%>%
-  drop_na(Q60)
-pli_tucson60$Q60<- as.factor(pli_tucson60$Q60)
+
+pli_tucson$Q60<- as.factor(pli_tucson$Q60)
 summary(pli_tucson$Q60)
-model1 <- lmer(data = pli_tucson60,
+model1 <- lmer(data = pli_tucson,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_tucson60,
+model2<- lmer(data= pli_tucson,
               pli~ season+ prox.normal+ Q60+ward+ prox.normal:season+ pH+   Q60:ward+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -687,21 +568,15 @@ print(summary(model3))
 performance(model3 )
 
 #Q65: How old is your cistern:----
-pli_tucson65 <- full_join(tucsondat, hds65, by = c("site"))
-pli_tucson65 <- pli_tucson65 %>%
-  drop_na(prox.normal)
-pli_tucson65 <- pli_tucson65 %>%
-  drop_na(season)
-pli_tucson65 <- pli_tucson65%>%
-  drop_na(Q65)
-pli_tucson65$Q65<- as.factor(pli_tucson65$Q65)
-summary(pli_tucson65$Q65)
-model1 <- lmer(data = pli_tucson65,
+
+pli_tucson$Q65<- as.factor(pli_tucson$Q65)
+summary(pli_tucson$Q65)
+model1 <- lmer(data = pli_tucson,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_tucson65,
+model2<- lmer(data= pli_tucson,
               pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -720,15 +595,12 @@ performance(model3 )
 
 #dewey individual model=====
   #Q67====
-dew<-full_join(deweydat, hds67, by = c("site"))
-dew <- dew %>%
-  drop_na(prox.normal)
-dew <- dew %>%
-  drop_na(season)
-dew <- dew %>%
-  drop_na(Q67)
-dew$Q67<- as.factor(dew$Q67)
+pli_dewey$Q67<- as.factor(pli_dewey$Q67)
+summary(pli_dewey$Q67)
+dew<-pli_dewey
+dew <-dew[!is.na(dew$Q67), ]
 summary(dew$Q67)
+
 dew1 <- lmer(data =dew,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
@@ -750,125 +622,135 @@ print(anova(dew3))
 print(summary(dew3))
 performance(dew3)
 
-#Q71====
-#Do you treat or wash your cistern with anything?
-dew71<-full_join(deweydat, hds71, by = c("site"))
+# #Q71====
+# Do you treat or wash your cistern with anything?
+# dew71<-full_join(haydendat, hds71, by = c("site"))
 # dew71 <- dew71 %>%
 #   drop_na(prox.normal)
-# dew71 <- dew71%>%
+#  dew71 <- dew71%>%
 #   drop_na(season)
-pli_dewey <- dew71%>%
-  drop_na(Q71)
-pli_dewey$Q71<- as.factor(pli_dewey$Q71)
-summary(pli_dewey$Q71)
-dew71 <- lmer(data = pli_dewey,
-               pli.ln ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(dew71)
-
-dew71b<- lmer(data= pli_dewey,
-              pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(dew71b)                
-dew.step <- step(dew71b)
-dew.step
-dew3 <- get_model(dew.step)
-
-print(summary(dew3))
-check_model(dew3)
-vif(dew3)
-anova(dew3)
-print(anova(dew3))
-performance(dew3)
-#not relevant for dewey. All dewey participants responded with no. 
+#  pli_hayden <- dew71%>%
+# drop_na(Q71)
+# dew$Q71<- as.factor(dew$Q71)
+#  summary(dew$Q71)
+#
+# pli_dewey$Q71<- as.factor(pli_dewey$Q71)
+# summary(pli_dewey$Q71)
+# dew<-pli_dewey
+# dew <-dew[!is.na(dew$Q71), ]
+# summary(dew$Q71)
+# dew71 <- lmer(data = dew,
+#                pli.ln ~ (1|community:site),
+#                REML = T) #ML for comparison, REML for final
+# summary(dew71)
+#
+# dew71b<- lmer(data= pli_dewn,
+#               pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+
+#                 (1|community:site),
+#               REML = F) #ML for comparison, REML for final
+# summary(dew71b)
+# dew.step <- step(dew71b)
+# dew.step
+# dew3 <- get_model(dew.step)
+#
+# print(summary(dew3))
+# check_model(dew3)
+# vif(dew3)
+# anova(dew3)
+# print(anova(dew3))
+# performance(dew3)
+# #not relevant for hayden. All hayden participants responded with no.
 
 
 
 
 #Q79====
 #Do you ever remove the screen/filter and leave your cistern without the filter?
-dew79<-full_join(deweydat, hds79, by = c("site"))
-dew79 <- dew79 %>%
-  drop_na(prox.normal)
-dew79 <- dew79%>%
-  drop_na(season)
-pli_dewey <- dew79%>%
-  drop_na(Q79)
-pli_dewey$Q79<- as.factor(pli_dewey$Q79)
-summary(pli_dewey$Q79)
-dew79 <- lmer(data = pli_dewey,
-               pli.ln ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(dew79)
-
-dew79b<- lmer(data=pli_dewey,
-              pli.ln~ season+ prox.normal+ Q79+ prox.normal:season+ pH+
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(dew79b)  
-dew.step <- step(dew79b)
-dew.step
-dew3 <- get_model(dew.step)
-dew3
-check_model(dew3)
-vif(dew3)
-anova(dew3)
-print(anova(dew3))
-print(summary(dew3))
-performance(dew3)
-
+# dew79<-full_join(haydendat, hds79, by = c("site"))
+# dew79 <- dew79 %>%
+#   drop_na(prox.normal)
+# dew79 <- dew79%>%
+#   drop_na(season)
+# pli_hayden <- dew79%>%
+#   drop_na(Q79)
+# dew$Q79<- as.factor(dew$Q79)
+# summary(dew$Q79)
+# dew <-dew[!is.na(dew$Q79), ]
+# 
+# dew79 <- lmer(data = pli_hayden,
+#                pli.ln ~ (1|community:site),
+#                REML = T) #ML for comparison, REML for final
+# summary(dew79)
+# 
+# dew79b<- lmer(data=pli_hayden,
+#               pli.ln~ season+ prox.normal+ Q79+ prox.normal:season+ pH+
+#                 (1|community:site),
+#               REML = F) #ML for comparison, REML for final
+# summary(dew79b)
+# dew.step <- step(dew79b)
+# dew.step
+# dew3 <- get_model(dew.step)
+# dew3
+# check_model(dew3)
+# vif(dew3)
+# anova(dew3)
+# print(anova(dew3))
+# print(summary(dew3))
+# performance(dew3)
+# 
 
 #Q76====
-dew76<-full_join(deweydat, hds76, by = c("site"))
-dew76 <- dew76 %>%
-  drop_na(prox.normal)
-dew76<- dew76%>%
-  drop_na(season)
-dew76<- dew76%>%
-  drop_na(Q76)
-pli_dewey<- as.factor(dew76$Q76)
-
-dew76 <- lmer(data = pli_dewey,
-               pli.ln ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(dew76)
-
-dew76b<- lmer(data= pli_dewey,
-              pli.ln~ season+ prox.normal+ Q76+ 
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(dew76b)                
-
-
-dew.step <- step(dew76b)
-dew.step
-dew3 <- get_model(dew.step) #model irrelevant. all dewey residents answerted with no. 
-
-print(summary(dew3))
-check_model(dew3)
-vif(dew3)
-anova(dew3)
-print(anova(dew3))
-performance(dew3)
+# pli_dewey$Q76<- as.factor(pli_dewey$Q76)
+# summary(pli_dewey$Q76)
+# dew<-pli_dewey
+# dew <-dew[!is.na(dew$Q76), ]
+# summary(dew$Q76)
+# #
+# dew76 <- lmer(data = pli_hayden,
+#                pli.ln ~ (1|community:site),
+#                REML = T) #ML for comparison, REML for final
+# summary(dew76)
+#
+# dew76b<- lmer(data= pli_hayden,
+#               pli.ln~ season+ prox.normal+ Q76+
+#                 (1|community:site),
+#               REML = F) #ML for comparison, REML for final
+# summary(dew76b)
+#
+#
+# dew.step <- step(dew76b)
+# dew.step
+# dew3 <- get_model(dew.step) #model irrelevant. all hayden residents answerted with no.
+#
+# print(summary(dew3))
+# check_model(dew3)
+# vif(dew3)
+# anova(dew3)
+# print(anova(dew3))
+# performance(dew3)
 
 #Q77====
 #Does your cistern have a screen/filter for incoming water from down spout on top of the tank?
-dew77<-full_join(deweydat, hds77, by = c("site"))
-dew77 <- dew77 %>%
-  drop_na(prox.normal)
-dew77<- dew77%>%
-  drop_na(season)
-pli_dewey<-  dew77%>%
-  drop_na(Q77)
-pli_dewey$Q77<- as.factor(pli_dewey$Q77)
-summary(pli_dewey$Q77)
-dew77 <- lmer(data = pli_dewey,
+# dew77<-full_join(haydendat, hds77, by = c("site"))
+# dew77 <- dew77 %>%
+#   drop_na(prox.normal)
+# dew77<- dew77%>%
+#   drop_na(season)
+# pli_hayden<-  dew77%>%
+#   drop_na(Q77)
+dew$Q77<- as.factor(dew$Q77)
+summary(dew$Q77)
+dew <-dew[!(dew$Q77==0), ]
+summary(dew$Q77)
+dew <-dew[!is.na(dew$Q77), ]
+
+
+dew77 <- lmer(data = dew,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(dew77)
 
-dew77b<- lmer(data= pli_dewey,
+dew77b<- lmer(data= dew,
               pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -884,22 +766,55 @@ print(summary(dew3))
 performance(dew3)
 
 #Q60: What is your cistern made of?----
-pli_dewey60 <- full_join(deweydat, hds60, by = c("site"))
-pli_dewey60 <- pli_dewey60 %>%
-  drop_na(prox.normal)
-pli_dewey60 <- pli_dewey60 %>%
-  drop_na(season)
-pli_dewey60 <- pli_dewey60%>%
-  drop_na(Q60)
-pli_dewey60$Q60<- as.factor(pli_dewey60$Q60)
-summary(pli_dewey$Q60)
-model1 <- lmer(data = pli_dewey60,
+# pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
+# pli_hayden60 <- pli_hayden60 %>%
+#   drop_na(prox.normal)
+# pli_hayden60 <- pli_hayden60 %>%
+#   drop_na(season)
+# pli_hayden60 <- pli_hayden60%>%
+#   drop_na(Q60)
+dew$Q60<- as.factor(dew$Q60)
+summary(dew$Q60)
+model1 <- lmer(data = dew,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_dewey60,
-              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
+model2<- lmer(data= dew,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)
+anova(model2) #Q77 not  significant
+dew.step2 <- step(model2)
+dew.step2
+model3 <- get_model(dew.step2)
+check_model(model3 )
+vif(model2)
+anova(model2 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+#Q65: How old is your cistern:----
+# pli_hayden <- full_join(haydendat, hds65, by = c("site"))
+# pli_hayden65 <- pli_hayden65 %>%
+#   drop_na(prox.normal)
+# pli_hayden65 <- pli_hayden65 %>%
+#   drop_na(season)
+# pli_hayden65 <- pli_hayden65%>%
+#   drop_na(Q65)
+
+
+dew$Q65<- as.factor(dew$Q65)
+summary(dew$Q65)
+model1 <- lmer(data = dew,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= dew,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -914,59 +829,30 @@ print(anova(model3 ))
 print(summary(model3))
 performance(model3 )
 
-
-#Q65: How old is your cistern:----
-pli_dewey65 <- full_join(deweydat, hds65, by = c("site"))
-pli_dewey65 <- pli_dewey65 %>%
-  drop_na(prox.normal)
-pli_dewey65 <- pli_dewey65 %>%
-  drop_na(season)
-pli_dewey65 <- pli_dewey65%>%
-  drop_na(Q65)
-pli_dewey65$Q65<- as.factor(pli_dewey65$Q65)
-summary(pli_dewey65$Q65)
-model1 <- lmer(data = pli_dewey65,
-               pli ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(model1)
-
-model2<- lmer(data= pli_dewey65,
-              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(model2)                
-anova(model2) #Q77 not  significant
-tuc.step2 <- step(model2)
-tuc.step2
-model3 <- get_model(tuc.step2)
-check_model(model3 )
-vif(model3 )
-anova(model3 )
-print(anova(model3 ))
-print(summary(model3))
-performance(model3 )
-
-
-
 #hayden individual model=====
 
 #Q67====
-# #Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?
+#Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?
 # hay67<- iw.dm67[iw.dm67$community=="Hayden/Winkelman",]
 # hay67 <- hay67%>%
 #   drop_na(prox.normal)
 # hay67<- hay67%>%
 #   drop_na(season)
+
+# pli_hayden$Q67<- as.factor(pli_hayden$Q67)
+# summary(pli_hayden$Q67)
+# pli_tucson <- pli_tucson[!(pli_tucson$Q67==0), ]
+# summary(pli_tucson$Q67)
 # hay <- lmer(data = hay67,
 #                pli.ln ~ (1|community:site),
 #                REML = T) #ML for comparison, REML for final
 # summary(hay)
 # 
 # hay67b<- lmer(data=  hay67,
-#               pli.ln~ season+ prox.normal+ Q67 + 
+#               pli.ln~ season+ prox.normal+ Q67 +
 #                 (1|community:site),
 #               REML = F) #ML for comparison, REML for final
-# summary(hay67b)                
+# summary(hay67b)
 # hay.step <- step(hay67b)
 # hay.step
 # hay2 <- get_model(hay.step)
@@ -978,16 +864,18 @@ performance(model3 )
 # print(anova(hay2))
 # performance(hay2)
 # #no response from Hayden- All were zero
-# 
+
 # #Q71====
 # #Do you treat or wash your cistern with anything?
-# hay<- iw.dm71[iw.dm71$community=="Dewey-Humboldt",]
+# hay<- iw.dm71[iw.dm71$community=="hayden-Humboldt",]
 # hay <- hay%>%
 #   drop_na(prox.normal)
 # hay<- hay%>%
 #   drop_na(season)
 # hay<- hay%>%
 #   drop_na(Q71)
+# pli_hayden$Q71<- as.factor(pli_hayden$Q71)
+# summary(pli_hayden$Q71)
 # hay71 <- lmer(data =  hay,
 #                pli.ln ~ (1|community:site),
 #                REML = T) #ML for comparison, REML for final
@@ -1012,85 +900,90 @@ performance(model3 )
 
 #Q79====
 #Do you ever remove the screen/filter and leave your cistern without the filter?
-hay79<-full_join(haydendat, hds79, by = c("site"))
-hay79 <- hay79%>%
-  drop_na(prox.normal)
-hay79<- hay79%>%
-  drop_na(season)
-hay79<- hay79%>%
-  drop_na(Q79)
-hay79$Q79<- as.factor(hay79$Q79)
-hay79a<- lmer(data =  hay79,
-               pli.ln ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(hay79a)
-
-hay79b<- lmer(data= hay79,
-              pli.ln~ season+ prox.normal+ Q79+  prox.normal:season+ pH+
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(hay79b)                
-hay.step <- step(hay79b)
-hay.step
-hay2 <- get_model(hay.step)
-hay2
-check_model(hay2)
-vif(hay2)
-anova(hay2)
-print(anova(hay2))
-print(summary(hay2))
-performance(hay2)
+# hay79<-full_join(haydendat, hds79, by = c("site"))
+# hay79 <- hay79%>%
+#   drop_na(prox.normal)
+# hay79<- hay79%>%
+#   drop_na(season)
+# hay79<- hay79%>%
+#   drop_na(Q79)
+# hay79$Q79<- as.factor(hay79$Q79)
+# pli_hayden$Q79<- as.factor(pli_hayden$Q79)
+# summary(pli_hayden$Q79)
+# hay79a<- lmer(data =  hay79,
+#                pli.ln ~ (1|community:site),
+#                REML = T) #ML for comparison, REML for final
+# summary(hay79a)
+# 
+# hay79b<- lmer(data= hay79,
+#               pli.ln~ season+ prox.normal+ Q79+  prox.normal:season+ pH+
+#                 (1|community:site),
+#               REML = F) #ML for comparison, REML for final
+# summary(hay79b)                
+# hay.step <- step(hay79b)
+# hay.step
+# hay2 <- get_model(hay.step)
+# hay2
+# check_model(hay2)
+# vif(hay2)
+# anova(hay2)
+# print(anova(hay2))
+# print(summary(hay2))
+# performance(hay2)
 
 # #Q76====
-# #Does your cistern have a first flush?
-# hay76<- iw.dm76[iw.dm76$community=="Dewey-Humboldt",]
+#Does your cistern have a first flush?
+# hay76<- iw.dm76[iw.dm76$community=="hayden-Humboldt",]
 # hay76 <- hay76%>%
 #   drop_na(prox.normal)
 # hay76<- hay76%>%
 #   drop_na(season)
 # hay76<- hay76%>%
 #   drop_na(Q76)
-# hay76a <- lmer(data =  hay76,
-#                pli.ln ~ (1|community:site),
-#                REML = T) #ML for comparison, REML for final
-# summary(hay76a)
-# 
-# hay76b<- lmer(data= hay76,
-#               pli.ln~ season+ prox.normal+ Q76+ 
-#                 (1|community:site),
-#               REML = F) #ML for comparison, REML for final
-# summary(hay76b)                
-# 
-# hay.step <- step(hay76b)
-# hay.step
-# hay2 <- get_model(hay.step)
-# 
-# print(summary(hay2))
-# check_model(hay2)
-# vif(hay2)
-# anova(hay2)
-# print(anova(hay2))
-# performance(hay2)
+pli_hayden$Q76<- as.factor(pli_hayden$Q76)
+summary(pli_hayden$Q76)
+
+hay76a <- lmer(data =  pli_hayden,
+               pli.ln ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(hay76a)
+
+hay76b<- lmer(data= pli_hayden,
+              pli.ln~ season+ prox.normal+ Q76+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(hay76b)
+
+hay.step <- step(hay76b)
+hay.step
+hay2 <- get_model(hay.step)
+
+print(summary(hay2))
+check_model(hay2)
+vif(hay2)
+anova(hay2)
+print(anova(hay2))
+performance(hay2)
 
 
 
 #Q77====
 #Does your cistern have a screen/filter for incoming water from down spout on top of the tank?
-hay77<-full_join(haydendat, hds77, by = c("site"))
-hay77 <- hay77%>%
-  drop_na(prox.normal)
-hay77<- hay77%>%
-  drop_na(season)
-hay77<- hay77%>%
-  drop_na(Q77)
-hay77$Q77<- as.factor(hay77$Q77)
-summary(hay77$Q77)
-hay77a<- lmer(data =  hay77,
+# hay77<-full_join(haydendat, hds77, by = c("site"))
+# hay77 <- hay77%>%
+#   drop_na(prox.normal)
+# hay77<- hay77%>%
+#   drop_na(season)
+# hay77<- hay77%>%
+#   drop_na(Q77)
+pli_hayden$Q77<- as.factor(pli_hayden$Q77)
+summary(pli_hayden$Q77)
+hay77a<- lmer(data =  pli_hayden,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(hay77a)
 
-hay77b<- lmer(data= hay77,
+hay77b<- lmer(data= pli_hayden,
               pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+Q77:season+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -1109,47 +1002,46 @@ print(anova(hay2))
 performance(hay2)
 
 #Q60: What is your cistern made of?----
-pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
-pli_hayden60 <- pli_hayden60 %>%
-  drop_na(prox.normal)
-pli_hayden60 <- pli_hayden60 %>%
-  drop_na(season)
-pli_hayden60 <- pli_hayden60%>%
-  drop_na(Q60)
-pli_hayden60$Q60<- as.factor(pli_hayden60$Q60)
-summary(pli_hayden60$Q60)
-model1 <- lmer(data = pli_hayden60,
-               pli ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(model1)
-
-model2<- lmer(data= pli_hayden60,
-              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(model2)                
-anova(model2) #Q77 not  significant
-dew.step2 <- step(model2)
-dew.step2
-model3 <- get_model(dew.step2)
-check_model(model3 )
-vif(model3 )
-anova(model3 )
-print(anova(model3 ))
-print(summary(model3))
-performance(model3 )
-
+# pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
+# pli_hayden60 <- pli_hayden60 %>%
+#   drop_na(prox.normal)
+# pli_hayden60 <- pli_hayden60 %>%
+#   drop_na(season)
+# pli_hayden60 <- pli_hayden60%>%
+#   drop_na(Q60)
+# pli_hayden$Q60<- as.factor(pli_hayden$Q60)
+# summary(pli_hayden$Q60)
+# model1 <- lmer(data = pli_hayden60,
+#                pli ~ (1|community:site),
+#                REML = T) #ML for comparison, REML for final
+# summary(model1)
+# 
+# model2<- lmer(data= pli_hayden60,
+#               pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
+#                 (1|community:site),
+#               REML = F) #ML for comparison, REML for final
+# summary(model2)                
+# anova(model2) #Q77 not  significant
+# dew.step2 <- step(model2)
+# dew.step2
+# model3 <- get_model(dew.step2)
+# check_model(model3 )
+# vif(model3 )
+# anova(model3 )
+# print(anova(model3 ))
+# print(summary(model3))
+# performance(model3 )
 
 #Q65: How old is your cistern:----
-pli_hayden65 <- full_join(haydendat, hds65, by = c("site"))
-pli_hayden65 <- pli_hayden65 %>%
-  drop_na(prox.normal)
-pli_hayden65 <- pli_hayden65 %>%
-  drop_na(season)
-pli_hayden65 <- pli_hayden65%>%
-  drop_na(Q65)
-pli_hayden65$Q65<- as.factor(pli_hayden65$Q65)
-summary(pli_hayden65$Q65)
+# pli_hayden65 <- full_join(haydendat, hds65, by = c("site"))
+# pli_hayden65 <- pli_hayden65 %>%
+#   drop_na(prox.normal)
+# pli_hayden65 <- pli_hayden65 %>%
+#   drop_na(season)
+# pli_hayden65 <- pli_hayden65%>%
+#   drop_na(Q65)
+pli_hayden$Q65<- as.factor(pli_hayden$Q65)
+summary(pli_hayden$Q65)
 model1 <- lmer(data = pli_hayden65,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
@@ -1171,36 +1063,37 @@ print(anova(model3 ))
 print(summary(model3))
 performance(model3 )
 
+
 #globe individual model=====
 
 #Q67====
 #Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?
-globe<-full_join(globedat, hds67, by = c("site"))
-globe <- globe%>%
-  drop_na(prox.normal)
-globe<- globe%>%
-  drop_na(season)
-globe<- globe%>%
-  drop_na(Q67)
-globe$Q67<- as.factor(globe$Q67)
-summary(globe$Q67)
-globea <- lmer(data = globe,
+# globe<-full_join(globedat, hds67, by = c("site"))
+# globe <- globe%>%
+#   drop_na(prox.normal)
+# globe<- globe%>%
+#   drop_na(season)
+# globe<- globe%>%
+#   drop_na(Q67)
+pli_globe$Q67<- as.factor(pli_globe$Q67)
+summary(pli_globe$Q67)
+globea <- lmer(data = pli_globe,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(globea)
 
-globe67<- lmer(data= globe,
+globe67<- lmer(data= pli_globe,
               pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ pH+location_2+location_2:Q67+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe67)    
 
-globe67c<- lmer(data= globe,
+globe67c<- lmer(data= pli_globe,
                pli.ln~ season+ prox.normal+ Q67+ prox.normal:season+ 
                  (1|community:site),
                REML = F) #ML for comparison, REML for final
 summary(globe67c)  
-globe.step<- step(globe67c)
+globe.step<- step(globe67)
 globe.step
 globe2 <- get_model(globe.step)
 globe2
@@ -1213,36 +1106,28 @@ performance(globe2)
 
 #Q71====
 #Do you treat or wash your cistern with anything?
-globe71<-full_join(globedat, hds71, by = c("site"))
-globe71 <- globe71%>%
-  drop_na(prox.normal)
-globe71<- globe71%>%
-  drop_na(season)
-globe71<- globe71%>%
-  drop_na(Q71)
-globe71$Q71<- as.factor(globe71$Q71)
-globe71a <- lmer(data = globe71,
+# globe71<-full_join(globedat, hds71, by = c("site"))
+# globe71 <- globe71%>%
+#   drop_na(prox.normal)
+# globe71<- globe71%>%
+#   drop_na(season)
+# globe71<- globe71%>%
+#   drop_na(Q71)
+pli_globe$Q71<- as.factor(pli_globe$Q71)
+summary(pli_globe$Q71)
+globe71a <- lmer(data = pli_globe,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(globe71a)
 
-globe71b<- lmer(data= globe71,
+globe71b<- lmer(data= pli_globe,
               pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+ pH+location_2+location_2:Q71+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe71b)         
-
-globe71c<- lmer(data= globe71,
-                pli.ln~ season+ prox.normal+ Q71+ prox.normal:season+
-                  (1|community:site),
-                REML = F) #ML for comparison, REML for final
-summary(globe71c)  
-vif(globe71c)
-globe.step <- step(globe71c)
+globe.step <- step(globe71b)
 globe.step
 globe2 <- get_model(globe.step)
-
-
 check_model(globe2)
 vif(globe2)
 anova(globe2)
@@ -1253,20 +1138,24 @@ performance(globe2)
 
 
 #Q79====
-globe79<-full_join(globedat, hds79, by = c("site"))
-globe79 <- globe79%>%
-  drop_na(prox.normal)
-globe79<- globe79%>%
-  drop_na(season)
-globe79<- globe79%>%
-  drop_na(Q79)
-globe79$Q79<- as.factor(globe79$Q79)
-globe <- lmer(data = globe79,
+# globe79<-full_join(globedat, hds79, by = c("site"))
+# globe79 <- globe79%>%
+#   drop_na(prox.normal)
+# globe79<- globe79%>%
+#   drop_na(season)
+# globe79<- globe79%>%
+#   drop_na(Q79)
+pli_globe$Q79<- as.factor(pli_globe$Q79)
+summary(pli_globe$Q79)
+pli_globe <- pli_globe[!(pli_globe$Q79==100), ]
+summary(pli_globe$Q79)
+
+globe <- lmer(data = pli_globe,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(globe)
 
-globe79b<- lmer(data=globe79,
+globe79b<- lmer(data=pli_globe,
               pli.ln~  prox.normal+ Q79+ prox.normal:season+ pH+ location_2:Q79+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
@@ -1287,34 +1176,28 @@ performance(globe79c)
 
 #Q76====
 #Does your cistern have a first flush?
-globe76<-full_join(globedat, hds76, by = c("site"))
-globe76 <- globe76%>%
-  drop_na(prox.normal)
-globe76<- globe76%>%
-  drop_na(season)
-globe76<- globe76%>%
-  drop_na(Q76)
-globe76$Q76<- as.factor(globe76$Q76)
-globe <- lmer(data = globe76,
+# globe76<-full_join(globedat, hds76, by = c("site"))
+# globe76 <- globe76%>%
+#   drop_na(prox.normal)
+# globe76<- globe76%>%
+#   drop_na(season)
+# globe76<- globe76%>%
+#   drop_na(Q76)
+pli_globe$Q76<- as.factor(pli_globe$Q76)
+summary(pli_globe$Q76)
+globe <- lmer(data = pli_globe
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(globe)
 
-globe76b<- lmer(data= globe76,
+globe76b<- lmer(data= pli_globe,
               pli.ln~ season+ prox.normal+ Q76+ prox.normal:season+ pH+location_2:Q76+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe76b)                
 vif(globe76b)
-globe76c<- lmer(data= globe76,
-                pli.ln~ season+ prox.normal+ Q76+ prox.normal:season+ 
-                  (1|community:site),
-                REML = F) #ML for comparison, REML for final
-summary(globe76c)                
-vif(globe76c)
 
-
-globe.step <- step(globe76c)
+globe.step <- step(globe76b)
 globe.step
 globe2 <- get_model(globe.step)
 check_model(globe2)
@@ -1327,34 +1210,30 @@ performance(globe2)
 
 #Q77====
 #Does your cistern have a screen/filter for incoming water from down spout on top of the tank?
-globe77<-full_join(globedat, hds77, by = c("site"))
-globe77 <- globe77%>%
-  drop_na(prox.normal)
-globe77<- globe77%>%
-  drop_na(season)
-globe77<- globe77%>%
-  drop_na(Q77)
-globe77$Q77<- as.factor(globe77$Q77)
-summary(globe77$Q77)
-globe <- lmer(data = globe77,
+# globe77<-full_join(globedat, hds77, by = c("site"))
+# globe77 <- globe77%>%
+#   drop_na(prox.normal)
+# globe77<- globe77%>%
+#   drop_na(season)
+# globe77<- globe77%>%
+#   drop_na(Q77)
+pli_globe$Q77<- as.factor(pli_globe$Q77)
+summary(pli_globe$Q77)
+globe <- lmer(data = pli_globe,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(globe)
 
-globe77b<- lmer(data= globe77,
-              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+location_2:Q77+
+globe77b<- lmer(data= pli_globe,
+              pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+location_2:Q77+location_2+
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(globe77b)   
 anova(globe77b)
 vif(globe77b)
-
-globe2<- lmer(data= globe77,
-                pli.ln~ season+ Q77+ prox.normal:season+ 
-                  (1|community:site),
-                REML = F) #ML for comparison, REML for final
-
-
+globe.step <- step(globe77b)
+globe.step
+globe2 <- get_model(globe.step)
 print(summary(globe2))
 check_model(globe2)
 vif(globe2)
@@ -1363,22 +1242,47 @@ print(summary(globe2))
 performance(globe2)
 
 #Q60: What is your cistern made of?----
-pli_globe60 <- full_join(globedat, hds60, by = c("site"))
-pli_globe60 <- pli_globe60 %>%
-  drop_na(prox.normal)
-pli_globe60 <- pli_globe60 %>%
-  drop_na(season)
-pli_globe60 <- pli_globe60%>%
-  drop_na(Q60)
-pli_globe60$Q60<- as.factor(pli_globe60$Q60)
-summary(pli_globe60$Q60)
-model1 <- lmer(data = pli_globe60,
+
+pli_globe$Q60<- as.factor(pli_globe$Q60)
+summary(pli_globe$Q60)
+model1 <- lmer(data = pli_globe,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
 
-model2<- lmer(data= pli_globe60,
-              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+location_2:Q60+
+model2<- lmer(data= pli_globe,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+location_2+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)
+anova(model2) #Q77 not  significant
+globe.step2 <- step(model2)
+globe.step2
+model3 <- get_model(globe.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
+
+#Q65: How old is your cistern:----
+# globe65 <- full_join(haydendat, hds65, by = c("site"))
+# globe65 <- globe65 %>%
+#   drop_na(prox.normal)
+# globe65 <- globe65 %>%
+#   drop_na(season)
+# globe65 <- globe65%>%
+#   drop_na(Q65)
+pli_globe$Q65<- as.factor(pli_globe$Q65)
+summary(pli_globe$Q65)
+model1 <- lmer(data = pli_globe,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_globe,
+              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
 summary(model2)                
@@ -1386,55 +1290,12 @@ anova(model2) #Q77 not  significant
 glo.step2 <- step(model2)
 glo.step2
 model3 <- get_model(glo.step2)
-
-model3<- lmer(data= pli_globe60,
-              pli~ season+ Q60+ prox.normal:season+
-                (1|community:site),
-              REML = F) 
-
 check_model(model3 )
 vif(model3 )
 anova(model3 )
 print(anova(model3 ))
 print(summary(model3))
 performance(model3 )
-
-
-
-#Q65: How old is your cistern:----
-pli_globe65 <- full_join(globedat, hds65, by = c("site"))
-pli_globe65 <- pli_globe65 %>%
-  drop_na(prox.normal)
-pli_globe65 <- pli_globe65 %>%
-  drop_na(season)
-pli_globe65 <- pli_globe65%>%
-  drop_na(Q65)
-pli_globe65$Q65<- as.factor(pli_globe65$Q65)
-summary(pli_globe65$Q65)
-model1 <- lmer(data = pli_globe65,
-               pli ~ (1|community:site),
-               REML = T) #ML for comparison, REML for final
-summary(model1)
-
-model2<- lmer(data= pli_globe65,
-              pli~ season+ prox.normal+ Q65+ prox.normal:season+ pH+ location_2:Q65+
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-summary(model2)                
-anova(model2) #Q77 not  significant
-model3<- lmer(data= pli_globe65,
-              pli~ season+ prox.normal+prox.normal:season+
-                (1|community:site),
-              REML = F) #ML for comparison, REML for final
-check_model(model3 )
-vif(model3 )
-anova(model3 )
-print(anova(model3 ))
-print(summary(model3))
-performance(model3 )
-
-
-
 =======
 
 #pli without hds=====
@@ -1475,22 +1336,22 @@ ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = pH)) +
   facet_wrap(community~., scales = "free")+
   stat_smooth(method=lm,color= "black")
 
-#pli dewey modeling ----
-pli_dewey<- iw.dm[iw.dm$community=="Dewey-Humboldt",]
-pli_dewey<- pli_dewey%>%
+#pli hayden modeling ----
+pli_hayden<- iw.dm[iw.dm$community=="hayden-Humboldt",]
+pli_hayden<- pli_hayden%>%
   drop_na(prox.normal)
-pli_dewey<- pli_dewey%>%
+pli_hayden<- pli_hayden%>%
   drop_na(pli.ln)
-pli_dewey<-pli_dewey%>%
+pli_hayden<-pli_hayden%>%
   drop_na(season)
-pli_dewey<-pli_dewey%>%
+pli_hayden<-pli_hayden%>%
   drop_na(pH)
-pld0 <- lmer(data =pli_dewey,
+pld0 <- lmer(data =pli_hayden,
              pli.ln ~ (1|community:site),
              REML = T) #ML for comparison, REML for final
 summary(pld0)
 
-pld <- lmer(data = pli_dewey,
+pld <- lmer(data = pli_hayden,
             pli.ln ~  season + prox.normal + pH +
               season:prox.normal
             + (1|site),

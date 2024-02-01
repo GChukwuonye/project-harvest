@@ -193,73 +193,73 @@ iw.ln.dm <- pivot_wider(data = iw.ln.dm.long,
                          values_from = "ln_value",
                          names_from ="analyte")
 
-#sociodemographic data ----
-#demo <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/ph_demos_kp.xlsx")
-#demo <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/ph_demos_kp.xlsx")
-
-#remove unecessary columns
-demo <- subset(demo, select=(-c(Participant, Participant_2)))
-
-#remove data for those who did not consent and those who dropped out of the project
-demo <- demo %>%
-  drop_na(Consent) %>%
-  filter(Consent!='Unknown') %>%
-  filter(Consent!="No") %>%
-  filter(`Dropped Out` != "Yes") %>%
-  mutate(Zip = factor(Zip))%>%
-  mutate(`Household Size`=factor(`Household Size`))%>%
-  mutate(`Household Size 2`=factor(`Household Size 2`))
-
-#make demo data longer for summaries
-demo.long <- pivot_longer(demo,
-                          cols = c(Zip:`Low Income`),
-                          values_to = "value",
-                          names_to = "demographic")
-#clean up data for summaries
-demo.long <- demo.long %>%
-  drop_na(value) %>%
-  filter(value!='No response') %>%
-  filter(value!='555') %>%
-  filter(value!='999')
-
-#combine demo to concentration data
-iw.demo <- full_join(iw.dm, demo, by = c("site", "community"))
-
-#add prox to just demo data
-demo <- full_join(demo, com, by = c("site"))
-demo <- demo %>%
-  drop_na(Consent)
-
-#remove demo data that does not match to any samples and any samples that do not have demo data
-iw.demo <- iw.demo %>%
-  drop_na(mlod.name) %>%
-  drop_na(Consent)
-iw.demo$Zip <- as.factor(iw.demo$Zip)
-
-#make longer
-iw.demo.long <- pivot_longer(iw.demo,
-                             cols = c(Be:Pb,pli),
-                             values_to = "value",
-                             names_to = "analyte")
-#log transform
-iw.demo.long$value.ln <- log(iw.demo.long$value)
-
-#make demo data longer for summaries
-iw.demo.longer <- pivot_longer(iw.demo.long,
-                          cols = c(Zip:`Low Income`),
-                          values_to = "response",
-                          names_to = "demographic")
-
-#clean up data for summaries
-iw.demo.longer <- iw.demo.longer %>%
-  filter(response!='No response') %>%
-  filter(response!='555') %>%
-  filter(response!='999')%>%
-  drop_na(response)
-
-iw.demo.long <- pivot_wider(iw.demo.longer,
-                            values_from = "response",
-                            names_from = "demographic")
+# #sociodemographic data ----
+# demo <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/ph_demos_kp.xlsx")
+# demo <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/ph_demos_kp.xlsx")
+# 
+# #remove unecessary columns
+# demo <- subset(demo, select=(-c(Participant, Participant_2)))
+# 
+# #remove data for those who did not consent and those who dropped out of the project
+# demo <- demo %>%
+#   drop_na(Consent) %>%
+#   filter(Consent!='Unknown') %>%
+#   filter(Consent!="No") %>%
+#   filter(`Dropped Out` != "Yes") %>%
+#   mutate(Zip = factor(Zip))%>%
+#   mutate(`Household Size`=factor(`Household Size`))%>%
+#   mutate(`Household Size 2`=factor(`Household Size 2`))
+# 
+# #make demo data longer for summaries
+# demo.long <- pivot_longer(demo,
+#                           cols = c(Zip:`Low Income`),
+#                           values_to = "value",
+#                           names_to = "demographic")
+# #clean up data for summaries
+# demo.long <- demo.long %>%
+#   drop_na(value) %>%
+#   filter(value!='No response') %>%
+#   filter(value!='555') %>%
+#   filter(value!='999')
+# 
+# #combine demo to concentration data
+# iw.demo <- full_join(iw.dm, demo, by = c("site", "community"))
+# 
+# #add prox to just demo data
+# demo <- full_join(demo, com, by = c("site"))
+# demo <- demo %>%
+#   drop_na(Consent)
+# 
+# #remove demo data that does not match to any samples and any samples that do not have demo data
+# iw.demo <- iw.demo %>%
+#   drop_na(mlod.name) %>%
+#   drop_na(Consent)
+# iw.demo$Zip <- as.factor(iw.demo$Zip)
+# 
+# #make longer
+# iw.demo.long <- pivot_longer(iw.demo,
+#                              cols = c(Be:Pb,pli),
+#                              values_to = "value",
+#                              names_to = "analyte")
+# #log transform
+# iw.demo.long$value.ln <- log(iw.demo.long$value)
+# 
+# #make demo data longer for summaries
+# iw.demo.longer <- pivot_longer(iw.demo.long,
+#                           cols = c(Zip:`Low Income`),
+#                           values_to = "response",
+#                           names_to = "demographic")
+# 
+# #clean up data for summaries
+# iw.demo.longer <- iw.demo.longer %>%
+#   filter(response!='No response') %>%
+#   filter(response!='555') %>%
+#   filter(response!='999')%>%
+#   drop_na(response)
+# 
+# iw.demo.long <- pivot_wider(iw.demo.longer,
+#                             values_from = "response",
+#                             names_from = "demographic")
 
 
 #Home description survey ----
