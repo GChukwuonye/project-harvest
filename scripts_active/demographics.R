@@ -365,9 +365,9 @@ iw.demo.dh <- iws.dh %>%
   drop_na(`Low Income`)%>%
   drop_na(`household_size`)
 #this reduces sample size from 42 to 32
-
+iw.demo.dh$income <- iw.demo.dh$`Income Level`
 pli.demodh.dems <- lmer(data = iw.demo.dh,
-                       log(pli) ~ Zip + `Income Level` + `household_size`+
+                       log(pli) ~ Zip + income + `household_size`+
                          (1|site),
                        REML = T)
 print(summary(pli.demodh.dems))
@@ -377,6 +377,12 @@ pli.demodh.dems.step <- step(pli.demodh.dems)
 pli.demodh.dems.step
 pli.demodh.dems.1 <- get_model(pli.demodh.dems.step)
 summary(pli.demodh.dems.1)
+check_model(pli.demodh.dems.1)
+anova(pli.demodh.dems.1)
+plot(allEffects(pli.demodh.dems.1))
+perf <- performance(pli.demodh.dems.1)
+perf
+write.csv(perf, "plidemos_dh_diag.csv")
 
 ###univariate ----
 #zip, not signif
@@ -613,6 +619,11 @@ pli.demohw.dems.step
 pli.demohw.dems.1 <- get_model(pli.demohw.dems.step)
 summary(pli.demohw.dems.1)
 plot(allEffects(pli.demohw.dems.1))
+check_model(pli.demohw.dems.1)
+anova(pli.demohw.dems.1)
+perf <- performance(pli.demohw.dems.1)
+perf
+write.csv(perf, "plidemos_hw_diag.csv")
 
 ###univariate ----
 ####education, unclear... ----
@@ -717,7 +728,7 @@ iw.demo.tu <- iws.tu %>%
 #this reduces sample size from 173 to 152
 
 pli.demotu.dems <- lmer(data = iw.demo.tu,
-                        log(pli) ~ BIPOC + Zip + `Education_grouped`+`Primary Language`+`Low Income`+`household_size`+
+                        log(pli) ~ BIPOC + Zip + `Education_grouped`+`Primary Language`+`Low Income`+`household_size`+community_2+
                           (1|site),
                         REML = T)
 print(summary(pli.demotu.dems))
@@ -738,6 +749,8 @@ pli.demotu.dems.2 <- lmer(data = iw.demo.tu,
 summary(pli.demotu.dems.2)
 plot(allEffects(pli.demotu.dems.2))
 vif(pli.demotu.dems.2)
+check_model(pli.demotu.dems.2)
+anova(pli.demotu.dems.2)
 
 
 ###univariate ----
