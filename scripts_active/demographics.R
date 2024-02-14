@@ -14,6 +14,10 @@ library(readxl)
 library(tidyverse)
 library(EnvStats)
 library(corrplot)
+library(lme4)
+library(lmerTest)
+library(performance)
+library(effects)
 
 #data formatting----
 #make sure there are no NA/blank values and remove samples with zipcodes with less than 3 sites
@@ -35,8 +39,6 @@ iws.gm <- iws.gm %>%
   drop_na(community) %>%
   drop_na(location_2)
 iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
-
-iws.gm$Q79 <- as.factor(iws.gm$Q79)
 
 #tucson specific
 iws.tu <- iws.tu %>%
@@ -159,9 +161,9 @@ sumFX(datalongDF = iw.demo.long,
       dfname.string = "sum.iwdemo.size",
       filename.string = "iwdemo_size")
 
-####Household Size 2----
+####household_size----
 sumFX(datalongDF = iw.demo.long,
-      subset.vector.string = c("analyte", "Household Size 2"),
+      subset.vector.string = c("analyte", "household_size"),
       value.string = "value",
       dfname.string = "sum.iwdemo.size2",
       filename.string = "iwdemo_size2")
@@ -210,7 +212,7 @@ xtest(dataDF = demo,
 #com x household size
 xtest(dataDF = demo,
       var1.string = "community_2",
-      var2.string = "Household Size 2",
+      var2.string = "household_size",
       filename.string = "X2_comsize")
 
 #com x income
@@ -249,7 +251,7 @@ ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Education_grouped`))+
   theme(legend.position = "bottom")
 
 #prox x household size no clear correlation
-ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Household Size 2`))+
+ggplot(data = demo, mapping = aes(x = prox.normal, fill = `household_size`))+
   geom_histogram() +
   facet_grid(.~community) +
   theme(legend.position = "bottom")
@@ -260,7 +262,7 @@ ggplot(data = demo, mapping = aes(x = proximity.km, fill = `Low Income`))+
   facet_grid(.~community_2) +
   theme(legend.position = "bottom")
 
-#ANOVAs ----
+#Models ----
 ##all communities ----
 ###pli, multivariate ----
 #Language removed because spanish speakers are only in tucson
@@ -351,7 +353,104 @@ step(pli.demorace.1)
 ##dewey-humboldt ----
 #education, household size, income, zipcode
 #note - not enough samples to focus on all of these, prioritize education, income?? sample size goes from 42 to 25, with DH may need to do univariate models controlling for season and proximity
-###univariate----
+###only demos----
+####income signif ----
+iw.demo.dh <- iws.dh %>%
+  drop_na(`Education_grouped`)%>%
+  drop_na(`Zip`)%>%
+  drop_na(`Low Income`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 42 to 25
+iw.demo.dh <- iws.dh %>%
+  drop_na(`Zip`)%>%
+  drop_na(`Low Income`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 42 to 32
+iw.demo.dh$income <- iw.demo.dh$`Income Level`
+pli.demodh.dems <- lmer(data = iw.demo.dh,
+                       log(pli) ~ Zip + income + `household_size`+
+                         (1|site),
+                       REML = T)
+print(summary(pli.demodh.dems))
+check_model(pli.demodh.dems)
+performance(pli.demodh.dems)
+pli.demodh.dems.step <- step(pli.demodh.dems)
+pli.demodh.dems.step
+pli.demodh.dems.1 <- get_model(pli.demodh.dems.step)
+summary(pli.demodh.dems.1)
+check_model(pli.demodh.dems.1)
+anova(pli.demodh.dems.1)
+plot(allEffects(pli.demodh.dems.1))
+perf <- performance(pli.demodh.dems.1)
+perf
+write.csv(perf, "plidemos_dh_diag.csv")
+
+###univariate ----
+#zip, not signif
+iw.demo.dh <- iws.dh %>%
+  drop_na(`Zip`)
+pli.demodh.zip <- lmer(data = iw.demo.dh,
+                       log(pli) ~ Zip +
+                         (1|site),
+                       REML = T)
+print(summary(pli.demodh.zip))
+check_model(pli.demodh.zip)
+performance(pli.demodh.zip)
+anova(pli.demodh.zip)
+plot(allEffects(pli.demodh.zip))
+#not signif
+
+#education, not signif
+iw.demo.dh <- iws.dh %>%
+  drop_na(`Education_grouped`)
+pli.demodh.ed <- lmer(data = iw.demo.dh,
+                      log(pli) ~ Education_grouped +
+                        (1|site),
+                      REML = T)
+print(summary(pli.demodh.ed))
+check_model(pli.demodh.ed)
+performance(pli.demodh.ed)
+anova(pli.demodh.ed)
+
+#household size, not signif
+iw.demo.dh <- iws.dh %>%
+  drop_na(`household_size`)
+
+pli.demodh.house <- lmer(data = iw.demo.dh,
+                         log(pli) ~ `household_size` +
+                           (1|site),
+                         REML = T)
+print(summary(pli.demodh.house))
+check_model(pli.demodh.house)
+performance(pli.demodh.house)
+pli.demodh.house.step <- step(pli.demodh.house)
+pli.demodh.house.step
+pli.demodh.house.1 <- get_model(pli.demodh.house.step)
+summary(pli.demodh.house.1)
+
+#income, not signif
+iw.demo.dh <- iws.dh %>%
+  drop_na(`Low Income`)
+iw.demo.dh$low <- iw.demo.dh$`Low Income`
+pli.demodh.inc <- lmer(data = iw.demo.dh,
+                       log(pli) ~ low +
+                         (1|site),
+                       REML = T)
+print(summary(pli.demodh.inc))
+check_model(pli.demodh.inc)
+performance(pli.demodh.inc)
+pli.demodh.inc.step <- step(pli.demodh.inc)
+pli.demodh.inc.step
+pli.demodh.inc.1 <- get_model(pli.demodh.inc.step)
+summary(pli.demodh.inc.1)
+perf <- performance(pli.demodh.inc.1)
+perf
+write.csv(perf, "pli_demodh_inc_diag.csv")
+modelsum <- summary(pli.demodh.inc.1)
+write.csv(modelsum$coefficients, "pli_demodh_inc_sum.csv")
+plot(allEffects(pli.demodh.inc.1))
+
+###univariate plus env ----
 #zip, not signif
 iw.demo.dh <- iws.dh %>%
   drop_na(prox.normal)%>%
@@ -387,10 +486,10 @@ summary(pli.demodh.ed.1)
 #household size, not signif
 iw.demo.dh <- iws.dh %>%
   drop_na(prox.normal)%>%
-  drop_na(`Household Size 2`)
+  drop_na(`household_size`)
 
 pli.demodh.house <- lmer(data = iw.demo.dh,
-                      log(pli) ~ season + `Household Size 2` + prox.normal+
+                      log(pli) ~ season + `household_size` + prox.normal+
                         (1|site),
                       REML = T)
 print(summary(pli.demodh.house))
@@ -419,9 +518,134 @@ summary(pli.demodh.inc.1)
 
 ##globe/miami ----
 #bipoc, education, household size, income, race?, zip?
-#sample size descreases from 102 to 57 when removing NAs for all variables of interest...may need to do individual modeling controlling for season and proximity
+#sample size decreases from 107 to 57 when removing NAs for all variables of interest...may need to do individual modeling controlling for season and proximity
+
+###only demos ----
+####nothing signif ----
+iw.demo.gm <- iws.gm %>%
+  drop_na(BIPOC)%>%
+  drop_na(`Education_grouped`)%>%
+  drop_na(`Low Income`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 107 to 57
+iw.demo.gm <- iws.gm %>%
+  drop_na(BIPOC)%>%
+  drop_na(`household_size`)%>%
+  drop_na(`Low Income`)
+#this reduces sample size from 107 to 86
+
+pli.demogm.dems <- lmer(data = iw.demo.gm,
+                        log(pli) ~ BIPOC + `Low Income`+ `household_size`+
+                          (1|site),
+                        REML = T)
+print(summary(pli.demogm.dems))
+check_model(pli.demogm.dems)
+performance(pli.demogm.dems)
+pli.demogm.dems.step <- step(pli.demogm.dems)
+pli.demogm.dems.step
+pli.demogm.dems.1 <- get_model(pli.demogm.dems.step)
+summary(pli.demogm.dems.1)
+plot(allEffects(pli.demogm.dems.1))
 
 ###univariate ----
+#bipoc, not signif
+iw.demo.gm <- iws.gm %>%
+  drop_na(`BIPOC`)
+pli.demogm.poc <- lmer(data = iw.demo.gm,
+                       log(pli) ~  BIPOC + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demogm.poc))
+check_model(pli.demogm.poc)
+performance(pli.demogm.poc)
+pli.demogm.poc.step <- step(pli.demogm.poc)
+pli.demogm.poc.step
+pli.demogm.poc.1 <- get_model(pli.demogm.poc.step)
+summary(pli.demogm.poc.1)
+
+#education, not signif
+iw.demo.gm <- iws.gm %>%
+  drop_na(`Education_grouped`)
+
+pli.demogm.ed <- lmer(data = iw.demo.gm,
+                      log(pli) ~  Education_grouped + 
+                        (1|site),
+                      REML = T)
+print(summary(pli.demogm.ed))
+check_model(pli.demogm.ed)
+performance(pli.demogm.ed)
+pli.demogm.ed.step <- step(pli.demogm.ed)
+pli.demogm.ed.step
+pli.demogm.ed.1 <- get_model(pli.demogm.ed.step)
+summary(pli.demogm.ed.1)
+
+#household size, not signif
+iw.demo.gm <- iws.gm %>%
+  drop_na(`household_size`)
+
+pli.demogm.house <- lmer(data = iw.demo.gm,
+                         log(pli) ~  `household_size` + 
+                           (1|site),
+                         REML = T)
+print(summary(pli.demogm.house))
+check_model(pli.demogm.house)
+performance(pli.demogm.house)
+pli.demogm.house.step <- step(pli.demogm.house)
+pli.demogm.house.step
+pli.demogm.house.1 <- get_model(pli.demogm.house.step)
+summary(pli.demogm.house.1)
+
+#income, not signif
+iw.demo.gm <- iws.gm %>%
+  drop_na(`Low Income`)
+iw.demo.gm$low <- iw.demo.gm$`Low Income`
+
+pli.demogm.inc <- lmer(data = iw.demo.gm,
+                       log(pli) ~  low + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demogm.inc))
+check_model(pli.demogm.inc)
+performance(pli.demogm.inc)
+pli.demogm.inc.step <- step(pli.demogm.inc)
+pli.demogm.inc.step
+pli.demogm.inc.1 <- get_model(pli.demogm.inc.step)
+summary(pli.demogm.inc.1)
+
+#zipcode, not signif
+iw.demo.gm <- iws.gm %>%
+  drop_na(`Zip`)
+
+pli.demogm.zip <- lmer(data = iw.demo.gm,
+                       log(pli) ~  `Zip` + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demogm.zip))
+check_model(pli.demogm.zip)
+performance(pli.demogm.zip)
+pli.demogm.zip.step <- step(pli.demogm.zip)
+pli.demogm.zip.step
+pli.demogm.zip.1 <- get_model(pli.demogm.zip.step)
+summary(pli.demogm.zip.1)
+
+#race, not signif
+iw.demo.gm <- iws.gm %>%
+  drop_na(`Race Ethnicity`)
+iw.demo.gm$race <- iw.demo.gm$`Race Ethnicity`
+
+pli.demogm.race <- lmer(data = iw.demo.gm,
+                        log(pli) ~  race + 
+                          (1|site),
+                        REML = T)
+print(summary(pli.demogm.race))
+check_model(pli.demogm.race)
+performance(pli.demogm.race)
+pli.demogm.race.step <- step(pli.demogm.race)
+pli.demogm.race.step
+pli.demogm.race.1 <- get_model(pli.demogm.race.step)
+summary(pli.demogm.race.1)
+
+###univariate plus env ----
 #bipoc, not signif
 iw.demo.gm <- iws.gm %>%
   drop_na(prox.normal)%>%
@@ -461,10 +685,10 @@ summary(pli.demogm.ed.1)
 iw.demo.gm <- iws.gm %>%
   drop_na(prox.normal)%>%
   drop_na(pH)%>%
-  drop_na(`Household Size 2`)
+  drop_na(`household_size`)
 
 pli.demogm.house <- lmer(data = iw.demo.gm,
-                      log(pli) ~ season + `Household Size 2` + prox.normal+pH+
+                      log(pli) ~ season + `household_size` + prox.normal+pH+
                         (1|site),
                       REML = T)
 print(summary(pli.demogm.house))
@@ -532,7 +756,123 @@ summary(pli.demogm.race.1)
 
 ##hayden/winkelman ----
 #education, household size, income, zip?
+###only demos----
+####zip signif ----
+####winkelman has lower concentrations than hayden, even more signif than proximity when they were modeled together - surprisingly, not much covariance between the two variables
+iw.demo.hw <- iws.hw %>%
+  drop_na(`Education_grouped`)%>%
+  drop_na(`Zip`)%>%
+  drop_na(`Low Income`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 73 to 56
+iw.demo.hw <- iws.hw %>%
+  drop_na(`Zip`)%>%
+  drop_na(`Low Income`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 42 to 68
+
+pli.demohw.dems <- lmer(data = iw.demo.hw,
+                        log(pli) ~ Zip + `Low Income` + `household_size`+
+                          (1|site),
+                        REML = T)
+print(summary(pli.demohw.dems))
+check_model(pli.demohw.dems)
+performance(pli.demohw.dems)
+pli.demohw.dems.step <- step(pli.demohw.dems)
+pli.demohw.dems.step
+pli.demohw.dems.1 <- get_model(pli.demohw.dems.step)
+summary(pli.demohw.dems.1)
+plot(allEffects(pli.demohw.dems.1))
+check_model(pli.demohw.dems.1)
+anova(pli.demohw.dems.1)
+perf <- performance(pli.demohw.dems.1)
+perf
+write.csv(perf, "plidemos_hw_diag.csv")
+
 ###univariate ----
+####education
+iw.demo.hw <- iws.hw %>%
+  drop_na(`Education_grouped`)
+
+pli.demohw.ed <- lmer(data = iw.demo.hw,
+                      log(pli) ~ Education_grouped+
+                        (1|site),
+                      REML = T)
+print(summary(pli.demohw.ed))
+check_model(pli.demohw.ed)
+performance(pli.demohw.ed)
+pli.demohw.ed.step <- step(pli.demohw.ed)
+pli.demohw.ed.step
+pli.demohw.ed.1 <- get_model(pli.demohw.ed.step)
+summary(pli.demohw.ed.1)
+anova(pli.demohw.ed.1)
+
+
+####household size ----
+iw.demo.hw <- iws.hw %>%
+  drop_na(`household_size`)
+
+pli.demohw.house <- lmer(data = iw.demo.hw,
+                         log(pli) ~ `household_size` + 
+                           (1|site),
+                         REML = T)
+print(summary(pli.demohw.house))
+check_model(pli.demohw.house)
+performance(pli.demohw.house)
+pli.demohw.house.step <- step(pli.demohw.house)
+pli.demohw.house.step
+pli.demohw.house.1 <- get_model(pli.demohw.house.step)
+summary(pli.demohw.house.1)
+plot(allEffects(pli.demohw.house.1))
+perf <- performance(pli.demohw.house.1)
+perf
+write.csv(perf, "pli_demohw_house_diag.csv")
+modelsum <- summary(pli.demohw.house.1)
+write.csv(modelsum$coefficients, "pli_demohw_house_sum.csv")
+plot(allEffects(pli.demohw.house.1))
+
+#income, not signif
+iw.demo.hw <- iws.hw %>%
+  drop_na(`Low Income`)
+iw.demo.hw$low <- iw.demo.hw$`Low Income`
+
+pli.demohw.inc <- lmer(data = iw.demo.hw,
+                       log(pli) ~ low + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demohw.inc))
+check_model(pli.demohw.inc)
+performance(pli.demohw.inc)
+pli.demohw.inc.step <- step(pli.demohw.inc)
+pli.demohw.inc.step
+pli.demohw.inc.1 <- get_model(pli.demohw.inc.step)
+summary(pli.demohw.inc.1)
+
+#zipcode, not signif
+iw.demo.hw <- iws.hw %>%
+  drop_na(`Zip`)
+
+pli.demohw.zip <- lmer(data = iw.demo.hw,
+                       log(pli) ~ `Zip`+
+                         (1|site),
+                       REML = T)
+print(summary(pli.demohw.zip))
+check_model(pli.demohw.zip)
+performance(pli.demohw.zip)
+pli.demohw.zip.step <- step(pli.demohw.zip)
+pli.demohw.zip.step
+pli.demohw.zip.1 <- get_model(pli.demohw.zip.step)
+summary(pli.demohw.zip.1)
+plot(allEffects(pli.demohw.zip.1))
+perf <- performance(pli.demohw.zip.1)
+perf
+write.csv(perf, "pli_demohw_zip_diag.csv")
+modelsum <- summary(pli.demohw.zip.1)
+write.csv(modelsum$coefficients, "pli_demohw_zip_sum.csv")
+plot(allEffects(pli.demohw.zip.1))
+
+
+###univariate plus env ----
 ####education, unclear... ----
 iw.demo.hw <- iws.hw %>%
   drop_na(prox.normal)%>%
@@ -562,10 +902,10 @@ plot(allEffects(pli.demohw.ed.1))
 iw.demo.hw <- iws.hw %>%
   drop_na(prox.normal)%>%
   drop_na(pH)%>%
-  drop_na(`Household Size 2`)
+  drop_na(`household_size`)
 
 pli.demohw.house <- lmer(data = iw.demo.hw,
-                         log(pli) ~ season + `Household Size 2` + prox.normal+pH+
+                         log(pli) ~ season + `household_size` + prox.normal+pH+
                            (1|site),
                          REML = T)
 print(summary(pli.demohw.house))
@@ -616,8 +956,181 @@ plot(allEffects(pli.demohw.zip.1))
 
 ##tucson english/spanish ----
 #bipoc, education, household size, income, language, zip
+###only demos----
+####nothing signif ----
+iw.demo.tu <- iws.tu %>%
+  drop_na(BIPOC)%>%
+  drop_na(`Education_grouped`)%>%
+  drop_na(`Primary Language`)%>%
+  drop_na(`Zip`)%>%
+  drop_na(`Low Income`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 173 to 139
+iw.demo.tu <- iws.tu %>%
+  drop_na(BIPOC)%>%
+  drop_na(`Primary Language`)%>%
+  drop_na(`Zip`)%>%
+  drop_na(`Education_grouped`)%>%
+  drop_na(`household_size`)
+#this reduces sample size from 173 to 152
+
+pli.demotu.dems <- lmer(data = iw.demo.tu,
+                        log(pli) ~ BIPOC + Zip + `Education_grouped`+`Primary Language`+`Low Income`+`household_size`+community_2+
+                          (1|site),
+                        REML = T)
+print(summary(pli.demotu.dems))
+check_model(pli.demotu.dems)
+vif(pli.demotu.dems) #zip collinear to oncome level and household size and primary language?
+performance(pli.demotu.dems)
+pli.demotu.dems.step <- step(pli.demotu.dems)
+pli.demotu.dems.step
+pli.demotu.dems.1 <- get_model(pli.demotu.dems.step)
+summary(pli.demotu.dems.1)
+plot(allEffects(pli.demotu.dems.1))
+vif(pli.demotu.dems.1)
+
+pli.demotu.dems.2 <- lmer(data = iw.demo.tu,
+                        log(pli) ~  `Education_grouped`+`Low Income`+`household_size`+
+                          (1|site),
+                        REML = T)
+summary(pli.demotu.dems.2)
+plot(allEffects(pli.demotu.dems.2))
+vif(pli.demotu.dems.2)
+check_model(pli.demotu.dems.2)
+anova(pli.demotu.dems.2)
+
 
 ###univariate ----
+#community, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(community_2)
+pli.demotu.com <- lmer(data = iw.demo.tu,
+                       log(pli) ~ community_2 + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demotu.com))
+check_model(pli.demotu.com)
+performance(pli.demotu.com)
+pli.demotu.com.step <- step(pli.demotu.com)
+pli.demotu.com.step
+pli.demotu.com.1 <- get_model(pli.demotu.com.step)
+summary(pli.demotu.com.1)
+
+#bipoc, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`BIPOC`)
+pli.demotu.poc <- lmer(data = iw.demo.tu,
+                       log(pli) ~ BIPOC + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demotu.poc))
+check_model(pli.demotu.poc)
+performance(pli.demotu.poc)
+pli.demotu.poc.step <- step(pli.demotu.poc)
+pli.demotu.poc.step
+pli.demotu.poc.1 <- get_model(pli.demotu.poc.step)
+summary(pli.demotu.poc.1)
+
+#education, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`Education_grouped`)
+
+pli.demotu.ed <- lmer(data = iw.demo.tu,
+                      log(pli) ~ Education_grouped + 
+                        (1|site),
+                      REML = T)
+print(summary(pli.demotu.ed))
+check_model(pli.demotu.ed) #ward and education have high VIF
+performance(pli.demotu.ed)
+pli.demotu.ed.step <- step(pli.demotu.ed)
+pli.demotu.ed.step
+pli.demotu.ed.1 <- get_model(pli.demotu.ed.step)
+summary(pli.demotu.ed.1)
+
+#household size, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`household_size`)
+
+pli.demotu.house <- lmer(data = iw.demo.tu,
+                         log(pli) ~ `household_size` + 
+                           (1|site),
+                         REML = T)
+print(summary(pli.demotu.house))
+check_model(pli.demotu.house)
+performance(pli.demotu.house)
+pli.demotu.house.step <- step(pli.demotu.house)
+pli.demotu.house.step
+pli.demotu.house.1 <- get_model(pli.demotu.house.step)
+summary(pli.demotu.house.1)
+
+#income, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`Low Income`)
+iw.demo.tu$low <- iw.demo.tu$`Low Income`
+
+pli.demotu.inc <- lmer(data = iw.demo.tu,
+                       log(pli) ~ `Low Income` + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demotu.inc))
+check_model(pli.demotu.inc)
+performance(pli.demotu.inc)
+pli.demotu.inc.step <- step(pli.demotu.inc)
+pli.demotu.inc.step
+pli.demotu.inc.1 <- get_model(pli.demotu.inc.step)
+summary(pli.demotu.inc.1)
+
+#zipcode, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`Zip`)
+
+pli.demotu.zip <- lmer(data = iw.demo.tu,
+                       log(pli) ~ `Zip` + 
+                         (1|site),
+                       REML = T)
+print(summary(pli.demotu.zip))
+check_model(pli.demotu.zip)
+performance(pli.demotu.zip)
+pli.demotu.zip.step <- step(pli.demotu.zip)
+pli.demotu.zip.step
+pli.demotu.zip.1 <- get_model(pli.demotu.zip.step)
+summary(pli.demotu.zip.1)
+
+#race, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`Race Ethnicity`)
+iw.demo.tu$race <- iw.demo.tu$`Race Ethnicity`
+
+pli.demotu.race <- lmer(data = iw.demo.tu,
+                        log(pli) ~ race + 
+                          (1|site),
+                        REML = T)
+print(summary(pli.demotu.race))
+check_model(pli.demotu.race)
+performance(pli.demotu.race)
+pli.demotu.race.step <- step(pli.demotu.race)
+pli.demotu.race.step
+pli.demotu.race.1 <- get_model(pli.demotu.race.step)
+summary(pli.demotu.race.1)
+
+#language, not signif
+iw.demo.tu <- iws.tu %>%
+  drop_na(`Primary Language`)
+iw.demo.tu$lang <- iw.demo.tu$`Primary Language`
+
+pli.demotu.lang <- lmer(data = iw.demo.tu,
+                        log(pli) ~ lang + 
+                          (1|site),
+                        REML = T)
+print(summary(pli.demotu.lang))
+check_model(pli.demotu.lang)
+performance(pli.demotu.lang)
+pli.demotu.lang.step <- step(pli.demotu.lang)
+pli.demotu.lang.step
+pli.demotu.lang.1 <- get_model(pli.demotu.lang.step)
+summary(pli.demotu.lang.1)
+
+###univariate plus env ----
 #bipoc, not signif
 iw.demo.tu <- iws.tu %>%
   drop_na(prox.normal)%>%
@@ -657,10 +1170,10 @@ summary(pli.demotu.ed.1)
 iw.demo.tu <- iws.tu %>%
   drop_na(prox.normal)%>%
   drop_na(pH)%>%
-  drop_na(`Household Size 2`)
+  drop_na(`household_size`)
 
 pli.demotu.house <- lmer(data = iw.demo.tu,
-                         log(pli) ~ season + `Household Size 2` + prox.normal+pH+ward+
+                         log(pli) ~ season + `household_size` + prox.normal+pH+ward+
                            (1|site),
                          REML = T)
 print(summary(pli.demotu.house))
