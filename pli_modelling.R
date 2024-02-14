@@ -92,8 +92,8 @@ dev.print(png, "PLI_TUdisteffectln.png", res=300, height=6, width=8, units="in")
 
 pli_dewey<- iws.dh
 pli_dewey$pli.ln<- na.omit(pli_dewey$pli.ln)
-
-
+pli_dewey$location<- as.factor (pli_dewey$location)
+summary(pli_dewey$location)
 deweydat <- full_join(dewey, pli_dewey, by = c("site"))
 pli_dewey<-deweydat
 pld0 <- lmer(data =pli_dewey,
@@ -978,6 +978,9 @@ performance(hay2)
 #   drop_na(Q77)
 pli_hayden$Q77<- as.factor(pli_hayden$Q77)
 summary(pli_hayden$Q77)
+pli_hayden <- pli_hayden[!(pli_hayden$Q77==0), ]
+
+
 hay77a<- lmer(data =  pli_hayden,
                pli.ln ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
@@ -987,7 +990,7 @@ hay77b<- lmer(data= pli_hayden,
               pli.ln~ season+ prox.normal+ Q77+ prox.normal:season+ pH+Q77:season+ 
                 (1|community:site),
               REML = F) #ML for comparison, REML for final
-summary(hay77b)                
+summary(hay77b)
 
 
 hay.step <- step(hay77b)
@@ -1002,35 +1005,29 @@ print(anova(hay2))
 performance(hay2)
 
 #Q60: What is your cistern made of?----
-# pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
-# pli_hayden60 <- pli_hayden60 %>%
-#   drop_na(prox.normal)
-# pli_hayden60 <- pli_hayden60 %>%
-#   drop_na(season)
-# pli_hayden60 <- pli_hayden60%>%
-#   drop_na(Q60)
-# pli_hayden$Q60<- as.factor(pli_hayden$Q60)
-# summary(pli_hayden$Q60)
-# model1 <- lmer(data = pli_hayden60,
-#                pli ~ (1|community:site),
-#                REML = T) #ML for comparison, REML for final
-# summary(model1)
-# 
-# model2<- lmer(data= pli_hayden60,
-#               pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+   
-#                 (1|community:site),
-#               REML = F) #ML for comparison, REML for final
-# summary(model2)                
-# anova(model2) #Q77 not  significant
-# dew.step2 <- step(model2)
-# dew.step2
-# model3 <- get_model(dew.step2)
-# check_model(model3 )
-# vif(model3 )
-# anova(model3 )
-# print(anova(model3 ))
-# print(summary(model3))
-# performance(model3 )
+#pli_hayden60 <- full_join(haydendat, hds60, by = c("site"))
+pli_hayden$Q60<- as.factor(pli_hayden$Q60)
+summary(pli_hayden$Q60)
+model1 <- lmer(data = pli_hayden60,
+               pli ~ (1|community:site),
+               REML = T) #ML for comparison, REML for final
+summary(model1)
+
+model2<- lmer(data= pli_hayden60,
+              pli~ season+ prox.normal+ Q60+ prox.normal:season+ pH+
+                (1|community:site),
+              REML = F) #ML for comparison, REML for final
+summary(model2)
+anova(model2) #Q77 not  significant
+dew.step2 <- step(model2)
+dew.step2
+model3 <- get_model(dew.step2)
+check_model(model3 )
+vif(model3 )
+anova(model3 )
+print(anova(model3 ))
+print(summary(model3))
+performance(model3 )
 
 #Q65: How old is your cistern:----
 # pli_hayden65 <- full_join(haydendat, hds65, by = c("site"))
