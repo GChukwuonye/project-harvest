@@ -1160,7 +1160,7 @@ sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string,
   filename <- filename.string
   
   #calculate summary stats
-  sumtable <- ex.dat.long %>%
+  sumtable <- dat.long %>%
     group_by(across(all_of(cols))) %>%
     summarise(n = n(),
               exceedances_n = sum(.data[[value]]),

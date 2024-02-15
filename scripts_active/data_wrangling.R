@@ -9,7 +9,7 @@ library(table1)
 
 #load data ----
 #IW DM
-setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
+#setwd("~/Documents/GitHub/ProjectHarvest/WorkingFiles//data/data_processing")
 iw.dm <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IW_DM_Y123.xlsx", sheet = "Corrected") #corrected means the corrected tab in the excel sheet
 #iw.dm <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_clean/IW_DM_Y123.xlsx", sheet = "Corrected")
 # iw.dm.detects <- read_xlsx("data/data_clean/IW_DM_Y123.xlsx", sheet = "Detection", col_names = TRUE)
