@@ -62,10 +62,10 @@ extu <- exc[[4]]
 
 #summary ----
 sumFX(datalongDF = ex.dat.long,
-      subset.vector.string = c("standard", "analyte", "season", "community"),
+      subset.vector.string = c("standard", "analyte"),
       value.string = "exceedance",
-      dfname.string = "ex.ssncom",
-      filename.string = "ex%_ssncom")
+      dfname.string = "ex.overall",
+      filename.string = "ex%_overall")
 
 
 
@@ -1160,7 +1160,7 @@ sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string,
   filename <- filename.string
   
   #calculate summary stats
-  sumtable <- ex.dat.long %>%
+  sumtable <- dat.long %>%
     group_by(across(all_of(cols))) %>%
     summarise(n = n(),
               exceedances_n = sum(.data[[value]]),
