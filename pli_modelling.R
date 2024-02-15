@@ -11,7 +11,11 @@ library(ggeffects)
 library(ggpubr)
 library(emmeans)
 library(multcomp)
+library(broom)
 library(patchwork)
+library(lme4)
+library(broom.mixed)
+library(dotwhisker)
 
 #workflow= load data wrangling first, then load the community sheet to get ward nd location data first
 
@@ -78,15 +82,31 @@ ggplot(data = pli_tucson, aes(x = prox.normal, y = pli.ln))+
 dev.print(png, "PLI_TUdisteffectln.png", res=300, height=6, width=8, units="in")
 
 
-# ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = prox.normal)) + 
-#   geom_point(size = 1, color= "blue")+
-#   facet_wrap(community~., scales = "free")+
-#   stat_smooth(method=lm)
-# 
-# ggplot(data = iw.dm.long, mapping = aes(y = log(pli), x = pH)) + 
-#   geom_point(size = 1, color= "green")+
-#   facet_wrap(community~., scales = "free")+
-#   stat_smooth(method=lm,color= "black")
+#Forest plots---------
+library(lme4)
+library(broom.mixed)
+library(dotwhisker)
+
+tidy_plt4 <- tidy(plt4, effects = "fixed", conf.int = TRUE)
+ggplot(tidy_plt4, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Relevant Factors in the PLI Model") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+#dev.print(png, "forestplot_tucson.png", res=400, height=14, width=14, units="in")
+
+
 
 #pli dewey modeling ----
 
@@ -114,7 +134,23 @@ pld2 <- get_model(pld.step)
 print(summary(pld2))
 performance(pld2)
 
-
+tidy_pld2 <- tidy(pld2, effects = "fixed", conf.int = TRUE)
+ggplot(tidy_pld2, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Relevant Factors in the PLI Model") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
 
 #deweyeffect plot====
 predict.dat.dh <- ggeffect(model = pld2,
@@ -197,7 +233,23 @@ ggplot(data = pli_hayden, aes(x = season, y = pli.ln))+
 dev.print(png, "PLI_HWdisteffectln.png", res=300, height=6, width=8, units="in")
 
 
-
+tidy_plh2 <- tidy(plh2, effects = "fixed", conf.int = TRUE)
+ggplot(tidy_plh2, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Relevant Factors in the PLI Model") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
 
 
 #pli globe modeling ----
@@ -259,6 +311,65 @@ ggplot(data = pli_globe, aes(x = prox.normal, y = pli.ln))+
         legend.position = "none")
 
 dev.print(png, "PLI_GMdisteffectln.png", res=300, height=6, width=8, units="in")
+
+tidy_plg2 <- tidy(plg2, effects = "fixed", conf.int = TRUE)
+ggplot(tidy_plg2, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Model Variables") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+dev.print(png, "PLI_GMdisteffectln.png", res=300, height=6, width=8, units="in")
+
+
+#combined forest plots for PLI effects====
+tidy_plg2 <- tidy(plg2, effects = "fixed", conf.int = TRUE)
+tidy_plh2 <- tidy(plh2, effects = "fixed", conf.int = TRUE)
+tidy_pld2 <- tidy(pld2, effects = "fixed", conf.int = TRUE)
+tidy_plt4 <- tidy(plt4, effects = "fixed", conf.int = TRUE)
+
+tidy_plg2$Model <- 'Globe'
+tidy_plg2 <- tidy_plg2[, !colnames(tidy_plg2) %in% c("effect", "df")]
+tidy_plh2$Model <- 'Hayden-Winklemann'
+tidy_pld2$Model <- 'Dewey-Humboldt'
+tidy_plt4$Model <- 'Tucson'
+tidy_plt4 <- tidy_plt4[, !colnames(tidy_plt4) %in% c("effect", "df")]
+
+combined_models <- rbind(tidy_plg2, tidy_plh2, tidy_pld2, tidy_plt4)
+combined_models$Significant <- ifelse(combined_models$p.value < 0.05, "Significant", "Not Significant")
+
+ggplot(combined_models, aes(y = term, x = estimate, xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size = 1, color = "darkred") +
+  geom_point(aes(fill = Significant), color = "black", size = 3, shape = 5) +  # Fill color based on significance
+  geom_errorbarh(aes(height = 0.2, color = Significant)) +  # Error bar color based on significance
+  facet_wrap(~Model, scales = "free_y", ncol = 1) +
+  theme_minimal() + 
+  theme(
+    legend.position = "right",
+    axis.title.x = element_text(color = "black", size = 8, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 8, face = "bold"),
+    axis.text = element_text(color = "black", size = 8, face = "bold"),
+    plot.title = element_text(size = 8, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 8, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth = 2),
+    strip.text = element_text(size = 10, face = "bold", color= "darkblue"),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(10, "pt")
+  ) +
+  labs(x = "PLI estimates and 95% confidence intervals", y = "PLI Variables") +
+  scale_fill_manual(values = c("Significant" = "red", "Not Significant" = "blue")) +  # Manual color scale for significance
+  scale_color_manual(values = c("Significant" = "red", "Not Significant" = "blue"))  # Match error bar colors
+dev.print(png, "PLI_ModelSummary.png", res=300, height=6, width=8, units="in")
 
 
 # #pli tucson modeling ----
@@ -399,7 +510,6 @@ tuc1<- lmer(data= pli_tucson,
 tuc.step <- step(tuc1, direction= "both")
 tuc.step
 tuc2 <- get_model(tuc.step)
-
 print(summary(tuc2))
 check_model(tuc2)
 vif(tuc2)
@@ -429,6 +539,36 @@ ggplot(data = pli_tucson, aes(x = Q67, y = pli.ln))+
         legend.position = "none")
 
 dev.print(png, "PLI_HDSTUQ67effectln.png", res=300, height=6, width=8, units="in")
+
+#forest plot----
+tidy_tuc2 <- tidy(tuc2, effects = "fixed", conf.int = TRUE)
+tidy_tuc2 <- tidy_tuc2 %>%
+  mutate(term = ifelse(term == "Q672", "Do not clean roof drain", term))
+
+
+tidy_tuc2$Significant <- ifelse(tidy_tuc2$p.value < 0.05, "Significant", "Not Significant")
+
+ggplot(tidy_tuc2, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Model Variables") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+
+
+
+
+
 
 
 
@@ -1171,6 +1311,43 @@ print(summary(globe79c))
 performance(globe79c)
 
 
+
+#forest plot----
+tidy_globe79c <- tidy(globe79c, effects = "fixed", conf.int = TRUE)
+tidy_globe79c <- tidy_globe79c %>%
+  mutate(term = ifelse(term == "Q792", "Do not Remove cistern filter/screen", term))
+tidy_globe79c <- tidy_globe79c %>%
+  mutate(term = ifelse(term == "Q791:location_2Globe Area", "Remove cistern filter/screen (Globe Area)", term))
+tidy_globe79c <- tidy_globe79c %>%
+  mutate(term = ifelse(term == "Q792:location_2Globe Area", "Do not Remove cistern filter/screen (Globe Area)", term))
+tidy_globe79c <- tidy_globe79c %>%
+  mutate(term = ifelse(term == "	Q792:location_2Globe Area", "Do not Remove cistern filter/screen (Globe Area)", term))
+tidy_globe79c <- tidy_globe79c %>%
+  mutate(term = ifelse(term == "Q791:location_2Canyons Area", "Remove cistern filter/screen (Canyons Area)", term))
+tidy_globe79c <- tidy_globe79c %>%
+           mutate(term = ifelse(term == "Q792:location_2Canyons Area", "Remove cistern filter/screen (Canyons Area)", term))     
+tidy_globe79c$Significant <- ifelse(tidy_globe79c$p.value < 0.05, "Significant", "Not Significant")
+
+ggplot(tidy_globe79c, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Model Variables") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+
+
+
+
 #Q76====
 #Does your cistern have a first flush?
 # globe76<-full_join(globedat, hds76, by = c("site"))
@@ -1204,6 +1381,48 @@ print(anova(globe2))
 print(summary(globe2))
 performance(globe2)
 
+#forest plot----
+tidy_globe76b <- tidy(globe2, effects = "fixed", conf.int = TRUE)
+tidy_globe76b <- tidy_globe76b%>%
+  mutate(term = ifelse(term == "Q762", "No first flush", term))
+tidy_globe76b <- tidy_globe76b %>%
+  mutate(term = ifelse(term == "Q761:location_2Globe Area", "Have First Flush (Globe Area)", term))
+tidy_globe76b <- tidy_globe76b %>%
+  mutate(term = ifelse(term == "Q762:location_2Globe Area", "No First Flush (Globe Area)", term))
+tidy_globe76b <- tidy_globe76b %>%
+  mutate(term = ifelse(term == "Q761:location_2Canyons Area", "Have First Flush (Canyons Area)", term))
+tidy_globe76b <- tidy_globe76b %>%
+  mutate(term = ifelse(term == "Q762:location_2Canyons Area", "No First Flush (Canyons Area)", term))
+tidy_globe76b$Significant <- ifelse(tidy_globe76b$p.value < 0.05, "Significant", "Not Significant")
+
+ggplot(tidy_globe76b, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Model Variables") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Q77====
 #Does your cistern have a screen/filter for incoming water from down spout on top of the tank?
@@ -1230,13 +1449,45 @@ anova(globe77b)
 vif(globe77b)
 globe.step <- step(globe77b)
 globe.step
-globe2 <- get_model(globe.step)
-print(summary(globe2))
-check_model(globe2)
-vif(globe2)
-print(anova(globe2))
-print(summary(globe2))
-performance(globe2)
+globe2b <- get_model(globe.step)
+print(summary(globe2b))
+check_model(globe2b)
+vif(globe2b)
+print(anova(globe2b))
+print(summary(globe2b))
+performance(globe2b)
+
+
+#forest plot----
+tidy_globe2b <- tidy(globe2b, effects = "fixed", conf.int = TRUE)
+tidy_globe2b <- tidy_globe2b%>%
+  mutate(term = ifelse(term == "Q772", "No cistern screen", term))
+tidy_globe2b <- tidy_globe2b %>%
+  mutate(term = ifelse(term == "location_2Globe Area", "Globe Area", term))
+tidy_globe2b <- tidy_globe2b %>%
+  mutate(term = ifelse(term == "location_2Canyons Area", "Canyons Area", term))
+tidy_globe2b <- tidy_globe2b %>%
+  mutate(term = ifelse(term == "Q772:location_2Globe Area", "No cistern screen (Globe Area)", term))
+tidy_globe2b <- tidy_globe2b %>%
+  mutate(term = ifelse(term == "Q772:location_2Canyons Area", "No cistern screen (Canyons Area)", term))
+
+ggplot(tidy_globe2b, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Model Variables") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+
 
 #Q60: What is your cistern made of?----
 
@@ -1262,6 +1513,79 @@ anova(model3 )
 print(anova(model3 ))
 print(summary(model3))
 performance(model3 )
+
+#forest plot----
+tidy_globe3 <- tidy(model3, effects = "fixed", conf.int = TRUE)
+tidy_globe3 <- tidy_globe3%>%
+  mutate(term = ifelse(term == "Q60Other", "Other Materials", term))
+tidy_globe3 <- tidy_globe3 %>%
+  mutate(term = ifelse(term == "Q60Plastic", "Plastic Cistern", term))
+
+
+ggplot(tidy_globe3, aes(x = estimate, y = reorder(term, estimate), xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size= 1, color = "darkred") +
+  geom_point(aes(fill = "blue"), color = "black", size = 14, shape = 5) + # Use shape 21 for fill and border color
+  geom_errorbarh(aes(height = 0.2), color = "darkblue", width = 1) + # Dark red color, specified width
+  labs(x = "Model Point estimates and 95% confidence intervals", y = "Model Variables") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 14, face = "bold"),
+    axis.text = element_text(color = "black", size = 14, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth= 2),
+    legend.position = "none" # Hide legend since we're not varying fill based on data
+  ) +
+  scale_fill_identity()
+
+
+
+
+#overall pli forest=====
+
+tidy_tuc2$Community <- 'Tucson'
+tidy_tuc2$PLI<- 'Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)?'
+tidy_tuc2<- tidy_tuc2[, !colnames(tidy_tuc2) %in% c("effect", "df", "Significant")]
+tidy_globe79c$Community<- 'Globe'
+tidy_globe79c$PLI<- 'Do you ever remove the screen/filter and leave your cistern without the filter?'
+tidy_globe79c <- tidy_globe79c[, !colnames(tidy_globe79c) %in% c("Significant")]
+tidy_globe76b$Community <- 'Globe'
+tidy_globe76b$PLI<- 'Does your cistern have a first flush?'
+tidy_globe76b <- tidy_globe76b[, !colnames(tidy_globe76b)  %in% c("effect", "df", "Significant")]
+tidy_globe2b$Community <- 'Globe'
+tidy_globe2b$PLI<- 'Does your cistern have a screen/filter for incoming water from down spout on top of the tank?'
+tidy_globe3$Community<- 'Globe'
+tidy_globe3$PLI<- 'How old is your cistern'
+  
+combined_models2 <- rbind(tidy_tuc2, tidy_globe79c, tidy_globe76b, tidy_globe2b, tidy_globe3)
+
+combined_models2$Significant <- ifelse(combined_models2$p.value < 0.05, "Significant", "Not Significant")
+
+ggplot(combined_models2, aes(y = term, x = estimate, xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "solid", size = 0.1, color = "darkred") +
+  geom_point(aes(fill = Significant), color = "black", size = 2.5, shape = 5) +  # Fill color based on significance
+  geom_errorbarh(aes(height = 0.4, color = Significant)) +  # Error bar color based on significance
+  facet_wrap(~PLI + Community, scales = "free_y", ncol = 1) +
+  theme_minimal() + 
+  theme(
+    legend.position = "bottom",
+    axis.title.x = element_text(color = "black", size = 10, face = "bold"),
+    axis.title.y = element_text(color = "black", size = 10, face = "bold"),
+    axis.text = element_text(color = "black", size = 8, face = "bold"),
+    plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size =10, hjust = 0.5),
+    plot.background = element_rect(color = "darkblue", fill = "white", linewidth = 2),
+    strip.text = element_text(size = 8, face = "bold", color= "darkblue"),
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(1, "pt")
+  ) +
+  labs(x = "Point estimates and 95% confidence intervals", y= "Variables") +
+  scale_fill_manual(values = c("Significant" = "red", "Not Significant" = "blue")) +  # Manual color scale for significance
+  scale_color_manual(values = c("Significant" = "red", "Not Significant" = "blue"))  # Match error bar colors
+dev.print(png, "RHI_ModelSummary.png", res=300, height=8, width=8, units="in")
+
+  
 
 #Q65: How old is your cistern:----
 # globe65 <- full_join(haydendat, hds65, by = c("site"))
@@ -1427,3 +1751,9 @@ anova(plg2)
 print(anova(plg2))
 performance(plg2)
 >>>>>>> c008f9a47e8c93eb2f43a2d39c905a79884dcbc2
+
+
+
+
+
+
