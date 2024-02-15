@@ -62,10 +62,10 @@ extu <- exc[[4]]
 
 #summary ----
 sumFX(datalongDF = ex.dat.long,
-      subset.vector.string = c("standard", "analyte", "season", "community"),
+      subset.vector.string = c("standard", "analyte"),
       value.string = "exceedance",
-      dfname.string = "ex.ssncom",
-      filename.string = "ex%_ssncom")
+      dfname.string = "ex.overall",
+      filename.string = "ex%_overall")
 
 
 
