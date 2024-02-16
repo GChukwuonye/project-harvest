@@ -17,20 +17,7 @@ library(lme4)
 library(broom.mixed)
 library(dotwhisker)
 
-#workflow= load data wrangling first, then load the community sheet to get ward nd location data first
-
-
 #pli without hds=====
-#tucson=====
-# pli_tucson<- tucsondat
-# pli_tucson<- pli_tucson%>%
-#   drop_na(prox.normal)
-# pli_tucson<- pli_tucson%>%
-#   drop_na(pli.ln)
-# pli_tucson<-pli_tucson%>%
-#   drop_na(season)
-# pli_tucson<- pli_tucson%>%
-#   drop_na(pH)
 pli_tucson<-iws.tu
 pli_tucson$pli.ln<- na.omit(pli_tucson$pli.ln)
 plt0 <- lmer(data = pli_tucson,
@@ -1179,7 +1166,7 @@ performance(model3 )
 #   drop_na(Q65)
 pli_hayden$Q65<- as.factor(pli_hayden$Q65)
 summary(pli_hayden$Q65)
-model1 <- lmer(data = pli_hayden65,
+model1 <- lmer(data = pli_hayden,
                pli ~ (1|community:site),
                REML = T) #ML for comparison, REML for final
 summary(model1)
@@ -1556,7 +1543,7 @@ tidy_globe76b <- tidy_globe76b[, !colnames(tidy_globe76b)  %in% c("effect", "df"
 tidy_globe2b$Community <- 'Globe'
 tidy_globe2b$PLI<- 'Does your cistern have a screen/filter for incoming water from down spout on top of the tank?'
 tidy_globe3$Community<- 'Globe'
-tidy_globe3$PLI<- 'How old is your cistern'
+tidy_globe3$PLI<- 'What is your cistern made of?'
   
 combined_models2 <- rbind(tidy_tuc2, tidy_globe79c, tidy_globe76b, tidy_globe2b, tidy_globe3)
 
@@ -1752,8 +1739,15 @@ print(anova(plg2))
 performance(plg2)
 >>>>>>> c008f9a47e8c93eb2f43a2d39c905a79884dcbc2
 
+#extra explorative work====
 
-
-
-
+hds1<- hds
+hds1$Q1 <- as.character(hds1$Q1)
+iw.dm1 <- full_join(iw.dm, hds1, by = c("site"))
+iw.dm1 <- iw.dm1[!is.na(iw.dm1$community),]
+iw.dm1<-iw.dm1 %>%
+  drop_na(Q1)
+tucson1 <- iw.dm1[iw.dm1$community=="Tucson",]
+tucson1$Q1<- as.factor(tucson1$Q1)
+summary(tucson1$Q1)
 
