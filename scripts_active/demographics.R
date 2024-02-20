@@ -21,8 +21,19 @@ library(effects)
 
 #data formatting----
 #make sure there are no NA/blank values and remove samples with zipcodes with less than 3 sites
+iw.demo$income <- iw.demo$`Low Income`
+iw.demo$lang <- iw.demo$`Primary Language`
+iwm.demo <- iw.demo %>%
+  filter(BIPOC!="Other")%>%
+  drop_na(community_2)%>%
+  drop_na(income)%>%
+  drop_na(prox.normal)%>%
+  drop_na(Zip)
+
 
 #split dataframe into different ones for each community
+
+
 iws.c <- iw.demo %>%
   group_by(community) %>%
   group_split()
@@ -224,42 +235,86 @@ xtest(dataDF = demo,
 ##proximity ----
 #prox x language not collinear?
 
+demo$lang <- demo$`Primary Language`
+demo$income <- demo$`Low Income`
+
 plang <- lm(data = demo,
-            prox.normal~`Primary Language`+community)
+            prox.normal~lang*community)
 summary(plang)
+plot(allEffects(plang))
+anova(plang)
 
 ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Primary Language`))+
   geom_histogram() +
   facet_wrap(.~community_2)
 
 #prox x race only correlated for Tucson
-ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Race Ethnicity`))+
-  geom_histogram() +
+demopoc <- demo%>%
+  filter(BIPOC!="Other")
+ppoc <- lm(data = demopoc,
+            log(proximity.km)~BIPOC*community_2)
+summary(ppoc)
+plot(allEffects(ppoc))
+anova(ppoc)
+
+ppocgm <- lm(data = demopoc[demopoc$community=="Globe/Miami",],
+           prox.normal~BIPOC)
+summary(ppocgm)
+plot(allEffects(ppocgm))
+anova(ppocgm)
+ppoctu <- lm(data = demopoc[demopoc$community=="Tucson",],
+             prox.normal~BIPOC)
+summary(ppoctu)
+plot(allEffects(ppoctu))
+anova(ppoctu)
+
+
+
+ggplot(data = demopoc, mapping = aes(x = proximity.km, fill = BIPOC))+
+  geom_boxplot() +
   facet_grid(.~community_2) +
   theme(legend.position = "bottom")
 
 #correlated for globe?
-ggplot(data = demo, mapping = aes(x = prox.normal, fill = `BIPOC`))+
-  geom_histogram() +
+ggplot(data = demopoc, mapping = aes(x = prox.normal, fill = `BIPOC`))+
+  geom_boxplot() +
   facet_grid(.~community) +
   theme(legend.position = "bottom")
 
 #prox x education only correlated for Tucson
+ped <- lm(data = demo,
+           prox.normal~Education_grouped*community_2)
+summary(ped)
+plot(allEffects(ped))
+anova(ped)
+
 ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Education_grouped`))+
   geom_histogram() +
   #facet_grid(.~community) +
   theme(legend.position = "bottom")
 
 #prox x household size no clear correlation
+phs <- lm(data = demo,
+          prox.normal~household_size*community_2)
+summary(phs)
+plot(allEffects(phs))
+anova(phs)
+
 ggplot(data = demo, mapping = aes(x = prox.normal, fill = `household_size`))+
   geom_histogram() +
   facet_grid(.~community) +
   theme(legend.position = "bottom")
 
 #prox x income
-ggplot(data = demo, mapping = aes(x = proximity.km, fill = `Low Income`))+
-  geom_histogram() +
-  facet_grid(.~community_2) +
+pinc <- lm(data = demo,
+          prox.normal~income*community_2)
+summary(pinc)
+plot(allEffects(pinc))
+anova(pinc)
+
+ggplot(data = demo, mapping = aes(x = proximity.km, fill = income))+
+  geom_boxplot() +
+  facet_grid(.~community) +
   theme(legend.position = "bottom")
 
 #Models ----
@@ -267,8 +322,10 @@ ggplot(data = demo, mapping = aes(x = proximity.km, fill = `Low Income`))+
 ###pli, multivariate ----
 #Language removed because spanish speakers are only in tucson
 
-pli.demo.1 <- lm(data = iwm.demo,
-            log(pli) ~ season + community_2+ BIPOC + `Low Income`+ `Education_grouped`+Zip+prox.normal)
+pli.demo.1 <- lmer(data = iwm.demo,
+            log(pli) ~ season + community_2+ BIPOC + `Low Income`+Zip+prox.normal + pH+
+              (1|site),
+            REML = T)
 summary(pli.demo.1)
 vif(pli.demo.1)
 check_model(pli.demo.1)
@@ -296,8 +353,16 @@ check_model(pli.demo.4)
 anova(pli.demo.4)
 performance(pli.demo.4)
 
-step(pli.demo.1)
 ####best linear model ----
+stepmodel <- step(pli.demo.1)
+pli.demo.a <- get_model(stepmodel)
+summary(pli.demo.a)
+anova(pli.demo.a)
+perf <- performance(pli.demo.a)
+write.csv(perf, "pli_demo_diag.csv")
+model.sum <- summary(pli.demo.a)
+write.csv(model.sum$coefficients, "pli_demo_sum.csv")
+
 pli.demo.5 <- lm(data = iwm.demo,
                  log(pli) ~ BIPOC+Zip+season)
 summary(pli.demo.5)
@@ -526,16 +591,18 @@ iw.demo.gm <- iws.gm %>%
   drop_na(BIPOC)%>%
   drop_na(`Education_grouped`)%>%
   drop_na(`Low Income`)%>%
-  drop_na(`household_size`)
+  drop_na(`household_size`)%>%
+  drop_na(Zip)
 #this reduces sample size from 107 to 57
 iw.demo.gm <- iws.gm %>%
   drop_na(BIPOC)%>%
   drop_na(`household_size`)%>%
-  drop_na(`Low Income`)
+  drop_na(`Low Income`)%>%
+  drop_na(Zip)
 #this reduces sample size from 107 to 86
 
 pli.demogm.dems <- lmer(data = iw.demo.gm,
-                        log(pli) ~ BIPOC + `Low Income`+ `household_size`+
+                        log(pli) ~ BIPOC + `Low Income`+ `household_size`+ Zip+
                           (1|site),
                         REML = T)
 print(summary(pli.demogm.dems))
@@ -772,7 +839,7 @@ iw.demo.hw <- iws.hw %>%
 #this reduces sample size from 42 to 68
 
 pli.demohw.dems <- lmer(data = iw.demo.hw,
-                        log(pli) ~ Zip + `Low Income` + `household_size`+
+                        log(pli) ~ Zip + income + `household_size`+
                           (1|site),
                         REML = T)
 print(summary(pli.demohw.dems))
