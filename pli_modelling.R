@@ -17,8 +17,9 @@ library(lme4)
 library(broom.mixed)
 library(dotwhisker)
 
-#pli without hds=====
+
 pli_tucson<-iws.tu
+
 pli_tucson$pli.ln<- na.omit(pli_tucson$pli.ln)
 plt0 <- lmer(data = pli_tucson,
              pli.ln ~ (1|community:site),

@@ -473,6 +473,8 @@ iw.dm79<-iw.dm79 %>%
 #iw.dm65- combining iw.dm with Q65=====
 iw.dm65 <- full_join(iw.dm, hds65, by = c("site"))
 iw.dm65 <- iw.dm65[!is.na(iw.dm65$community),]
+summary(as.factor(iw.dm65$Q67))
+
 iw.dm65<-iw.dm65 %>%
   drop_na(Q65)
 
