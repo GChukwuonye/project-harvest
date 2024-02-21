@@ -1701,6 +1701,27 @@ plot(allEffects(ba.gm.2))
 perf <- performance(ba.gm.2)
 perf
 write.csv(perf, "ba_gm_q77_diag.csv")
+
+
+
+model.effects <- ggeffect(model = ba.gm.2,
+                          type = "re",
+                          terms = c("Q77"))
+model.effects$x <- as.character(model.effects$x)
+model.effects[model.effects$x=="1",]$x  <- "Yes"
+model.effects[model.effects$x=="2",]$x <- "No"
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Does your cistern have a screen/filter?",
+       subtitle = "Globe/Miami",
+       x = "\nInfrastructure Practice",
+       y = "[Ba] (ug/L)\n")+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none")
+dev.print(png, "Ba_gm_q77_effect.png", res=300, height=8, width=10, units="in")
+
+
 ###Be ----
 Be.gm.0 <- lmer(data = iws.gm,
                 log(Be) ~
