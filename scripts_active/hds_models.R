@@ -497,6 +497,25 @@ write.csv(perf, "nitu67_diag.csv")
 plot(allEffects(ni.tu.4))
 #season only, 
 
+
+model.effects <- ggeffect(model = ni.tu.4,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+model.effects[model.effects$x=="1",]$x  <- "Yes"
+model.effects[model.effects$x=="2",]$x <- "No"
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean parts of your roof draining system?",
+       subtitle = "Tucson",
+       x = "\nInfrastructure Practice",
+       y = "[Ni] (ug/L)\n")+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none")
+dev.print(png, "Ni_tu_q67_effect.png", res=300, height=8, width=10, units="in")
+
+
 ###Pb ----
 Pb.tu.0 <- lmer(data = iws.tu,
                 log(Pb) ~
