@@ -278,7 +278,7 @@ hds67 <- hds67 %>%
   drop_na(Q67)
 hds67[hds67$Q67=="0",]$Q67 <- "0"
 hds67[hds67$Q67=="1",]$Q67 <- "1"
-hds67[hds67$Q67=="2",]$Q67 <- "0"
+hds67[hds67$Q67=="2",]$Q67 <- "2"
 hds67$Q67 <- as.numeric(hds67$Q67)
 summary(as.factor(hds67$Q67))
 
@@ -304,29 +304,29 @@ hds65[hds65$Q65=="7",]$Q65 <- "5+ years"
 hds65 <- hds65 %>% filter(Q65 != "NA")
 
 
-##Q62What is the capacity of your cistern (in gallons)?  ----
-# hds62<- hds
-# hds62 <- hds62 %>%
-#   drop_na(Q62)
-# hds62[hds62$Q62=="0",]$Q62 <- "NA"
-# hds62[hds62$Q62=="14",]$Q62 <- "NA"
-# hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
-# hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
-# hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
-# hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
-# hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
-# hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
-# hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
-# hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
-# hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
-# hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
-# hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
-# hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
-# hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
-# hds62 <- hds62 %>% filter(Q62 != "NA")
-# hds62 <- hds62 %>% filter(Q62 != "N/A")
-# hds62$Q62<- as.factor(hds62$Q62)
-# summary(hds62$Q62)
+#Q62What is the capacity of your cistern (in gallons)?  ----
+hds62<- hds
+hds62 <- hds62 %>%
+  drop_na(Q62)
+hds62[hds62$Q62=="0",]$Q62 <- "NA"
+hds62[hds62$Q62=="14",]$Q62 <- "NA"
+hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
+hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
+hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
+hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
+hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
+hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
+hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
+hds62 <- hds62 %>% filter(Q62 != "NA")
+hds62 <- hds62 %>% filter(Q62 != "N/A")
+hds62$Q62<- as.factor(hds62$Q62)
+summary(hds62$Q62)
 
 ##Q78: How often do you clean parts of your roof draining system (like the debris filter, gutters, scuppers) ----
 hds78<- hds
@@ -370,9 +370,6 @@ hds78$Q78<- as.factor(hds78$Q78)
 summary(hds78$Q78)
 
 
-
-
-
 ##Q71 Do you treat or wash your cistern with anything? ----
 hds71<- hds
 hds71$Q71 <- as.character(hds$Q71)
@@ -381,7 +378,7 @@ hds71 <- hds71 %>%
 #hds[is.na(hds$Q71),]$Q71 <- "0"
 hds71[hds71$Q71=="0",]$Q71 <- "0"
 hds71[hds71$Q71=="1",]$Q71 <- "1"
-hds71[hds71$Q71=="2",]$Q71 <- "0"
+hds71[hds71$Q71=="2",]$Q71 <- "2"
 hds71$Q71 <- as.numeric(hds71$Q71)
 summary(as.factor(hds71$Q71))
 
@@ -393,7 +390,7 @@ hds76 <- hds76 %>%
 #hds76[is.na(hds76$Q76),]$Q76 <- "0"
 hds76[hds76$Q76=="0",]$Q76 <- "0"
 hds76[hds76$Q76=="1",]$Q76 <- "1"
-hds76[hds76$Q76=="2",]$Q76 <- "0"
+hds76[hds76$Q76=="2",]$Q76 <- "2"
 hds76[hds76$Q76=="3",]$Q76 <- "0"
 hds76$Q76 <- as.numeric(hds76$Q76)
 summary(as.factor(hds76$Q76))
@@ -406,7 +403,7 @@ hds77 <- hds77 %>%
 #hds77[is.na(hds77$Q77),]$Q77 <- "0"
 hds77[hds77$Q77=="0",]$Q77 <- "0"
 hds77[hds77$Q77=="1",]$Q77 <- "1"
-hds77[hds77$Q77=="2",]$Q77 <- "0"
+hds77[hds77$Q77=="2",]$Q77 <- "2"
 hds77[hds77$Q77=="3",]$Q77 <- "0"
 hds77$Q77 <- as.numeric(hds77$Q77)
 summary(as.factor(hds77$Q77))
@@ -419,10 +416,10 @@ hds79$Q79 <- as.character(hds79$Q79)
 hds79 <- hds79 %>%
   drop_na(Q79)
 #hds79[is.na(hds79$Q79),]$Q79 <- "0"
-hds79[hds79$Q79=="0",]$Q79 <- "1"
+hds79[hds79$Q79=="0",]$Q79 <- "0"
 hds79[hds79$Q79=="1",]$Q79 <- "1"
-hds79[hds79$Q79=="2",]$Q79 <- "0"
-hds79[hds79$Q79=="100",]$Q79 <- "1"
+hds79[hds79$Q79=="2",]$Q79 <- "2"
+hds79[hds79$Q79=="100",]$Q79 <- "0"
 hds79$Q79 <- as.numeric(hds79$Q79)
 summary(as.factor(hds79$Q79))
 
@@ -476,7 +473,13 @@ iw.dm65 <- iw.dm65[!is.na(iw.dm65$community),]
 iw.dm65<-iw.dm65 %>%
   drop_na(Q65)
 
-summary(as.factor(iw.dm65[iw.dm65$community=="Dewey-Humboldt",]$Q65))
+#iw.dm60- combining iw.dm with Q60=====
+iw.dm60 <- full_join(iw.dm, hds60, by = c("site"))
+iw.dm60 <- iw.dm60[!is.na(iw.dm60$community),]
+iw.dm60<-iw.dm60 %>%
+  drop_na(Q60)
+
+summary(as.factor(iw.dm60[iw.dm60$community=="Globe/Miami",]$Q60))
 
 #write.csv(iw.score, "score_test.csv")
 #iw.dm[is.na(iw.dm$score_bin),]$score_bin <- "None"
