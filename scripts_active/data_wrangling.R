@@ -305,28 +305,28 @@ hds65 <- hds65 %>% filter(Q65 != "NA")
 
 
 ##Q62What is the capacity of your cistern (in gallons)?  ----
-hds62<- hds
-hds62 <- hds62 %>%
-  drop_na(Q62)
-hds62[hds62$Q62=="0",]$Q62 <- "NA"
-hds62[hds62$Q62=="14",]$Q62 <- "NA"
-hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
-hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
-hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
-hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
-hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
-hds62 <- hds62 %>% filter(Q62 != "NA")
-hds62 <- hds62 %>% filter(Q62 != "N/A")
-hds62$Q62<- as.factor(hds62$Q62)
-summary(hds62$Q62)
+# hds62<- hds
+# hds62 <- hds62 %>%
+#   drop_na(Q62)
+# hds62[hds62$Q62=="0",]$Q62 <- "NA"
+# hds62[hds62$Q62=="14",]$Q62 <- "NA"
+# hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
+# hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
+# hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
+# hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
+# hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
+# hds62 <- hds62 %>% filter(Q62 != "NA")
+# hds62 <- hds62 %>% filter(Q62 != "N/A")
+# hds62$Q62<- as.factor(hds62$Q62)
+# summary(hds62$Q62)
 
 ##Q78: How often do you clean parts of your roof draining system (like the debris filter, gutters, scuppers) ----
 hds78<- hds
