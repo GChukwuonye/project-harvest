@@ -23,13 +23,14 @@ library(pals)
 #data formatting----
 #iw.score contains samples with homes that had at least one response to the home description survey. if not all 5 questions were answered, a value of 0 was automatically assigned as a conservative assumption of behavior
 #view(iw.score)
-iw.score.long <- pivot_longer(data = iw.dm,
-                              cols = Be:Pb,
-                              values_to = "concentration",
-                              names_to = "analyte")
+# iw.score.long <- pivot_longer(data = iw.dm,
+#                               cols = Be:Pb,
+#                               values_to = "concentration",
+#                               names_to = "analyte")
 
 #split dataframe into different ones for each community
-iws.c <- iw.dm65 %>%
+iws.c <- iw.dm60 %>%
+  filter(Q60!="0")%>%
   drop_na(pH) %>%
   group_by(community) %>%
   group_split()
@@ -47,7 +48,7 @@ iws.gm <- iws.gm %>%
   drop_na(location_2)
 iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
 
-iws.gm$Q79 <- as.factor(iws.gm$Q79)
+iws.gm$Q60 <- as.factor(iws.gm$Q60)
 
 #tucson specific
 iws.tu <- iws.tu %>%
@@ -317,13 +318,13 @@ plot(allEffects(Cd.tu.2))
 Co.tu.0 <- lmer(data = iws.tu,
                 log(Co) ~
                   (1|site),
-                REML = F)
+                REML = T)
 print(summary(Co.tu.0))
 
 Co.tu.1 <- lmer(data = iws.tu,
                 log(Co) ~ season + prox.normal + ward + prox.normal:pH + prox.normal:season + Q67 + pH +
                   (1|site),
-                REML = F)
+                REML = T)
 print(summary(Co.tu.1))
 
 Co.tu.2.step <- step(Co.tu.1)
@@ -333,8 +334,9 @@ print(summary(Co.tu.2))
 check_model(Co.tu.2)
 anova(Co.tu.1)
 print(anova(Co.tu.2))
-performance(Co.tu.2)
-#season prox
+perf <- performance(Co.tu.2)
+write.csv(perf, "co_q67_tu_diag.csv")
+#season prox q67
 
 ###Cr ----
 Cr.tu.0 <- lmer(data = iws.tu,
@@ -484,7 +486,7 @@ ni.tu.5 <- lmer(data = iws.tu,
                   (1|site),
                 REML = T)
 check_model(ni.tu.3)
-anova(ni.tu.3)
+anova(ni.tu.4)
 anova(ni.tu.3, ni.tu.4)
 anova(ni.tu.3, ni.tu.5)
 anova(ni.tu.4, ni.tu.5)
@@ -494,6 +496,25 @@ perf
 write.csv(perf, "nitu67_diag.csv")
 plot(allEffects(ni.tu.4))
 #season only, 
+
+
+model.effects <- ggeffect(model = ni.tu.4,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+model.effects[model.effects$x=="1",]$x  <- "Yes"
+model.effects[model.effects$x=="2",]$x <- "No"
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean parts of your roof draining system?",
+       subtitle = "Tucson",
+       x = "\nInfrastructure Practice",
+       y = "[Ni] (ug/L)\n")+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none")
+dev.print(png, "Ni_tu_q67_effect.png", res=300, height=8, width=10, units="in")
+
 
 ###Pb ----
 Pb.tu.0 <- lmer(data = iws.tu,
@@ -608,8 +629,22 @@ print(summary(v.tu.2))
 anova(v.tu.1)
 print(anova(v.tu.2))
 check_model(v.tu.2)
-performance(v.tu.2)
-#season
+v.tu.3 <- lmer(data = iws.tu,
+               log(V) ~ season + prox.normal:season + Q67 + pH +
+                 (1|site),
+               REML = T)
+v.tu.4 <- lmer(data = iws.tu,
+               log(V) ~ season + prox.normal:season + pH +
+                 (1|site),
+               REML = T)
+anova(v.tu.2, v.tu.3)
+anova(v.tu.3, v.tu.4)
+summary(v.tu.3)
+anova(v.tu.3)
+perf <- performance(v.tu.3)
+perf
+write.csv(perf, "v_tu_q67_diag.csv")
+
 
 ###Zn ----
 Zn.tu.0 <- lmer(data = iws.tu,
@@ -632,469 +667,6 @@ check_model(Zn.tu.2)
 anova(Zn.tu.1)
 print(anova(Zn.tu.2))
 performance(Zn.tu.2)
-#season
-
-## gm 77 ----
-###Ag ----
-Ag.gm.0 <- lmer(data = iws.gm,
-                log(Ag) ~
-                  (1|site),
-                REML = F)
-print(summary(Ag.gm.0))
-
-Ag.gm.1 <- lmer(data = iws.gm,
-                log(Ag) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Ag.gm.1))
-vif(Ag.gm.1)
-Ag.gm.2.step <- step(Ag.gm.1)
-Ag.gm.2.step
-Ag.gm.2 <- get_model(Ag.gm.2.step)
-print(summary(Ag.gm.2))
-check_model(Ag.gm.2)
-anova(Ag.gm.1)
-print(anova(Ag.gm.2))
-plot(allEffects(Ag.gm.2))
-#score and pH
-
-###Al ----
-al.gm.0 <- lmer(data = iws.gm,
-                log(Al) ~
-                  (1|site),
-                REML = F)
-print(summary(al.gm.0))
-
-al.gm.1 <- lmer(data = iws.gm,
-                log(Al) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(al.gm.1))
-
-al.gm.2.step <- step(al.gm.1)
-al.gm.2.step
-al.gm.2 <- get_model(al.gm.2.step)
-print(summary(al.gm.2))
-check_model(al.gm.2)
-anova(al.gm.1)
-print(anova(al.gm.2))
-performance(al.gm.2)
-plot(allEffects(al.gm.2))
-#prox and score
-
-###As ----
-As.gm.0 <- lmer(data = iws.gm,
-                log(As) ~
-                  (1|site),
-                REML = F)
-print(summary(As.gm.0))
-
-As.gm.1 <- lmer(data = iws.gm,
-                log(As) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(As.gm.1))
-
-As.gm.2.step <- step(As.gm.1)
-As.gm.2.step
-As.gm.2 <- get_model(As.gm.2.step)
-print(summary(As.gm.2))
-check_model(As.gm.2)
-anova(As.gm.1)
-print(anova(As.gm.2))
-performance(As.gm.2)
-plot(allEffects(As.gm.2))
-#prox pH season
-
-###Ba ----
-ba.gm.0 <- lmer(data = iws.gm,
-                log(Ba) ~
-                  (1|site),
-                REML = F)
-print(summary(ba.gm.0))
-
-ba.gm.1 <- lmer(data = iws.gm,
-                log(Ba) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(ba.gm.1))
-
-ba.gm.2.step <- step(ba.gm.1)
-ba.gm.2.step
-ba.gm.2 <- get_model(ba.gm.2.step)
-ba.gm.2 <- lmer(data = iws.gm,
-                log(Ba) ~ season + prox.normal + Q77 +
-                  (1|site),
-                REML = T)
-print(summary(ba.gm.2))
-print(anova(ba.gm.2))
-check_model(ba.gm.2)
-perf <- performance(ba.gm.2)
-perf
-write.csv(perf, "bagm77_diag.csv")
-plot(allEffects(ba.gm.2))
-#prox q77 season
-
-###Be ----
-Be.gm.0 <- lmer(data = iws.gm,
-                log(Be) ~
-                  (1|site),
-                REML = F)
-print(summary(Be.gm.0))
-
-Be.gm.1 <- lmer(data = iws.gm,
-                log(Be) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Be.gm.1))
-
-Be.gm.2.step <- step(Be.gm.1)
-Be.gm.2.step
-Be.gm.2 <- get_model(Be.gm.2.step)
-print(summary(Be.gm.2))
-check_model(Be.gm.2)
-anova(Be.gm.1)
-print(anova(Be.gm.2))
-performance(Be.gm.2)
-plot(allEffects(Be.gm.2))
-#prox season score
-
-###Cd ----
-Cd.gm.0 <- lmer(data = iws.gm,
-                log(Cd) ~
-                  (1|site),
-                REML = F)
-print(summary(Cd.gm.0))
-
-Cd.gm.1 <- lmer(data = iws.gm,
-                log(Cd) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Cd.gm.1))
-
-Cd.gm.2.step <- step(Cd.gm.1)
-Cd.gm.2.step
-Cd.gm.2 <- get_model(Cd.gm.2.step)
-print(summary(Cd.gm.2))
-check_model(Cd.gm.2)
-anova(Cd.gm.1)
-print(anova(Cd.gm.2))
-performance(Cd.gm.2)
-plot(allEffects(Cd.gm.2))
-#season and prox
-
-###Co ----
-Co.gm.0 <- lmer(data = iws.gm,
-                log(Co) ~
-                  (1|site),
-                REML = F)
-print(summary(Co.gm.0))
-
-Co.gm.1 <- lmer(data = iws.gm,
-                log(Co) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Co.gm.1))
-
-Co.gm.2.step <- step(Co.gm.1)
-Co.gm.2.step
-Co.gm.2 <- get_model(Co.gm.2.step)
-print(summary(Co.gm.2))
-check_model(Co.gm.2)
-anova(Co.gm.1)
-print(anova(Co.gm.2))
-performance(Co.gm.2)
-#season only
-
-###Cr ----
-Cr.gm.0 <- lmer(data = iws.gm,
-                log(Cr) ~
-                  (1|site),
-                REML = F)
-print(summary(Cr.gm.0))
-
-Cr.gm.1 <- lmer(data = iws.gm,
-                log(Cr) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Cr.gm.1))
-
-Cr.gm.2.step <- step(Cr.gm.1)
-Cr.gm.2.step
-Cr.gm.2 <- get_model(Cr.gm.2.step)
-print(summary(Cr.gm.2))
-check_model(Cr.gm.2)
-anova(Cr.gm.1)
-print(anova(Cr.gm.2))
-performance(Cr.gm.2)
-#season
-
-###Cu ----
-Cu.gm.0 <- lmer(data = iws.gm,
-                log(Cu) ~
-                  (1|site),
-                REML = F)
-print(summary(Cu.gm.0))
-
-Cu.gm.1 <- lmer(data = iws.gm,
-                log(Cu) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Cu.gm.1))
-
-Cu.gm.2.step <- step(Cu.gm.1)
-Cu.gm.2.step
-Cu.gm.2 <- get_model(Cu.gm.2.step)
-print(summary(Cu.gm.2))
-check_model(Cu.gm.2)
-anova(Cu.gm.1)
-print(anova(Cu.gm.2))
-performance(Cu.gm.2)
-
-Cu.gm.3 <- lmer(data = iws.gm,
-                log(Cu) ~ season + prox.normal +
-                  (1|site),
-                REML = F)
-print(summary(Cu.gm.3))
-
-#season
-
-###Fe ----
-Fe.gm.0 <- lmer(data = iws.gm,
-                log(Fe) ~
-                  (1|site),
-                REML = F)
-print(summary(Fe.gm.0))
-
-Fe.gm.1 <- lmer(data = iws.gm,
-                log(Fe) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Fe.gm.1))
-
-Fe.gm.2.step <- step(Fe.gm.1)
-Fe.gm.2.step
-Fe.gm.2 <- get_model(Fe.gm.2.step)
-print(summary(Fe.gm.2))
-check_model(Fe.gm.2)
-anova(Fe.gm.1)
-print(anova(Fe.gm.2))
-performance(Fe.gm.2)
-#nothing
-
-###Mn ----
-Mn.gm.0 <- lmer(data = iws.gm,
-                log(Mn) ~
-                  (1|site),
-                REML = F)
-print(summary(Mn.gm.0))
-
-Mn.gm.1 <- lmer(data = iws.gm,
-                log(Mn) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Mn.gm.1))
-
-Mn.gm.2.step <- step(Mn.gm.1)
-Mn.gm.2.step
-Mn.gm.2 <- get_model(Mn.gm.2.step)
-print(summary(Mn.gm.2))
-check_model(Mn.gm.2)
-anova(Mn.gm.1)
-print(anova(Mn.gm.2))
-performance(Mn.gm.2)
-#season only
-
-
-###Mo ----
-mo.gm.0 <- lmer(data = iws.gm,
-                log(Mo) ~
-                  (1|site),
-                REML = F)
-print(summary(mo.gm.0))
-
-mo.gm.1 <- lmer(data = iws.gm,
-                log(Mo) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(mo.gm.1))
-
-mo.gm.2.step <- step(mo.gm.1)
-mo.gm.2.step
-mo.gm.2 <- get_model(mo.gm.2.step)
-print(summary(mo.gm.2))
-anova(mo.gm.1)
-print(anova(mo.gm.2))
-check_model(mo.gm.2)
-performance(mo.gm.2)
-plot(allEffects(mo.gm.2))
-#pH prox season
-
-###Ni ----
-ni.gm.0 <- lmer(data = iws.gm,
-                log(Ni) ~
-                  (1|site),
-                REML = F)
-print(summary(ni.gm.0))
-
-ni.gm.1 <- lmer(data = iws.gm,
-                log(Ni) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(ni.gm.1))
-
-ni.gm.2.step <- step(ni.gm.1)
-ni.gm.2.step
-ni.gm.2 <- get_model(ni.gm.2.step)
-print(summary(ni.gm.2))
-anova(ni.gm.1)
-print(anova(ni.gm.2))
-check_model(ni.gm.2)
-performance(ni.gm.2)
-#season only, low marg r2
-
-###Pb ----
-Pb.gm.0 <- lmer(data = iws.gm,
-                log(Pb) ~
-                  (1|site),
-                REML = F)
-print(summary(Pb.gm.0))
-
-Pb.gm.1 <- lmer(data = iws.gm,
-                log(Pb) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Pb.gm.1))
-
-Pb.gm.2.step <- step(Pb.gm.1)
-Pb.gm.2.step
-Pb.gm.2 <- get_model(Pb.gm.2.step)
-print(summary(Pb.gm.2))
-check_model(Pb.gm.2)
-anova(Pb.gm.1)
-print(anova(Pb.gm.2))
-performance(Pb.gm.2)
-plot(allEffects(Pb.gm.2))
-#season prox only
-
-###Sb ----
-Sb.gm.0 <- lmer(data = iws.gm,
-                log(Sb) ~
-                  (1|site),
-                REML = F)
-print(summary(Sb.gm.0))
-
-Sb.gm.1 <- lmer(data = iws.gm,
-                log(Sb) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Sb.gm.1))
-
-Sb.gm.2.step <- step(Sb.gm.1)
-Sb.gm.2.step
-Sb.gm.2 <- get_model(Sb.gm.2.step)
-
-Sb.gm.2 <- lm(data = iws.gm,
-                log(Sb) ~ Q77)
-print(summary(Sb.gm.2))
-check_model(Sb.gm.2)
-print(anova(Sb.gm.2))
-perf <- performance(Sb.gm.2)
-perf
-write.csv(perf, "sbgm77_diag.csv")
-plot(allEffects(Sb.gm.2))
-
-
-###Se ----
-Se.gm.0 <- lmer(data = iws.gm,
-                log(Se) ~
-                  (1|site),
-                REML = F)
-print(summary(Se.gm.0))
-
-Se.gm.1 <- lmer(data = iws.gm,
-                log(Se) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Se.gm.1))
-
-Se.gm.2.step <- step(Se.gm.1)
-Se.gm.2.step
-Se.gm.2 <- get_model(Se.gm.2.step)
-print(summary(Se.gm.2))
-check_model(Se.gm.2)
-anova(Se.gm.1)
-print(anova(Se.gm.2))
-performance(Se.gm.2)
-#nothing
-
-###Sn ----
-Sn.gm.0 <- lmer(data = iws.gm,
-                log(Sn) ~
-                  (1|site),
-                REML = F)
-print(summary(Sn.gm.0))
-
-Sn.gm.1 <- lmer(data = iws.gm,
-                log(Sn) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Sn.gm.1))
-
-Sn.gm.2.step <- step(Sn.gm.1)
-Sn.gm.2.step
-Sn.gm.2 <- get_model(Sn.gm.2.step)
-print(summary(Sn.gm.2))
-check_model(Sn.gm.2)
-anova(Sn.gm.1)
-print(anova(Sn.gm.2))
-performance(Sn.gm.2)
-#season
-
-###V ----
-v.gm.0 <- lmer(data = iws.gm,
-               log(V) ~
-                 (1|site),
-               REML = F)
-print(summary(v.gm.0))
-
-v.gm.1 <- lmer(data = iws.gm,
-               log(V) ~ season + prox.normal + location_2 + Q77 + pH +
-                 (1|site),
-               REML = F)
-print(summary(v.gm.1))
-
-v.gm.2.step <- step(v.gm.1)
-v.gm.2.step
-v.gm.2 <- get_model(v.gm.2.step)
-print(summary(v.gm.2))
-anova(v.gm.1)
-print(anova(v.gm.2))
-check_model(v.gm.2)
-performance(v.gm.2)
-#season only score almost signif
-
-###Zn ----
-Zn.gm.0 <- lmer(data = iws.gm,
-                log(Zn) ~
-                  (1|site),
-                REML = F)
-print(summary(Zn.gm.0))
-
-Zn.gm.1 <- lmer(data = iws.gm,
-                log(Zn) ~ season + prox.normal + location_2 + Q77 + pH +
-                  (1|site),
-                REML = F)
-print(summary(Zn.gm.1))
-
-Zn.gm.2.step <- step(Zn.gm.1)
-Zn.gm.2.step
-Zn.gm.2 <- get_model(Zn.gm.2.step)
-print(summary(Zn.gm.2))
-check_model(Zn.gm.2)
-anova(Zn.gm.1)
-print(anova(Zn.gm.2))
-performance(Zn.gm.2)
 #season
 
 ## gm 79 ----
@@ -1185,6 +757,7 @@ print(summary(ba.gm.1))
 ba.gm.2.step <- step(ba.gm.1)
 ba.gm.2.step
 ba.gm.2 <- get_model(ba.gm.2.step)
+summary(ba.gm.2)
 ba.gm.2 <- lmer(data = iws.gm,
                 log(Ba) ~ season + prox.normal + Q79 +
                   (1|site),
@@ -1193,7 +766,7 @@ print(summary(ba.gm.2))
 print(anova(ba.gm.2))
 check_model(ba.gm.2)
 plot(allEffects(ba.gm.2))
-#prox q79 season
+
 
 ###Be ----
 Be.gm.0 <- lmer(data = iws.gm,
@@ -1456,7 +1029,7 @@ print(summary(Sb.gm.1))
 Sb.gm.2.step <- step(Sb.gm.1)
 Sb.gm.2.step
 Sb.gm.2 <- get_model(Sb.gm.2.step)
-
+summary(Sb.gm.2)
 Sb.gm.2 <- lm(data = iws.gm,
               log(Sb) ~ Q79)
 print(summary(Sb.gm.2))
@@ -1560,6 +1133,1432 @@ print(anova(Zn.gm.2))
 performance(Zn.gm.2)
 #season
 
+## gm q76 ----
+###Ag ----
+Ag.gm.0 <- lmer(data = iws.gm,
+                log(Ag) ~
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.0))
+
+Ag.gm.1 <- lmer(data = iws.gm,
+                log(Ag) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.1))
+vif(Ag.gm.1)
+Ag.gm.2.step <- step(Ag.gm.1)
+Ag.gm.2.step
+Ag.gm.2 <- get_model(Ag.gm.2.step)
+print(summary(Ag.gm.2))
+check_model(Ag.gm.2)
+anova(Ag.gm.1)
+print(anova(Ag.gm.2))
+plot(allEffects(Ag.gm.2))
+#score and pH
+
+###Al ----
+al.gm.0 <- lmer(data = iws.gm,
+                log(Al) ~
+                  (1|site),
+                REML = F)
+print(summary(al.gm.0))
+
+al.gm.1 <- lmer(data = iws.gm,
+                log(Al) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(al.gm.1))
+
+al.gm.2.step <- step(al.gm.1)
+al.gm.2.step
+al.gm.2 <- get_model(al.gm.2.step)
+print(summary(al.gm.2))
+check_model(al.gm.2)
+anova(al.gm.1)
+print(anova(al.gm.2))
+performance(al.gm.2)
+plot(allEffects(al.gm.2))
+#prox and score
+
+###As ----
+As.gm.0 <- lmer(data = iws.gm,
+                log(As) ~
+                  (1|site),
+                REML = F)
+print(summary(As.gm.0))
+
+As.gm.1 <- lmer(data = iws.gm,
+                log(As) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(As.gm.1))
+
+As.gm.2.step <- step(As.gm.1)
+As.gm.2.step
+As.gm.2 <- get_model(As.gm.2.step)
+print(summary(As.gm.2))
+check_model(As.gm.2)
+anova(As.gm.1)
+print(anova(As.gm.2))
+performance(As.gm.2)
+plot(allEffects(As.gm.2))
+#prox pH season
+
+###Ba ----
+ba.gm.0 <- lmer(data = iws.gm,
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.0))
+
+ba.gm.1 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.1))
+
+ba.gm.2.step <- step(ba.gm.1)
+ba.gm.2.step
+ba.gm.2 <- get_model(ba.gm.2.step)
+summary(ba.gm.2)
+ba.gm.2 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + Q76 +
+                  (1|site),
+                REML = T)
+print(summary(ba.gm.2))
+print(anova(ba.gm.2))
+check_model(ba.gm.2)
+plot(allEffects(ba.gm.2))
+
+
+###Be ----
+Be.gm.0 <- lmer(data = iws.gm,
+                log(Be) ~
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.0))
+
+Be.gm.1 <- lmer(data = iws.gm,
+                log(Be) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.1))
+
+Be.gm.2.step <- step(Be.gm.1)
+Be.gm.2.step
+Be.gm.2 <- get_model(Be.gm.2.step)
+print(summary(Be.gm.2))
+check_model(Be.gm.2)
+anova(Be.gm.1)
+print(anova(Be.gm.2))
+perf <- performance(Be.gm.2)
+perf
+write.csv(perf, "Begm76_diag.csv")
+plot(allEffects(Be.gm.2))
+
+#prox season score
+
+###Cd ----
+Cd.gm.0 <- lmer(data = iws.gm,
+                log(Cd) ~
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.0))
+
+Cd.gm.1 <- lmer(data = iws.gm,
+                log(Cd) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.1))
+
+Cd.gm.2.step <- step(Cd.gm.1)
+Cd.gm.2.step
+Cd.gm.2 <- get_model(Cd.gm.2.step)
+print(summary(Cd.gm.2))
+check_model(Cd.gm.2)
+anova(Cd.gm.1)
+print(anova(Cd.gm.2))
+performance(Cd.gm.2)
+plot(allEffects(Cd.gm.2))
+#season and prox
+
+###Co ----
+Co.gm.0 <- lmer(data = iws.gm,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.0))
+
+Co.gm.1 <- lmer(data = iws.gm,
+                log(Co) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.1))
+
+Co.gm.2.step <- step(Co.gm.1)
+Co.gm.2.step
+Co.gm.2 <- get_model(Co.gm.2.step)
+print(summary(Co.gm.2))
+check_model(Co.gm.2)
+anova(Co.gm.1)
+print(anova(Co.gm.2))
+perf <- performance(Co.gm.2)
+perf
+write.csv(perf, "Co_gm_q76_diag.csv")
+#season only
+
+###Cr ----
+Cr.gm.0 <- lmer(data = iws.gm,
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.0))
+
+Cr.gm.1 <- lmer(data = iws.gm,
+                log(Cr) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.1))
+
+Cr.gm.2.step <- step(Cr.gm.1)
+Cr.gm.2.step
+Cr.gm.2 <- get_model(Cr.gm.2.step)
+print(summary(Cr.gm.2))
+check_model(Cr.gm.2)
+anova(Cr.gm.1)
+print(anova(Cr.gm.2))
+perf <- performance(Cr.gm.2)
+perf
+write.csv(perf, "cr_gm_q76_diag.csv")
+#season
+
+###Cu ----
+Cu.gm.0 <- lmer(data = iws.gm,
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.0))
+
+Cu.gm.1 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.1))
+
+Cu.gm.2.step <- step(Cu.gm.1)
+Cu.gm.2.step
+Cu.gm.2 <- get_model(Cu.gm.2.step)
+print(summary(Cu.gm.2))
+check_model(Cu.gm.2)
+anova(Cu.gm.1)
+print(anova(Cu.gm.2))
+performance(Cu.gm.2)
+
+Cu.gm.3 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.3))
+
+#season
+
+###Fe ----
+Fe.gm.0 <- lmer(data = iws.gm,
+                log(Fe) ~
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.0))
+
+Fe.gm.1 <- lmer(data = iws.gm,
+                log(Fe) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.1))
+
+Fe.gm.2.step <- step(Fe.gm.1)
+Fe.gm.2.step
+Fe.gm.2 <- get_model(Fe.gm.2.step)
+print(summary(Fe.gm.2))
+check_model(Fe.gm.2)
+anova(Fe.gm.1)
+print(anova(Fe.gm.2))
+performance(Fe.gm.2)
+#nothing
+
+###Mn ----
+Mn.gm.0 <- lmer(data = iws.gm,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.0))
+
+Mn.gm.1 <- lmer(data = iws.gm,
+                log(Mn) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.1))
+
+Mn.gm.2.step <- step(Mn.gm.1)
+Mn.gm.2.step
+Mn.gm.2 <- get_model(Mn.gm.2.step)
+print(summary(Mn.gm.2))
+check_model(Mn.gm.2)
+anova(Mn.gm.1)
+print(anova(Mn.gm.2))
+performance(Mn.gm.2)
+#season only
+
+
+###Mo ----
+mo.gm.0 <- lmer(data = iws.gm,
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.0))
+
+mo.gm.1 <- lmer(data = iws.gm,
+                log(Mo) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.1))
+
+mo.gm.2.step <- step(mo.gm.1)
+mo.gm.2.step
+mo.gm.2 <- get_model(mo.gm.2.step)
+print(summary(mo.gm.2))
+anova(mo.gm.1)
+print(anova(mo.gm.2))
+check_model(mo.gm.2)
+performance(mo.gm.2)
+plot(allEffects(mo.gm.2))
+#pH prox season
+
+###Ni ----
+ni.gm.0 <- lmer(data = iws.gm,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.0))
+
+ni.gm.1 <- lmer(data = iws.gm,
+                log(Ni) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.1))
+
+ni.gm.2.step <- step(ni.gm.1)
+ni.gm.2.step
+ni.gm.2 <- get_model(ni.gm.2.step)
+print(summary(ni.gm.2))
+anova(ni.gm.1)
+print(anova(ni.gm.2))
+check_model(ni.gm.2)
+performance(ni.gm.2)
+#season only, low marg r2
+
+###Pb ----
+Pb.gm.0 <- lmer(data = iws.gm,
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.0))
+
+Pb.gm.1 <- lmer(data = iws.gm,
+                log(Pb) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.1))
+
+Pb.gm.2.step <- step(Pb.gm.1)
+Pb.gm.2.step
+Pb.gm.2 <- get_model(Pb.gm.2.step)
+print(summary(Pb.gm.2))
+check_model(Pb.gm.2)
+anova(Pb.gm.1)
+print(anova(Pb.gm.2))
+performance(Pb.gm.2)
+plot(allEffects(Pb.gm.2))
+#season prox only
+
+###Sb ----
+Sb.gm.0 <- lmer(data = iws.gm,
+                log(Sb) ~
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.0))
+
+Sb.gm.1 <- lmer(data = iws.gm,
+                log(Sb) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.1))
+
+Sb.gm.2.step <- step(Sb.gm.1)
+Sb.gm.2.step
+Sb.gm.2 <- get_model(Sb.gm.2.step)
+summary(Sb.gm.2)
+Sb.gm.2 <- lm(data = iws.gm,
+              log(Sb) ~ Q76)
+print(summary(Sb.gm.2))
+check_model(Sb.gm.2)
+print(anova(Sb.gm.2))
+perf <- performance(Sb.gm.2)
+perf
+write.csv(perf, "sbgm76_diag.csv")
+plot(allEffects(Sb.gm.2))
+
+
+###Se ----
+Se.gm.0 <- lmer(data = iws.gm,
+                log(Se) ~
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.0))
+
+Se.gm.1 <- lmer(data = iws.gm,
+                log(Se) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.1))
+
+Se.gm.2.step <- step(Se.gm.1)
+Se.gm.2.step
+Se.gm.2 <- get_model(Se.gm.2.step)
+print(summary(Se.gm.2))
+check_model(Se.gm.2)
+anova(Se.gm.1)
+print(anova(Se.gm.2))
+performance(Se.gm.2)
+#nothing
+
+###Sn ----
+Sn.gm.0 <- lmer(data = iws.gm,
+                log(Sn) ~
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.0))
+
+Sn.gm.1 <- lmer(data = iws.gm,
+                log(Sn) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.1))
+
+Sn.gm.2.step <- step(Sn.gm.1)
+Sn.gm.2.step
+Sn.gm.2 <- get_model(Sn.gm.2.step)
+print(summary(Sn.gm.2))
+check_model(Sn.gm.2)
+anova(Sn.gm.1)
+print(anova(Sn.gm.2))
+performance(Sn.gm.2)
+#season
+
+###V ----
+v.gm.0 <- lmer(data = iws.gm,
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.gm.0))
+
+v.gm.1 <- lmer(data = iws.gm,
+               log(V) ~ season + prox.normal + location_2 + Q76 + pH +
+                 (1|site),
+               REML = F)
+print(summary(v.gm.1))
+
+v.gm.2.step <- step(v.gm.1)
+v.gm.2.step
+v.gm.2 <- get_model(v.gm.2.step)
+print(summary(v.gm.2))
+anova(v.gm.1)
+print(anova(v.gm.2))
+check_model(v.gm.2)
+performance(v.gm.2)
+#season only score almost signif
+
+###Zn ----
+Zn.gm.0 <- lmer(data = iws.gm,
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.0))
+
+Zn.gm.1 <- lmer(data = iws.gm,
+                log(Zn) ~ season + prox.normal + location_2 + Q76 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.1))
+
+Zn.gm.2.step <- step(Zn.gm.1)
+Zn.gm.2.step
+Zn.gm.2 <- get_model(Zn.gm.2.step)
+print(summary(Zn.gm.2))
+check_model(Zn.gm.2)
+anova(Zn.gm.1)
+print(anova(Zn.gm.2))
+performance(Zn.gm.2)
+#season
+
+## gm q77 ----
+###Ag ----
+Ag.gm.0 <- lmer(data = iws.gm,
+                log(Ag) ~
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.0))
+
+Ag.gm.1 <- lmer(data = iws.gm,
+                log(Ag) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.1))
+vif(Ag.gm.1)
+Ag.gm.2.step <- step(Ag.gm.1)
+Ag.gm.2.step
+Ag.gm.2 <- get_model(Ag.gm.2.step)
+print(summary(Ag.gm.2))
+check_model(Ag.gm.2)
+anova(Ag.gm.1)
+print(anova(Ag.gm.2))
+plot(allEffects(Ag.gm.2))
+#score and pH
+
+###Al ----
+al.gm.0 <- lmer(data = iws.gm,
+                log(Al) ~
+                  (1|site),
+                REML = F)
+print(summary(al.gm.0))
+
+al.gm.1 <- lmer(data = iws.gm,
+                log(Al) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(al.gm.1))
+
+al.gm.2.step <- step(al.gm.1)
+al.gm.2.step
+al.gm.2 <- get_model(al.gm.2.step)
+print(summary(al.gm.2))
+check_model(al.gm.2)
+anova(al.gm.1)
+print(anova(al.gm.2))
+performance(al.gm.2)
+plot(allEffects(al.gm.2))
+#prox and score
+
+###As ----
+As.gm.0 <- lmer(data = iws.gm,
+                log(As) ~
+                  (1|site),
+                REML = F)
+print(summary(As.gm.0))
+
+As.gm.1 <- lmer(data = iws.gm,
+                log(As) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(As.gm.1))
+
+As.gm.2.step <- step(As.gm.1)
+As.gm.2.step
+As.gm.2 <- get_model(As.gm.2.step)
+print(summary(As.gm.2))
+check_model(As.gm.2)
+anova(As.gm.1)
+print(anova(As.gm.2))
+performance(As.gm.2)
+plot(allEffects(As.gm.2))
+#prox pH season
+
+###Ba ----
+ba.gm.0 <- lmer(data = iws.gm,
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.0))
+
+ba.gm.1 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.1))
+
+ba.gm.2.step <- step(ba.gm.1)
+ba.gm.2.step
+ba.gm.2 <- get_model(ba.gm.2.step)
+summary(ba.gm.2)
+ba.gm.2 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + Q77 +
+                  (1|site),
+                REML = T)
+print(summary(ba.gm.2))
+print(anova(ba.gm.2))
+check_model(ba.gm.2)
+plot(allEffects(ba.gm.2))
+perf <- performance(ba.gm.2)
+perf
+write.csv(perf, "ba_gm_q77_diag.csv")
+
+
+
+model.effects <- ggeffect(model = ba.gm.2,
+                          type = "re",
+                          terms = c("Q77"))
+model.effects$x <- as.character(model.effects$x)
+model.effects[model.effects$x=="1",]$x  <- "Yes"
+model.effects[model.effects$x=="2",]$x <- "No"
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Does your cistern have a screen/filter?",
+       subtitle = "Globe/Miami",
+       x = "\nInfrastructure Practice",
+       y = "[Ba] (ug/L)\n")+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none")
+dev.print(png, "Ba_gm_q77_effect.png", res=300, height=8, width=10, units="in")
+
+
+###Be ----
+Be.gm.0 <- lmer(data = iws.gm,
+                log(Be) ~
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.0))
+
+Be.gm.1 <- lmer(data = iws.gm,
+                log(Be) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.1))
+
+Be.gm.2.step <- step(Be.gm.1)
+Be.gm.2.step
+Be.gm.2 <- get_model(Be.gm.2.step)
+print(summary(Be.gm.2))
+check_model(Be.gm.2)
+anova(Be.gm.1)
+print(anova(Be.gm.2))
+perf <- performance(Be.gm.2)
+perf
+write.csv(perf, "Begm77_diag.csv")
+plot(allEffects(Be.gm.2))
+
+#prox season score
+
+###Cd ----
+Cd.gm.0 <- lmer(data = iws.gm,
+                log(Cd) ~
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.0))
+
+Cd.gm.1 <- lmer(data = iws.gm,
+                log(Cd) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.1))
+
+Cd.gm.2.step <- step(Cd.gm.1)
+Cd.gm.2.step
+Cd.gm.2 <- get_model(Cd.gm.2.step)
+print(summary(Cd.gm.2))
+check_model(Cd.gm.2)
+anova(Cd.gm.1)
+print(anova(Cd.gm.2))
+performance(Cd.gm.2)
+plot(allEffects(Cd.gm.2))
+#season and prox
+
+###Co ----
+Co.gm.0 <- lmer(data = iws.gm,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.0))
+
+Co.gm.1 <- lmer(data = iws.gm,
+                log(Co) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.1))
+
+Co.gm.2.step <- step(Co.gm.1)
+Co.gm.2.step
+Co.gm.2 <- get_model(Co.gm.2.step)
+print(summary(Co.gm.2))
+check_model(Co.gm.2)
+anova(Co.gm.1)
+print(anova(Co.gm.2))
+perf <- performance(Co.gm.2)
+perf
+write.csv(perf, "Co_gm_q77_diag.csv")
+#season only
+
+###Cr ----
+Cr.gm.0 <- lmer(data = iws.gm,
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.0))
+
+Cr.gm.1 <- lmer(data = iws.gm,
+                log(Cr) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.1))
+
+Cr.gm.2.step <- step(Cr.gm.1)
+Cr.gm.2.step
+Cr.gm.2 <- get_model(Cr.gm.2.step)
+print(summary(Cr.gm.2))
+check_model(Cr.gm.2)
+anova(Cr.gm.1)
+print(anova(Cr.gm.2))
+perf <- performance(Cr.gm.2)
+perf
+write.csv(perf, "cr_gm_q77_diag.csv")
+#season
+
+###Cu ----
+Cu.gm.0 <- lmer(data = iws.gm,
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.0))
+
+Cu.gm.1 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.1))
+
+Cu.gm.2.step <- step(Cu.gm.1)
+Cu.gm.2.step
+Cu.gm.2 <- get_model(Cu.gm.2.step)
+print(summary(Cu.gm.2))
+check_model(Cu.gm.2)
+anova(Cu.gm.1)
+print(anova(Cu.gm.2))
+performance(Cu.gm.2)
+
+Cu.gm.3 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.3))
+
+#season
+
+###Fe ----
+Fe.gm.0 <- lmer(data = iws.gm,
+                log(Fe) ~
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.0))
+
+Fe.gm.1 <- lmer(data = iws.gm,
+                log(Fe) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.1))
+
+Fe.gm.2.step <- step(Fe.gm.1)
+Fe.gm.2.step
+Fe.gm.2 <- get_model(Fe.gm.2.step)
+print(summary(Fe.gm.2))
+check_model(Fe.gm.2)
+anova(Fe.gm.1)
+print(anova(Fe.gm.2))
+performance(Fe.gm.2)
+#nothing
+
+###Mn ----
+Mn.gm.0 <- lmer(data = iws.gm,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.0))
+
+Mn.gm.1 <- lmer(data = iws.gm,
+                log(Mn) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.1))
+
+Mn.gm.2.step <- step(Mn.gm.1)
+Mn.gm.2.step
+Mn.gm.2 <- get_model(Mn.gm.2.step)
+print(summary(Mn.gm.2))
+check_model(Mn.gm.2)
+anova(Mn.gm.1)
+print(anova(Mn.gm.2))
+performance(Mn.gm.2)
+#season only
+
+
+###Mo ----
+mo.gm.0 <- lmer(data = iws.gm,
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.0))
+
+mo.gm.1 <- lmer(data = iws.gm,
+                log(Mo) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.1))
+
+mo.gm.2.step <- step(mo.gm.1)
+mo.gm.2.step
+mo.gm.2 <- get_model(mo.gm.2.step)
+print(summary(mo.gm.2))
+anova(mo.gm.1)
+print(anova(mo.gm.2))
+check_model(mo.gm.2)
+performance(mo.gm.2)
+plot(allEffects(mo.gm.2))
+#pH prox season
+
+###Ni ----
+ni.gm.0 <- lmer(data = iws.gm,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.0))
+
+ni.gm.1 <- lmer(data = iws.gm,
+                log(Ni) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.1))
+
+ni.gm.2.step <- step(ni.gm.1)
+ni.gm.2.step
+ni.gm.2 <- get_model(ni.gm.2.step)
+print(summary(ni.gm.2))
+anova(ni.gm.1)
+print(anova(ni.gm.2))
+check_model(ni.gm.2)
+performance(ni.gm.2)
+#season only, low marg r2
+
+###Pb ----
+Pb.gm.0 <- lmer(data = iws.gm,
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.0))
+
+Pb.gm.1 <- lmer(data = iws.gm,
+                log(Pb) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.1))
+
+Pb.gm.2.step <- step(Pb.gm.1)
+Pb.gm.2.step
+Pb.gm.2 <- get_model(Pb.gm.2.step)
+print(summary(Pb.gm.2))
+check_model(Pb.gm.2)
+anova(Pb.gm.1)
+print(anova(Pb.gm.2))
+performance(Pb.gm.2)
+plot(allEffects(Pb.gm.2))
+#season prox only
+
+###Sb ----
+Sb.gm.0 <- lmer(data = iws.gm,
+                log(Sb) ~
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.0))
+
+Sb.gm.1 <- lmer(data = iws.gm,
+                log(Sb) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.1))
+
+Sb.gm.2.step <- step(Sb.gm.1)
+Sb.gm.2.step
+Sb.gm.2 <- get_model(Sb.gm.2.step)
+summary(Sb.gm.2)
+Sb.gm.2 <- lm(data = iws.gm,
+              log(Sb) ~ Q77)
+print(summary(Sb.gm.2))
+check_model(Sb.gm.2)
+print(anova(Sb.gm.2))
+perf <- performance(Sb.gm.2)
+perf
+write.csv(perf, "sbgm77_diag.csv")
+plot(allEffects(Sb.gm.2))
+
+
+###Se ----
+Se.gm.0 <- lmer(data = iws.gm,
+                log(Se) ~
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.0))
+
+Se.gm.1 <- lmer(data = iws.gm,
+                log(Se) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.1))
+
+Se.gm.2.step <- step(Se.gm.1)
+Se.gm.2.step
+Se.gm.2 <- get_model(Se.gm.2.step)
+print(summary(Se.gm.2))
+check_model(Se.gm.2)
+anova(Se.gm.1)
+print(anova(Se.gm.2))
+performance(Se.gm.2)
+#nothing
+
+###Sn ----
+Sn.gm.0 <- lmer(data = iws.gm,
+                log(Sn) ~
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.0))
+
+Sn.gm.1 <- lmer(data = iws.gm,
+                log(Sn) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.1))
+
+Sn.gm.2.step <- step(Sn.gm.1)
+Sn.gm.2.step
+Sn.gm.2 <- get_model(Sn.gm.2.step)
+print(summary(Sn.gm.2))
+check_model(Sn.gm.2)
+anova(Sn.gm.1)
+print(anova(Sn.gm.2))
+performance(Sn.gm.2)
+#season
+
+###V ----
+v.gm.0 <- lmer(data = iws.gm,
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.gm.0))
+
+v.gm.1 <- lmer(data = iws.gm,
+               log(V) ~ season + prox.normal + location_2 + Q77 + pH +
+                 (1|site),
+               REML = F)
+print(summary(v.gm.1))
+
+v.gm.2.step <- step(v.gm.1)
+v.gm.2.step
+v.gm.2 <- get_model(v.gm.2.step)
+print(summary(v.gm.2))
+anova(v.gm.1)
+print(anova(v.gm.2))
+check_model(v.gm.2)
+performance(v.gm.2)
+#season only score almost signif
+
+###Zn ----
+Zn.gm.0 <- lmer(data = iws.gm,
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.0))
+
+Zn.gm.1 <- lmer(data = iws.gm,
+                log(Zn) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.1))
+
+Zn.gm.2.step <- step(Zn.gm.1)
+Zn.gm.2.step
+Zn.gm.2 <- get_model(Zn.gm.2.step)
+print(summary(Zn.gm.2))
+check_model(Zn.gm.2)
+anova(Zn.gm.1)
+print(anova(Zn.gm.2))
+performance(Zn.gm.2)
+#season
+
+## gm q60 ----
+###Ag----
+Ag.gm.0 <- lmer(data = iws.gm,
+                log(Ag) ~
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.0))
+
+Ag.gm.1 <- lmer(data = iws.gm,
+                log(Ag) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.1))
+vif(Ag.gm.1)
+Ag.gm.2.step <- step(Ag.gm.1)
+Ag.gm.2.step
+Ag.gm.2 <- get_model(Ag.gm.2.step)
+print(summary(Ag.gm.2))
+check_model(Ag.gm.2)
+anova(Ag.gm.1)
+print(anova(Ag.gm.2))
+plot(allEffects(Ag.gm.2))
+#score and pH
+
+###Al ----
+al.gm.0 <- lmer(data = iws.gm,
+                log(Al) ~
+                  (1|site),
+                REML = F)
+print(summary(al.gm.0))
+
+al.gm.1 <- lmer(data = iws.gm,
+                log(Al) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(al.gm.1))
+
+al.gm.2.step <- step(al.gm.1)
+al.gm.2.step
+al.gm.2 <- get_model(al.gm.2.step)
+print(summary(al.gm.2))
+check_model(al.gm.2)
+anova(al.gm.1)
+print(anova(al.gm.2))
+performance(al.gm.2)
+plot(allEffects(al.gm.2))
+#prox and score
+
+###As ----
+As.gm.0 <- lmer(data = iws.gm,
+                log(As) ~
+                  (1|site),
+                REML = F)
+print(summary(As.gm.0))
+
+As.gm.1 <- lmer(data = iws.gm,
+                log(As) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(As.gm.1))
+
+As.gm.2.step <- step(As.gm.1)
+As.gm.2.step
+As.gm.2 <- get_model(As.gm.2.step)
+print(summary(As.gm.2))
+check_model(As.gm.2)
+anova(As.gm.1)
+print(anova(As.gm.2))
+performance(As.gm.2)
+plot(allEffects(As.gm.2))
+#prox pH season
+
+###Ba ----
+ba.gm.0 <- lmer(data = iws.gm,
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.0))
+
+ba.gm.1 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.1))
+
+ba.gm.2.step <- step(ba.gm.1)
+ba.gm.2.step
+ba.gm.2 <- get_model(ba.gm.2.step)
+summary(ba.gm.2)
+ba.gm.2 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + Q60 +
+                  (1|site),
+                REML = T)
+print(summary(ba.gm.2))
+print(anova(ba.gm.2))
+check_model(ba.gm.2)
+plot(allEffects(ba.gm.2))
+perf <- performance(ba.gm.2)
+perf
+write.csv(perf, "ba_gm_q60_diag.csv")
+###Be ----
+Be.gm.0 <- lmer(data = iws.gm,
+                log(Be) ~
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.0))
+
+Be.gm.1 <- lmer(data = iws.gm,
+                log(Be) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.1))
+
+Be.gm.2.step <- step(Be.gm.1)
+Be.gm.2.step
+Be.gm.2 <- get_model(Be.gm.2.step)
+print(summary(Be.gm.2))
+check_model(Be.gm.2)
+anova(Be.gm.1)
+print(anova(Be.gm.2))
+perf <- performance(Be.gm.2)
+perf
+write.csv(perf, "Begm60_diag.csv")
+plot(allEffects(Be.gm.2))
+
+#prox season score
+
+###Cd ----
+Cd.gm.0 <- lmer(data = iws.gm,
+                log(Cd) ~
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.0))
+
+Cd.gm.1 <- lmer(data = iws.gm,
+                log(Cd) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.1))
+
+Cd.gm.2.step <- step(Cd.gm.1)
+Cd.gm.2.step
+Cd.gm.2 <- get_model(Cd.gm.2.step)
+print(summary(Cd.gm.2))
+check_model(Cd.gm.2)
+anova(Cd.gm.1)
+print(anova(Cd.gm.2))
+performance(Cd.gm.2)
+plot(allEffects(Cd.gm.2))
+#season and prox
+
+###Co ----
+Co.gm.0 <- lmer(data = iws.gm,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.0))
+
+Co.gm.1 <- lmer(data = iws.gm,
+                log(Co) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.1))
+
+Co.gm.2.step <- step(Co.gm.1)
+Co.gm.2.step
+Co.gm.2 <- get_model(Co.gm.2.step)
+print(summary(Co.gm.2))
+check_model(Co.gm.2)
+anova(Co.gm.1)
+print(anova(Co.gm.2))
+perf <- performance(Co.gm.2)
+perf
+write.csv(perf, "Co_gm_q60_diag.csv")
+#season only
+
+###Cr ----
+Cr.gm.0 <- lmer(data = iws.gm,
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.0))
+
+Cr.gm.1 <- lmer(data = iws.gm,
+                log(Cr) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.1))
+
+Cr.gm.2.step <- step(Cr.gm.1)
+Cr.gm.2.step
+Cr.gm.2 <- get_model(Cr.gm.2.step)
+print(summary(Cr.gm.2))
+check_model(Cr.gm.2)
+anova(Cr.gm.1)
+print(anova(Cr.gm.2))
+perf <- performance(Cr.gm.2)
+perf
+write.csv(perf, "cr_gm_q60_diag.csv")
+#season
+
+###Cu ----
+Cu.gm.0 <- lmer(data = iws.gm,
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.0))
+
+Cu.gm.1 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.1))
+
+Cu.gm.2.step <- step(Cu.gm.1)
+Cu.gm.2.step
+Cu.gm.2 <- get_model(Cu.gm.2.step)
+print(summary(Cu.gm.2))
+check_model(Cu.gm.2)
+anova(Cu.gm.1)
+print(anova(Cu.gm.2))
+performance(Cu.gm.2)
+
+Cu.gm.3 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.3))
+
+#season
+
+###Fe ----
+Fe.gm.0 <- lmer(data = iws.gm,
+                log(Fe) ~
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.0))
+
+Fe.gm.1 <- lmer(data = iws.gm,
+                log(Fe) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.1))
+
+Fe.gm.2.step <- step(Fe.gm.1)
+Fe.gm.2.step
+Fe.gm.2 <- get_model(Fe.gm.2.step)
+print(summary(Fe.gm.2))
+check_model(Fe.gm.2)
+anova(Fe.gm.1)
+print(anova(Fe.gm.2))
+performance(Fe.gm.2)
+#nothing
+
+###Mn ----
+Mn.gm.0 <- lmer(data = iws.gm,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.0))
+
+Mn.gm.1 <- lmer(data = iws.gm,
+                log(Mn) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.1))
+
+Mn.gm.2.step <- step(Mn.gm.1)
+Mn.gm.2.step
+Mn.gm.2 <- get_model(Mn.gm.2.step)
+print(summary(Mn.gm.2))
+check_model(Mn.gm.2)
+anova(Mn.gm.1)
+print(anova(Mn.gm.2))
+performance(Mn.gm.2)
+#season only
+
+
+###Mo ----
+mo.gm.0 <- lmer(data = iws.gm,
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.0))
+
+mo.gm.1 <- lmer(data = iws.gm,
+                log(Mo) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.1))
+
+mo.gm.2.step <- step(mo.gm.1)
+mo.gm.2.step
+mo.gm.2 <- get_model(mo.gm.2.step)
+print(summary(mo.gm.2))
+anova(mo.gm.1)
+print(anova(mo.gm.2))
+check_model(mo.gm.2)
+performance(mo.gm.2)
+plot(allEffects(mo.gm.2))
+#pH prox season
+
+###Ni ----
+ni.gm.0 <- lmer(data = iws.gm,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.0))
+
+ni.gm.1 <- lmer(data = iws.gm,
+                log(Ni) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.1))
+
+ni.gm.2.step <- step(ni.gm.1)
+ni.gm.2.step
+ni.gm.2 <- get_model(ni.gm.2.step)
+print(summary(ni.gm.2))
+anova(ni.gm.1)
+print(anova(ni.gm.2))
+check_model(ni.gm.2)
+performance(ni.gm.2)
+#season only, low marg r2
+
+###Pb ----
+Pb.gm.0 <- lmer(data = iws.gm,
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.0))
+
+Pb.gm.1 <- lmer(data = iws.gm,
+                log(Pb) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.1))
+
+Pb.gm.2.step <- step(Pb.gm.1)
+Pb.gm.2.step
+Pb.gm.2 <- get_model(Pb.gm.2.step)
+print(summary(Pb.gm.2))
+check_model(Pb.gm.2)
+anova(Pb.gm.1)
+print(anova(Pb.gm.2))
+performance(Pb.gm.2)
+plot(allEffects(Pb.gm.2))
+#season prox only
+
+###Sb ----
+Sb.gm.0 <- lmer(data = iws.gm,
+                log(Sb) ~
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.0))
+
+Sb.gm.1 <- lmer(data = iws.gm,
+                log(Sb) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.1))
+
+Sb.gm.2.step <- step(Sb.gm.1)
+Sb.gm.2.step
+Sb.gm.2 <- get_model(Sb.gm.2.step)
+summary(Sb.gm.2)
+Sb.gm.2 <- lm(data = iws.gm,
+              log(Sb) ~ Q60)
+print(summary(Sb.gm.2))
+check_model(Sb.gm.2)
+print(anova(Sb.gm.2))
+perf <- performance(Sb.gm.2)
+perf
+write.csv(perf, "sbgm60_diag.csv")
+plot(allEffects(Sb.gm.2))
+
+
+###Se ----
+Se.gm.0 <- lmer(data = iws.gm,
+                log(Se) ~
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.0))
+
+Se.gm.1 <- lmer(data = iws.gm,
+                log(Se) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.1))
+
+Se.gm.2.step <- step(Se.gm.1)
+Se.gm.2.step
+Se.gm.2 <- get_model(Se.gm.2.step)
+print(summary(Se.gm.2))
+check_model(Se.gm.2)
+anova(Se.gm.1)
+print(anova(Se.gm.2))
+performance(Se.gm.2)
+#nothing
+
+###Sn ----
+Sn.gm.0 <- lmer(data = iws.gm,
+                log(Sn) ~
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.0))
+
+Sn.gm.1 <- lmer(data = iws.gm,
+                log(Sn) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.1))
+
+Sn.gm.2.step <- step(Sn.gm.1)
+Sn.gm.2.step
+Sn.gm.2 <- get_model(Sn.gm.2.step)
+print(summary(Sn.gm.2))
+check_model(Sn.gm.2)
+anova(Sn.gm.1)
+print(anova(Sn.gm.2))
+performance(Sn.gm.2)
+#season
+
+###V ----
+v.gm.0 <- lmer(data = iws.gm,
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.gm.0))
+
+v.gm.1 <- lmer(data = iws.gm,
+               log(V) ~ season + prox.normal + location_2 + Q60 + pH +
+                 (1|site),
+               REML = F)
+print(summary(v.gm.1))
+
+v.gm.2.step <- step(v.gm.1)
+v.gm.2.step
+v.gm.2 <- get_model(v.gm.2.step)
+print(summary(v.gm.2))
+anova(v.gm.1)
+print(anova(v.gm.2))
+check_model(v.gm.2)
+performance(v.gm.2)
+#season only score almost signif
+
+###Zn ----
+Zn.gm.0 <- lmer(data = iws.gm,
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.0))
+
+Zn.gm.1 <- lmer(data = iws.gm,
+                log(Zn) ~ season + prox.normal + location_2 + Q60 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.1))
+
+Zn.gm.2.step <- step(Zn.gm.1)
+Zn.gm.2.step
+Zn.gm.2 <- get_model(Zn.gm.2.step)
+print(summary(Zn.gm.2))
+check_model(Zn.gm.2)
+anova(Zn.gm.1)
+print(anova(Zn.gm.2))
+performance(Zn.gm.2)
+#season
 ## dh q65 ----
 ###Ag ----
 Ag.dh.0 <- lmer(data = iws.dh,
@@ -2469,7 +3468,468 @@ print(anova(Zn.hw.2))
 performance(Zn.hw.2)
 #season
 
+## gm 77 ----
+###Ag ----
+Ag.gm.0 <- lmer(data = iws.gm,
+                log(Ag) ~
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.0))
 
+Ag.gm.1 <- lmer(data = iws.gm,
+                log(Ag) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Ag.gm.1))
+vif(Ag.gm.1)
+Ag.gm.2.step <- step(Ag.gm.1)
+Ag.gm.2.step
+Ag.gm.2 <- get_model(Ag.gm.2.step)
+print(summary(Ag.gm.2))
+check_model(Ag.gm.2)
+anova(Ag.gm.1)
+print(anova(Ag.gm.2))
+plot(allEffects(Ag.gm.2))
+#score and pH
+
+###Al ----
+al.gm.0 <- lmer(data = iws.gm,
+                log(Al) ~
+                  (1|site),
+                REML = F)
+print(summary(al.gm.0))
+
+al.gm.1 <- lmer(data = iws.gm,
+                log(Al) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(al.gm.1))
+
+al.gm.2.step <- step(al.gm.1)
+al.gm.2.step
+al.gm.2 <- get_model(al.gm.2.step)
+print(summary(al.gm.2))
+check_model(al.gm.2)
+anova(al.gm.1)
+print(anova(al.gm.2))
+performance(al.gm.2)
+plot(allEffects(al.gm.2))
+#prox and score
+
+###As ----
+As.gm.0 <- lmer(data = iws.gm,
+                log(As) ~
+                  (1|site),
+                REML = F)
+print(summary(As.gm.0))
+
+As.gm.1 <- lmer(data = iws.gm,
+                log(As) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(As.gm.1))
+
+As.gm.2.step <- step(As.gm.1)
+As.gm.2.step
+As.gm.2 <- get_model(As.gm.2.step)
+print(summary(As.gm.2))
+check_model(As.gm.2)
+anova(As.gm.1)
+print(anova(As.gm.2))
+performance(As.gm.2)
+plot(allEffects(As.gm.2))
+#prox pH season
+
+###Ba ----
+ba.gm.0 <- lmer(data = iws.gm,
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.0))
+
+ba.gm.1 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ba.gm.1))
+
+ba.gm.2.step <- step(ba.gm.1)
+ba.gm.2.step
+ba.gm.2 <- get_model(ba.gm.2.step)
+ba.gm.2 <- lmer(data = iws.gm,
+                log(Ba) ~ season + prox.normal + Q77 +
+                  (1|site),
+                REML = T)
+print(summary(ba.gm.2))
+print(anova(ba.gm.2))
+check_model(ba.gm.2)
+perf <- performance(ba.gm.2)
+perf
+write.csv(perf, "bagm77_diag.csv")
+plot(allEffects(ba.gm.2))
+#prox q77 season
+
+###Be ----
+Be.gm.0 <- lmer(data = iws.gm,
+                log(Be) ~
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.0))
+
+Be.gm.1 <- lmer(data = iws.gm,
+                log(Be) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Be.gm.1))
+
+Be.gm.2.step <- step(Be.gm.1)
+Be.gm.2.step
+Be.gm.2 <- get_model(Be.gm.2.step)
+print(summary(Be.gm.2))
+check_model(Be.gm.2)
+anova(Be.gm.1)
+print(anova(Be.gm.2))
+performance(Be.gm.2)
+plot(allEffects(Be.gm.2))
+#prox season score
+
+###Cd ----
+Cd.gm.0 <- lmer(data = iws.gm,
+                log(Cd) ~
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.0))
+
+Cd.gm.1 <- lmer(data = iws.gm,
+                log(Cd) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cd.gm.1))
+
+Cd.gm.2.step <- step(Cd.gm.1)
+Cd.gm.2.step
+Cd.gm.2 <- get_model(Cd.gm.2.step)
+print(summary(Cd.gm.2))
+check_model(Cd.gm.2)
+anova(Cd.gm.1)
+print(anova(Cd.gm.2))
+performance(Cd.gm.2)
+plot(allEffects(Cd.gm.2))
+#season and prox
+
+###Co ----
+Co.gm.0 <- lmer(data = iws.gm,
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.0))
+
+Co.gm.1 <- lmer(data = iws.gm,
+                log(Co) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Co.gm.1))
+
+Co.gm.2.step <- step(Co.gm.1)
+Co.gm.2.step
+Co.gm.2 <- get_model(Co.gm.2.step)
+print(summary(Co.gm.2))
+check_model(Co.gm.2)
+anova(Co.gm.1)
+print(anova(Co.gm.2))
+performance(Co.gm.2)
+#season only
+
+###Cr ----
+Cr.gm.0 <- lmer(data = iws.gm,
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.0))
+
+Cr.gm.1 <- lmer(data = iws.gm,
+                log(Cr) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cr.gm.1))
+
+Cr.gm.2.step <- step(Cr.gm.1)
+Cr.gm.2.step
+Cr.gm.2 <- get_model(Cr.gm.2.step)
+print(summary(Cr.gm.2))
+check_model(Cr.gm.2)
+anova(Cr.gm.1)
+print(anova(Cr.gm.2))
+performance(Cr.gm.2)
+#season
+
+###Cu ----
+Cu.gm.0 <- lmer(data = iws.gm,
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.0))
+
+Cu.gm.1 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.1))
+
+Cu.gm.2.step <- step(Cu.gm.1)
+Cu.gm.2.step
+Cu.gm.2 <- get_model(Cu.gm.2.step)
+print(summary(Cu.gm.2))
+check_model(Cu.gm.2)
+anova(Cu.gm.1)
+print(anova(Cu.gm.2))
+performance(Cu.gm.2)
+
+Cu.gm.3 <- lmer(data = iws.gm,
+                log(Cu) ~ season + prox.normal +
+                  (1|site),
+                REML = F)
+print(summary(Cu.gm.3))
+
+#season
+
+###Fe ----
+Fe.gm.0 <- lmer(data = iws.gm,
+                log(Fe) ~
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.0))
+
+Fe.gm.1 <- lmer(data = iws.gm,
+                log(Fe) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Fe.gm.1))
+
+Fe.gm.2.step <- step(Fe.gm.1)
+Fe.gm.2.step
+Fe.gm.2 <- get_model(Fe.gm.2.step)
+print(summary(Fe.gm.2))
+check_model(Fe.gm.2)
+anova(Fe.gm.1)
+print(anova(Fe.gm.2))
+performance(Fe.gm.2)
+#nothing
+
+###Mn ----
+Mn.gm.0 <- lmer(data = iws.gm,
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.0))
+
+Mn.gm.1 <- lmer(data = iws.gm,
+                log(Mn) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Mn.gm.1))
+
+Mn.gm.2.step <- step(Mn.gm.1)
+Mn.gm.2.step
+Mn.gm.2 <- get_model(Mn.gm.2.step)
+print(summary(Mn.gm.2))
+check_model(Mn.gm.2)
+anova(Mn.gm.1)
+print(anova(Mn.gm.2))
+performance(Mn.gm.2)
+#season only
+
+
+###Mo ----
+mo.gm.0 <- lmer(data = iws.gm,
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.0))
+
+mo.gm.1 <- lmer(data = iws.gm,
+                log(Mo) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(mo.gm.1))
+
+mo.gm.2.step <- step(mo.gm.1)
+mo.gm.2.step
+mo.gm.2 <- get_model(mo.gm.2.step)
+print(summary(mo.gm.2))
+anova(mo.gm.1)
+print(anova(mo.gm.2))
+check_model(mo.gm.2)
+performance(mo.gm.2)
+plot(allEffects(mo.gm.2))
+#pH prox season
+
+###Ni ----
+ni.gm.0 <- lmer(data = iws.gm,
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.0))
+
+ni.gm.1 <- lmer(data = iws.gm,
+                log(Ni) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(ni.gm.1))
+
+ni.gm.2.step <- step(ni.gm.1)
+ni.gm.2.step
+ni.gm.2 <- get_model(ni.gm.2.step)
+print(summary(ni.gm.2))
+anova(ni.gm.1)
+print(anova(ni.gm.2))
+check_model(ni.gm.2)
+performance(ni.gm.2)
+#season only, low marg r2
+
+###Pb ----
+Pb.gm.0 <- lmer(data = iws.gm,
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.0))
+
+Pb.gm.1 <- lmer(data = iws.gm,
+                log(Pb) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Pb.gm.1))
+
+Pb.gm.2.step <- step(Pb.gm.1)
+Pb.gm.2.step
+Pb.gm.2 <- get_model(Pb.gm.2.step)
+print(summary(Pb.gm.2))
+check_model(Pb.gm.2)
+anova(Pb.gm.1)
+print(anova(Pb.gm.2))
+performance(Pb.gm.2)
+plot(allEffects(Pb.gm.2))
+#season prox only
+
+###Sb ----
+Sb.gm.0 <- lmer(data = iws.gm,
+                log(Sb) ~
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.0))
+
+Sb.gm.1 <- lmer(data = iws.gm,
+                log(Sb) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sb.gm.1))
+
+Sb.gm.2.step <- step(Sb.gm.1)
+Sb.gm.2.step
+Sb.gm.2 <- get_model(Sb.gm.2.step)
+
+Sb.gm.2 <- lm(data = iws.gm,
+              log(Sb) ~ Q77)
+print(summary(Sb.gm.2))
+check_model(Sb.gm.2)
+print(anova(Sb.gm.2))
+perf <- performance(Sb.gm.2)
+perf
+write.csv(perf, "sbgm77_diag.csv")
+plot(allEffects(Sb.gm.2))
+
+
+###Se ----
+Se.gm.0 <- lmer(data = iws.gm,
+                log(Se) ~
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.0))
+
+Se.gm.1 <- lmer(data = iws.gm,
+                log(Se) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Se.gm.1))
+
+Se.gm.2.step <- step(Se.gm.1)
+Se.gm.2.step
+Se.gm.2 <- get_model(Se.gm.2.step)
+print(summary(Se.gm.2))
+check_model(Se.gm.2)
+anova(Se.gm.1)
+print(anova(Se.gm.2))
+performance(Se.gm.2)
+#nothing
+
+###Sn ----
+Sn.gm.0 <- lmer(data = iws.gm,
+                log(Sn) ~
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.0))
+
+Sn.gm.1 <- lmer(data = iws.gm,
+                log(Sn) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Sn.gm.1))
+
+Sn.gm.2.step <- step(Sn.gm.1)
+Sn.gm.2.step
+Sn.gm.2 <- get_model(Sn.gm.2.step)
+print(summary(Sn.gm.2))
+check_model(Sn.gm.2)
+anova(Sn.gm.1)
+print(anova(Sn.gm.2))
+performance(Sn.gm.2)
+#season
+
+###V ----
+v.gm.0 <- lmer(data = iws.gm,
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.gm.0))
+
+v.gm.1 <- lmer(data = iws.gm,
+               log(V) ~ season + prox.normal + location_2 + Q77 + pH +
+                 (1|site),
+               REML = F)
+print(summary(v.gm.1))
+
+v.gm.2.step <- step(v.gm.1)
+v.gm.2.step
+v.gm.2 <- get_model(v.gm.2.step)
+print(summary(v.gm.2))
+anova(v.gm.1)
+print(anova(v.gm.2))
+check_model(v.gm.2)
+performance(v.gm.2)
+#season only score almost signif
+
+###Zn ----
+Zn.gm.0 <- lmer(data = iws.gm,
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.0))
+
+Zn.gm.1 <- lmer(data = iws.gm,
+                log(Zn) ~ season + prox.normal + location_2 + Q77 + pH +
+                  (1|site),
+                REML = F)
+print(summary(Zn.gm.1))
+
+Zn.gm.2.step <- step(Zn.gm.1)
+Zn.gm.2.step
+Zn.gm.2 <- get_model(Zn.gm.2.step)
+print(summary(Zn.gm.2))
+check_model(Zn.gm.2)
+anova(Zn.gm.1)
+print(anova(Zn.gm.2))
+performance(Zn.gm.2)
+#season
 
 #functions ----
 sumFX <- function(datalongDF, subset.vector.string, value.string, dfname.string, filename.string){
