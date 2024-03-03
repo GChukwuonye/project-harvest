@@ -570,7 +570,7 @@ print(summary(Ag.gm.0))
 check_model(Ag.gm.0)
 
 Ag.gm.1 <- lmer(data = iws.gm,
-                log(Ag) ~ season + prox.normal+location_2 +  pH +
+                log(Ag) ~ season + prox.normal+location_2 + pH +
                   (1|site),
                 REML = F)
 print(summary(Ag.gm.1))
