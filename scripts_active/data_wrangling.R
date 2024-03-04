@@ -366,6 +366,9 @@ hds.long[hds.long$question == "Q78b"& hds.long$response=="11",]$response <- "Met
 hds.long[hds.long$question == "Q78"& hds.long$response=="1, 5",]$response <- "Metal, Plastic"
 hds.long[hds.long$question == "Q78"& hds.long$response=="2, 5",]$response <- "Metal, Plastic"
 
+#make factor - this might screw up modeling and viz...
+hds.long$response <- as.factor(hds.long$response)
+
 #pivot wider to combine with rainwater data
 hds.wide <- pivot_wider(data = hds.long,
                         names_from = "question",
