@@ -29,14 +29,24 @@ library(pals)
 ##hds wrangling ----
 #each time you run the models, you need to change out the hds question you're focused on below. And apply the correct factor ordering
 iws <- iw.hds%>%
-  drop_na(Q67)%>%
+  drop_na(Q78)%>%
   mutate(Q9 = factor(Q9))%>%
   mutate(Q18 = factor(Q18))%>%
   mutate(Q44 = factor(Q44))%>%
-  mutate(Q67 = factor(Q67))
+  mutate(Q67 = factor(Q67))%>%
+  mutate(Q68 = factor(Q68))%>%
+  mutate(Q60 = factor(Q60))%>%
+  mutate(Q65 = factor(Q65))%>%
+  mutate(Q76 = factor(Q76))%>%
+  mutate(Q77 = factor(Q77))%>%
+  mutate(Q78 = factor(Q78))
 
+summary(iws$Q78)
 
 iws$Q9 <- factor(iws$Q9, levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+
+iws$Q65 <- factor(iws$Q65, levels = c("<6 months", "6 months-1 year", "1-2 years", "2-3 years", "3-4 years", "5+ years"))
+
 
 ##general wrangling----
 #iws <- iw.dm
@@ -59,6 +69,14 @@ iws.tu <- iws.tu %>%
   drop_na(community) %>%
   drop_na(location)
 iws.tu$ward <- factor(iws.tu$ward, levels = c("One", "Two", "Three", "Four", "Five", "Six"))
+
+#for Q60 only
+#iws.tu <- iws.tu[iws.tu$Q60 != "Concrete"&iws.tu$Q60 != "Fiberglass",]
+
+#for Q78b only
+iws.tu <- iws.tu[iws.tu$Q78b!="Metal, Plastic"&iws.tu$Q78b!="Rocks"&iws.tu$Q78b!=
+                   "Cotton/Cloth",]
+summary(as.factor(iws.tu$Q78b))
 
 #add sub location to globe data
 glo <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "globe", col_names = TRUE)
@@ -105,7 +123,7 @@ ggplot(iw.dm, mapping = aes(y = log(pli), x = community, fill = community)) +
 dev.print(png, "pli_comssn.png", res=300, height=8, width=10, units="in")
 
 #modeling ----
-##overall ----
+##overall pli ----
 ###all communities ----
 pli.0 <- lmer(data = iw.dm,
                 log(pli) ~
@@ -860,5 +878,492 @@ perf <- performance(pli.q67.tu.2)
 perf
 write.csv(perf, "pli_q67_tu_diag.csv")
 #q67 not signif
+
+
+
+##hds Q68 roof wash frequency ----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q68))+
+  geom_histogram()+
+  facet_grid(community~.)
+#might be some correlation between proximity and wash frequency in Globe
+###globe/miami ----
+pli.q68.gm.0 <- lmer(data = iws.gm,
+                    log(pli) ~
+                      (1|site),
+                    REML = F)
+print(summary(pli.q68.gm.0))
+
+pli.q68.gm <- lmer(data = iws.gm,
+                  log(pli) ~ Q68+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q68.gm))
+anova(pli.q68.gm)
+check_model(pli.q68.gm)
+plot(allEffects(pli.q68.gm))
+#q68 signif, generally a negative trend, decent assumptions
+
+pli.q68.gm.1 <- lmer(data = iws.gm,
+                    log(pli) ~ season + prox.normal + location_2 + pH+Q68+
+                      (1|site),
+                    REML = F)
+print(summary(pli.q68.gm.1))
+vif(pli.q68.gm.1)
+anova(pli.q68.gm.1)
+pli.q68.gm.2.step <- step(pli.q68.gm.1)
+pli.q68.gm.2.step
+pli.q68.gm.2 <- get_model(pli.q68.gm.2.step)
+print(summary(pli.q68.gm.2))
+check_model(pli.q68.gm.2)
+print(anova(pli.q68.gm.2))
+plot(allEffects(pli.q68.gm.2)) #
+pli.q68.gm.sum <- summary(pli.q68.gm.2)
+pli.q68.gm.sum
+# write.csv(pli.q68.gm.sum$coefficients, "pli_q68_gm_coefs.csv")
+# perf <- performance(pli.q68.gm.2)
+# perf
+# write.csv(perf, "pli_q68_gm_diag.csv")
+#q68 not signif
+
+###tucson ----
+pli.q68.tu.0 <- lmer(data = iws.tu,
+                    log(pli) ~
+                      (1|site),
+                    REML = F)
+print(summary(pli.q68.tu.0))
+
+pli.q68.tu <- lmer(data = iws.tu,
+                  log(pli) ~ Q68+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q68.tu))
+anova(pli.q68.tu)
+check_model(pli.q68.tu)
+plot(allEffects(pli.q68.tu))
+#q68 not signif
+
+pli.q68.tu.1 <- lmer(data = iws.tu,
+                    log(pli) ~ season + prox.normal + ward + pH + prox.normal:pH + prox.normal:season+Q68+
+                      (1|site),
+                    REML = F)
+print(summary(pli.q68.tu.1))
+vif(pli.q68.tu.1)
+pli.q68.tu.2.step <- step(pli.q68.tu.1)
+pli.q68.tu.2.step
+pli.q68.tu.2 <- get_model(pli.q68.tu.2.step)
+print(summary(pli.q68.tu.2))
+check_model(pli.q68.tu.2)
+anova(pli.q68.tu.1)
+print(anova(pli.q68.tu.2))
+plot(allEffects(pli.q68.tu.2))
+pli.q68.tu.sum <- summary(pli.q68.tu.2)
+pli.q68.tu.sum
+# write.csv(pli.q68.tu.sum$coefficients, "pli_q68_tu_coefs.csv")
+# perf <- performance(pli.q68.tu.2)
+# perf
+# write.csv(perf, "pli_q68_tu_diag.csv")
+#q68 not signif
+
+
+
+
+
+
+##hds Q60 home age----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q60))+
+  geom_histogram()+
+  facet_grid(community~.)
+#no apparent correlation
+####tucson ----
+pli.q60.tu.0 <- lmer(data = iws.tu,
+                    log(pli) ~
+                      (1|site),
+                    REML = F)
+print(summary(pli.q60.tu.0))
+
+pli.q60.tu <- lmer(data = iws.tu,
+                  log(pli) ~ Q60+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q60.tu))
+anova(pli.q60.tu)
+check_model(pli.q60.tu)
+plot(allEffects(pli.q60.tu))
+#q60 not signif
+
+pli.q60.tu.1 <- lmer(data = iws.tu,
+                    log(pli) ~ season + prox.normal + ward + pH + prox.normal:pH + prox.normal:season+Q60+
+                      (1|site),
+                    REML = F)
+print(summary(pli.q60.tu.1))
+vif(pli.q60.tu.1)
+pli.q60.tu.2.step <- step(pli.q60.tu.1)
+pli.q60.tu.2.step
+pli.q60.tu.2 <- get_model(pli.q60.tu.2.step)
+print(summary(pli.q60.tu.2))
+check_model(pli.q60.tu.2)
+anova(pli.q60.tu.1)
+print(anova(pli.q60.tu.2))
+plot(allEffects(pli.q60.tu.2))
+pli.q60.tu.sum <- summary(pli.q60.tu.2)
+pli.q60.tu.sum
+# write.csv(pli.q60.tu.sum$coefficients, "pli_q60_tu_coefs.csv")
+# perf <- performance(pli.q60.tu.2)
+# perf
+# write.csv(perf, "pli_q60_tu_diag.csv")
+#q60 not signif
+
+
+
+
+##hds Q65 cistern age----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q65))+
+  geom_histogram()+
+  facet_grid(community~.)
+#might be a correlation with proximity and cistern age in Globe, older cisterns closer to mine and canyons - further from town?
+
+###all communities ----
+pli.q65.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                  log(pli) ~
+                    (1|site),
+                  REML = F)
+print(summary(pli.q65.0))
+
+pli.q65 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(pli) ~ Q65+
+                  (1|site),
+                REML = F)
+print(summary(pli.q65))
+anova(pli.q65)
+check_model(pli.q65) #pretty good model
+plot(allEffects(pli.q65))
+#univariate, q65 significant oldest homes have highest contamination
+
+pli.q65.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                  log(pli) ~ season + prox.normal + pH + community+community:prox.normal+Q65+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q65.1))
+vif(pli.q65.1)
+pli.q65.2.step <- step(pli.q65.1)
+pli.q65.2.step
+pli.q65.2 <- get_model(pli.q65.2.step)
+print(summary(pli.q65.2))
+check_model(pli.q65.2)
+anova(pli.q65.1)
+print(anova(pli.q65.2))
+plot(allEffects(pli.q65.2))
+pli.q65.sum <- summary(pli.q65.2)
+# write.csv(pli.q65.sum$coefficients, "pli_q65_coefs.csv")
+# perf <- performance(pli.q65.2)
+# perf
+# write.csv(perf, "pli_q65_diag.csv")
+#q65 not signif
+
+
+###dewey-humboldt ----
+pli.q65.dh.0 <- lmer(data = iws.dh,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q65.dh.0))
+
+pli.q65.dh <- lmer(data = iws.dh,
+                   log(pli) ~ Q65+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q65.dh))
+anova(pli.q65.dh)
+check_model(pli.q65.dh)
+plot(allEffects(pli.q65.dh))
+#q65 not signif
+
+pli.q65.dh.1 <- lmer(data = iws.dh,
+                     log(pli) ~ season + pH + prox.normal+Q65+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q65.dh.1))
+vif(pli.q65.dh.1)
+pli.q65.dh.2.step <- step(pli.q65.dh.1)
+pli.q65.dh.2.step
+pli.q65.dh.2 <- get_model(pli.q65.dh.2.step)
+print(summary(pli.q65.dh.2))
+check_model(pli.q65.dh.2) #decent assumptions
+anova(pli.q65.dh.1)
+print(anova(pli.q65.dh.2))
+plot(allEffects(pli.q65.dh.2))
+pli.q65.dh.sum <- summary(pli.q65.dh.2)
+pli.q65.dh.sum
+write.csv(pli.q65.dh.sum$coefficients, "pli_q65_dh_coefs.csv")
+perf <- performance(pli.q65.dh.2)
+perf
+write.csv(perf, "pli_q65_dh_diag.csv")
+#q65 is signif, with cisterns <6mo - 2 years having lower contam than cisterns 3-5+ years old
+
+###globe/miami ----
+pli.q65.gm.0 <- lmer(data = iws.gm,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q65.gm.0))
+
+pli.q65.gm <- lmer(data = iws.gm,
+                   log(pli) ~ Q65+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q65.gm))
+anova(pli.q65.gm)
+check_model(pli.q65.gm)
+plot(allEffects(pli.q65.gm))
+#q65 nearly signif p = .1
+
+pli.q65.gm.1 <- lmer(data = iws.gm,
+                     log(pli) ~ season + prox.normal + location_2 + pH+Q65+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q65.gm.1))
+vif(pli.q65.gm.1)
+anova(pli.q65.gm.1)
+pli.q65.gm.2.step <- step(pli.q65.gm.1)
+pli.q65.gm.2.step
+pli.q65.gm.2 <- get_model(pli.q65.gm.2.step)
+print(summary(pli.q65.gm.2))
+check_model(pli.q65.gm.2)
+print(anova(pli.q65.gm.2))
+plot(allEffects(pli.q65.gm.2)) #
+pli.q65.gm.sum <- summary(pli.q65.gm.2)
+pli.q65.gm.sum
+# write.csv(pli.q65.gm.sum$coefficients, "pli_q65_gm_coefs.csv")
+# perf <- performance(pli.q65.gm.2)
+# perf
+# write.csv(perf, "pli_q65_gm_diag.csv")
+#q65 not signif
+
+###tucson ----
+pli.q65.tu.0 <- lmer(data = iws.tu,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q65.tu.0))
+
+pli.q65.tu <- lmer(data = iws.tu,
+                   log(pli) ~ Q65+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q65.tu))
+anova(pli.q65.tu)
+check_model(pli.q65.tu)
+plot(allEffects(pli.q65.tu))
+#q65 not signif
+
+pli.q65.tu.1 <- lmer(data = iws.tu,
+                     log(pli) ~ season + prox.normal + ward + pH + prox.normal:pH + prox.normal:season+Q65+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q65.tu.1))
+vif(pli.q65.tu.1)
+pli.q65.tu.2.step <- step(pli.q65.tu.1)
+pli.q65.tu.2.step
+pli.q65.tu.2 <- get_model(pli.q65.tu.2.step)
+print(summary(pli.q65.tu.2))
+check_model(pli.q65.tu.2)
+anova(pli.q65.tu.1)
+print(anova(pli.q65.tu.2))
+plot(allEffects(pli.q65.tu.2))
+pli.q65.tu.sum <- summary(pli.q65.tu.2)
+pli.q65.tu.sum
+# write.csv(pli.q65.tu.sum$coefficients, "pli_q65_tu_coefs.csv")
+# perf <- performance(pli.q65.tu.2)
+# perf
+# write.csv(perf, "pli_q65_tu_diag.csv")
+#q65 not signif
+
+
+
+##hds Q71 cistern wash ----
+#not enough sample spread in any community to reliably analyze
+
+##hds Q76 home age----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q76))+
+  geom_histogram()+
+  facet_grid(community~.)
+#no apparent correlation
+####tucson ----
+pli.q76.tu.0 <- lmer(data = iws.tu,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q76.tu.0))
+
+pli.q76.tu <- lmer(data = iws.tu,
+                   log(pli) ~ Q76+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q76.tu))
+anova(pli.q76.tu)
+check_model(pli.q76.tu)
+plot(allEffects(pli.q76.tu))
+#q76 not signif
+
+pli.q76.tu.1 <- lmer(data = iws.tu,
+                     log(pli) ~ season + prox.normal + ward + pH + prox.normal:pH + prox.normal:season+Q76+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q76.tu.1))
+vif(pli.q76.tu.1)
+pli.q76.tu.2.step <- step(pli.q76.tu.1)
+pli.q76.tu.2.step
+pli.q76.tu.2 <- get_model(pli.q76.tu.2.step)
+print(summary(pli.q76.tu.2))
+check_model(pli.q76.tu.2)
+anova(pli.q76.tu.1)
+print(anova(pli.q76.tu.2))
+plot(allEffects(pli.q76.tu.2))
+pli.q76.tu.sum <- summary(pli.q76.tu.2)
+pli.q76.tu.sum
+# write.csv(pli.q76.tu.sum$coefficients, "pli_q76_tu_coefs.csv")
+# perf <- performance(pli.q76.tu.2)
+# perf
+# write.csv(perf, "pli_q76_tu_diag.csv")
+#q76 not signif
+
+
+
+
+##hds Q77 cistern age----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q77))+
+  geom_histogram()+
+  facet_grid(community~.)
+#no apparent correlation
+
+###dewey-humboldt ----
+pli.q77.dh.0 <- lmer(data = iws.dh,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q77.dh.0))
+
+pli.q77.dh <- lmer(data = iws.dh,
+                   log(pli) ~ Q77+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q77.dh))
+anova(pli.q77.dh)
+check_model(pli.q77.dh)
+plot(allEffects(pli.q77.dh))
+#q77 not signif
+
+pli.q77.dh.1 <- lmer(data = iws.dh,
+                     log(pli) ~ season + pH + prox.normal+Q77+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q77.dh.1))
+vif(pli.q77.dh.1)
+pli.q77.dh.2.step <- step(pli.q77.dh.1)
+pli.q77.dh.2.step
+pli.q77.dh.2 <- get_model(pli.q77.dh.2.step)
+print(summary(pli.q77.dh.2))
+check_model(pli.q77.dh.2) #
+anova(pli.q77.dh.1)
+print(anova(pli.q77.dh.2))
+plot(allEffects(pli.q77.dh.2))
+pli.q77.dh.sum <- summary(pli.q77.dh.2)
+pli.q77.dh.sum
+# write.csv(pli.q77.dh.sum$coefficients, "pli_q77_dh_coefs.csv")
+# perf <- performance(pli.q77.dh.2)
+# perf
+# write.csv(perf, "pli_q77_dh_diag.csv")
+#q77 is not signif
+
+###globe/miami ----
+pli.q77.gm.0 <- lmer(data = iws.gm,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q77.gm.0))
+
+pli.q77.gm <- lmer(data = iws.gm,
+                   log(pli) ~ Q77+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q77.gm))
+anova(pli.q77.gm)
+check_model(pli.q77.gm)
+plot(allEffects(pli.q77.gm))
+#q77 not signif
+
+pli.q77.gm.1 <- lmer(data = iws.gm,
+                     log(pli) ~ season + prox.normal + location_2 + pH+Q77+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q77.gm.1))
+vif(pli.q77.gm.1)
+anova(pli.q77.gm.1)
+pli.q77.gm.2.step <- step(pli.q77.gm.1)
+pli.q77.gm.2.step
+pli.q77.gm.2 <- get_model(pli.q77.gm.2.step)
+print(summary(pli.q77.gm.2))
+check_model(pli.q77.gm.2)
+print(anova(pli.q77.gm.2))
+plot(allEffects(pli.q77.gm.2)) #
+pli.q77.gm.sum <- summary(pli.q77.gm.2)
+pli.q77.gm.sum
+# write.csv(pli.q77.gm.sum$coefficients, "pli_q77_gm_coefs.csv")
+# perf <- performance(pli.q77.gm.2)
+# perf
+# write.csv(perf, "pli_q77_gm_diag.csv")
+#q77 not signif
+
+##hds Q78b home age----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q78b))+
+  geom_histogram()+
+  facet_grid(community~.)
+#globe has plastic cistern screens closer to mine
+
+####tucson ----
+pli.q78b.tu.0 <- lmer(data = iws.tu,
+                     log(pli) ~
+                       (1|site),
+                     REML = F)
+print(summary(pli.q78b.tu.0))
+
+pli.q78b.tu <- lmer(data = iws.tu,
+                   log(pli) ~ Q78b+
+                     (1|site),
+                   REML = F)
+print(summary(pli.q78b.tu))
+anova(pli.q78b.tu)
+check_model(pli.q78b.tu)
+plot(allEffects(pli.q78b.tu))
+#q78b not signif
+
+pli.q78b.tu.1 <- lmer(data = iws.tu,
+                     log(pli) ~ season + prox.normal + ward + pH + prox.normal:pH + prox.normal:season+Q78b+
+                       (1|site),
+                     REML = F)
+print(summary(pli.q78b.tu.1))
+vif(pli.q78b.tu.1)
+pli.q78b.tu.2.step <- step(pli.q78b.tu.1)
+pli.q78b.tu.2.step
+pli.q78b.tu.2 <- get_model(pli.q78b.tu.2.step)
+print(summary(pli.q78b.tu.2))
+check_model(pli.q78b.tu.2)
+anova(pli.q78b.tu.1)
+print(anova(pli.q78b.tu.2))
+plot(allEffects(pli.q78b.tu.2))
+pli.q78b.tu.sum <- summary(pli.q78b.tu.2)
+pli.q78b.tu.sum
+# write.csv(pli.q78b.tu.sum$coefficients, "pli_q78b_tu_coefs.csv")
+# perf <- performance(pli.q78b.tu.2)
+# perf
+# write.csv(perf, "pli_q78b_tu_diag.csv")
+#q78b not signif whether rocks, cotton/cloth are included or not
+
 
 

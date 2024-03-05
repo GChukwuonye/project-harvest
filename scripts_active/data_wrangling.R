@@ -328,8 +328,8 @@ hds.long[hds.long$question == "Q65"& hds.long$response=="2",]$response <- "<6 mo
 hds.long[hds.long$question == "Q65"& hds.long$response=="3",]$response <- "6 months-1 year"
 hds.long[hds.long$question == "Q65"& hds.long$response=="4",]$response <- "1-2 years"
 hds.long[hds.long$question == "Q65"& hds.long$response=="5",]$response <- "2-3 years"
-hds.long[hds.long$question == "Q65"& hds.long$response=="5",]$response <- "3-4 years"
-hds.long[hds.long$question == "Q65"& hds.long$response=="5",]$response <- "5+ years"
+hds.long[hds.long$question == "Q65"& hds.long$response=="6",]$response <- "3-4 years"
+hds.long[hds.long$question == "Q65"& hds.long$response=="7",]$response <- "5+ years"
 
 #Q76: first flush
 hds.long[hds.long$question == "Q76"& hds.long$response=="1",]$response <- "Yes"
@@ -363,8 +363,8 @@ hds.long[hds.long$question == "Q78b"& hds.long$response=="6",]$response <- "Cott
 hds.long[hds.long$question == "Q78b"& hds.long$response=="9",]$response <- "Rocks"
 hds.long[hds.long$question == "Q78b"& hds.long$response=="10",]$response <- "Metal"
 hds.long[hds.long$question == "Q78b"& hds.long$response=="11",]$response <- "Metal"
-hds.long[hds.long$question == "Q78"& hds.long$response=="1, 5",]$response <- "Metal, Plastic"
-hds.long[hds.long$question == "Q78"& hds.long$response=="2, 5",]$response <- "Metal, Plastic"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="1, 5",]$response <- "Metal, Plastic"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="2, 5",]$response <- "Metal, Plastic"
 
 #pivot wider to combine with rainwater data
 hds.wide <- pivot_wider(data = hds.long,
