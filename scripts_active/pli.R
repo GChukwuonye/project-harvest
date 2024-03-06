@@ -29,7 +29,7 @@ library(pals)
 ##hds wrangling ----
 #each time you run the models, you need to change out the hds question you're focused on below. And apply the correct factor ordering
 iws <- iw.hds%>%
-  drop_na(Q78)%>%
+  drop_na(Q65)%>%
   mutate(Q9 = factor(Q9))%>%
   mutate(Q18 = factor(Q18))%>%
   mutate(Q44 = factor(Q44))%>%
@@ -39,17 +39,27 @@ iws <- iw.hds%>%
   mutate(Q65 = factor(Q65))%>%
   mutate(Q76 = factor(Q76))%>%
   mutate(Q77 = factor(Q77))%>%
-  mutate(Q78 = factor(Q78))
+  mutate(Q78 = factor(Q78))%>%
+  mutate(Q1 = factor(Q1))
 
-summary(iws$Q78)
+summary(iws$Q1)
 
-iws$Q9 <- factor(iws$Q9, levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+#iws$Q9 <- factor(iws$Q9, levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
 
-iws$Q65 <- factor(iws$Q65, levels = c("<6 months", "6 months-1 year", "1-2 years", "2-3 years", "3-4 years", "5+ years"))
+#iws$Q65 <- factor(iws$Q65, levels = c("<6 months", "6 months-1 year", "1-2 years", "2-3 years", "3-4 years", "5+ years"))
 
+# #for Q1 only
+# #overall
+# summary(as.factor(iws$Q1))
+# #removing the following due to low SAMPLE size (1, 2, 3, 4): Clay/Concrete Tile; Flat BUR (Tar/Gravel), Metal Panel
+# #may need to remove roofs with only 5 SAMPLES: Clay/Concrete Tile, Flat BUR (Reflective)
+# iws <- iws%>%
+#   filter(Q1 != "Clay/Concrete Tile")%>%
+#   filter(Q1 != "Flat BUR (Tar/Gravel), Metal Panel")
+#   
 
 ##general wrangling----
-#iws <- iw.dm
+#iws <- iw.dm #use this line if NOT doing hds modeling and ignore the data section above
 iws.c <- iws %>%
   drop_na(pH) %>%
   drop_na(prox.normal) %>%
@@ -70,14 +80,6 @@ iws.tu <- iws.tu %>%
   drop_na(location)
 iws.tu$ward <- factor(iws.tu$ward, levels = c("One", "Two", "Three", "Four", "Five", "Six"))
 
-#for Q60 only
-#iws.tu <- iws.tu[iws.tu$Q60 != "Concrete"&iws.tu$Q60 != "Fiberglass",]
-
-#for Q78b only
-iws.tu <- iws.tu[iws.tu$Q78b!="Metal, Plastic"&iws.tu$Q78b!="Rocks"&iws.tu$Q78b!=
-                   "Cotton/Cloth",]
-summary(as.factor(iws.tu$Q78b))
-
 #add sub location to globe data
 glo <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "globe", col_names = TRUE)
 iws.gm <- full_join(iws.gm, glo, by = c("site"))
@@ -93,6 +95,36 @@ iws.hw <- iws.hw %>%
   drop_na(community) %>%
   drop_na(location)
 iws.hw$location <- factor(iws.hw$location, levels = c("Hayden", "Winkelman"))
+
+
+
+# #for Q1 only
+# #dh
+# summary(as.factor(iws.dh$Q1)) #not enough samples to compare
+# #gm
+# summary(as.factor(iws.gm$Q1)) #compare, remove Flat BUR (Tar/Gravel), Flat BUR (Reflective) - n=5 AND because all those samples are coming from one site
+# iws.gm <- iws.gm%>%
+#   filter(Q1!="Flat BUR (Tar/Gravel), Flat BUR (Reflective)")
+# 
+# #hw
+# summary(as.factor(iws.hw$Q1)) #compare, potentially remove wood shakes/shingles - n=6
+# #tu
+# summary(as.factor(iws.tu$Q1)) #compare, remove Flat BUR (Tar/Gravel), Flat BUR (Reflective) - n=1; remove Clay/Concrete Tile, Flat BUR (Reflective) - n=5 AND all 4 from 1 site; Metal Panel  - n=5 AND all from one site; Rubber Membrane - n=5 AND all from one site
+# iws.tu <- iws.tu%>%
+#   filter(Q1!="Flat BUR (Tar/Gravel), Flat BUR (Reflective)")%>%
+#   filter(Q1!="Clay/Concrete Tile, Flat BUR (Reflective)")%>%
+#   filter(Q1!="Metal Panel")%>%
+#   filter(Q1!="Rubber Membrane")
+#   
+
+#for Q60 only
+#iws.tu <- iws.tu[iws.tu$Q60 != "Concrete"&iws.tu$Q60 != "Fiberglass",]
+
+#for Q78b only
+# iws.tu <- iws.tu[iws.tu$Q78b!="Metal, Plastic"&iws.tu$Q78b!="Rocks"&iws.tu$Q78b!=
+#                    "Cotton/Cloth",]
+# summary(as.factor(iws.tu$Q78b))
+
 
 #basic viz ----
 ggplot(iw.dm, mapping = aes(y = log(pli), x = community, fill = community)) +
@@ -298,11 +330,44 @@ pli.q9.2.step
 pli.q9.2 <- get_model(pli.q9.2.step)
 print(summary(pli.q9.2))
 check_model(pli.q9.2)
-anova(pli.q9.1)
-print(anova(pli.q9.2))
-plot(allEffects(pli.q9.2))
-#home age nearly significant with a generally negative trend
-
+pli.q9.3 <- lmer(data = iws,
+                 log(pli) ~ season + prox.normal + pH + community+Q9+
+                   (1|site),
+                 REML = T)
+pli.q9.3.step <- step(pli.q9.3)
+pli.q9.3.step
+pli.q9.4 <- lmer(data = iws,
+                 log(pli) ~ season + prox.normal + pH + community+
+                   (1|site),
+                 REML = F)
+anova(pli.q9.3, pli.q9.4)
+check_model(pli.q9.3)
+print(anova(pli.q9.3))
+plot(allEffects(pli.q9.3))
+pli.q9.sum <- summary(pli.q9.3)
+pli.q9.sum
+write.csv(pli.q9.sum$coefficients, "pli_q9_coefs.csv")
+perf <- performance(pli.q9.3)
+perf
+write.csv(perf, "pli_q9_diag.csv")
+#home age significant with a generally negative trend
+model.effects <- ggeffect(model = pli.q9.3,
+                          type = "re",
+                          terms = c("Q9"))
+model.effects$x <- as.character(model.effects$x)
+model.effects$x  <- factor(model.effects$x , levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "When was your home built?",
+       subtitle = "All Communities",
+       x = "\nInfrastructure Practice",
+       y = "PLI\n")+
+  coord_cartesian(ylim = c(0,4))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust =1))
+dev.print(png, "pli_q9_effect.png", res=300, height=6, width=10, units="in")
 
 ###dewey-humboldt ----
 pli.q9.dh.0 <- lmer(data = iws.dh,
@@ -709,6 +774,217 @@ pli.q44.tu.sum
 
 
 
+##hds Q1 roof material ----
+###viz ----
+ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q1))+
+  geom_histogram()+
+  facet_grid(community~.)
+#no apparent correlations
+
+###all communities ----
+#remove these roofs from all community analysis because 5 of the 6 samples are all coming from one site, G428
+#when analysis was done with these samples in, Q1 was signif, largely because this roof material has very high concentrations, but we cannot accurately compare this roof type to others because no other site had this roof type except for 1 site (and 1 sample) in Tucson. So we are really seeing the effect of one site, which is the site closest to freeport mcmoran mine in Miami.
+iws <- iws%>%
+  filter(Q1!="Flat BUR (Tar/Gravel), Flat BUR (Reflective)")
+
+pli.q1.0 <- lmer(data = iws,
+                 log(pli) ~
+                   (1|site),
+                 REML = F)
+print(summary(pli.q1.0))
+
+pli.q1 <- lmer(data = iws,
+               log(pli) ~ Q1+
+                 (1|site),
+               REML = F)
+print(summary(pli.q1))
+anova(pli.q1) #not signif
+check_model(pli.q1)
+plot(allEffects(pli.q1))
+
+#univariate, q1 not significant
+
+pli.q1.1 <- lmer(data = iws,
+                 log(pli) ~ season + prox.normal + pH + community+community:prox.normal+Q1+
+                   (1|site),
+                 REML = F)
+print(summary(pli.q1.1))
+vif(pli.q1.1)
+pli.q1.2.step <- step(pli.q1.1)
+pli.q1.2.step
+pli.q1.2 <- get_model(pli.q1.2.step)
+print(summary(pli.q1.2))
+check_model(pli.q1.2)
+pli.q1.3 <- lmer(data = iws,
+                 log(pli) ~ season + prox.normal + pH + community+Q1+
+                   (1|site),
+                 REML = F)
+pli.q1.4 <- lmer(data = iws,
+                 log(pli) ~ season + prox.normal + pH + community+
+                   (1|site),
+                 REML = F)
+anova(pli.q1.1)
+anova(pli.q1.2)
+anova(pli.q1.3)
+anova(pli.q1.2, pli.q1.3)
+anova(pli.q1.4, pli.q1.3)
+check_model(pli.q1.3)
+plot(allEffects(pli.q1.3))
+#q1 not signif
+# model.effects <- ggeffect(model = pli.q1.3,
+#                           type = "re",
+#                           terms = c("Q1"))
+# model.effects$x <- as.character(model.effects$x)
+# ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+#   geom_pointrange()+
+#   labs(title = "What is your roof made of?",
+#        subtitle = "All communities",
+#        x = "\nRoof type",
+#        y = "PLI\n")+
+#   theme_bw()+
+#   theme(panel.grid = element_blank(),
+#         legend.position = "none",
+#         axis.text.x = element_text(angle = 45, hjust = 1))
+# #dev.print(png, "Ni_tu_q67_effect.png", res=300, height=8, width=10, units="in")
+
+###globe/miami ----
+pli.q1.gm.0 <- lmer(data = iws.gm,
+                    log(pli) ~
+                      (1|site),
+                    REML = F)
+print(summary(pli.q1.gm.0))
+
+pli.q1.gm <- lmer(data = iws.gm,
+                  log(pli) ~ Q1+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q1.gm))
+anova(pli.q1.gm)
+check_model(pli.q1.gm)
+plot(allEffects(pli.q1.gm))
+#q1 not signif, when tar/gravel + reflective removed
+
+pli.q1.gm.1 <- lmer(data = iws.gm,
+                    log(pli) ~ season + prox.normal + location_2 + pH+Q1+
+                      (1|site),
+                    REML = F)
+print(summary(pli.q1.gm.1))
+vif(pli.q1.gm.1)
+anova(pli.q1.gm.1)
+pli.q1.gm.2.step <- step(pli.q1.gm.1)
+pli.q1.gm.2.step
+pli.q1.gm.2 <- get_model(pli.q1.gm.2.step)
+print(summary(pli.q1.gm.2))
+check_model(pli.q1.gm.2)
+vif(pli.q1.gm.2)
+print(anova(pli.q1.gm.2))
+plot(allEffects(pli.q1.gm.2)) #
+pli.q1.gm.sum <- summary(pli.q1.gm.2)
+pli.q1.gm.sum
+write.csv(pli.q1.gm.sum$coefficients, "pli_q1_gm_coefs.csv")
+perf <- performance(pli.q1.gm.2)
+perf
+write.csv(perf, "pli_q1_gm_diag.csv")
+#q1 signif, with asphalt rooves and metal panel roofs having the highest plis
+
+model.effects <- ggeffect(model = pli.q1.gm.2,
+                          type = "re",
+                          terms = c("Q1"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "What is your roof made of?",
+       subtitle = "Globe/Miami",
+       x = "\nRoof Material",
+       y = "PLI\n")+
+  coord_cartesian(ylim = c(0,3))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+dev.print(png, "pli_q1_gm_effect.png", res=300, height=6, width=8, units="in")
+
+
+###hayden/winkelman ----
+pli.q1.hw.0 <- lmer(data = iws.hw,
+                    log(pli) ~
+                      (1|site),
+                    REML = F)
+print(summary(pli.q1.hw.0))
+
+pli.q1.hw <- lmer(data = iws.hw,
+                  log(pli) ~ Q1+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q1.hw))
+anova(pli.q1.hw)
+check_model(pli.q1.hw)
+plot(allEffects(pli.q1.hw))
+#q1 not signif
+
+pli.q1.hw.1 <- lmer(data = iws.hw,
+                    log(pli) ~ season + prox.normal + location + pH+prox.normal:location+Q1+
+                      (1|site),
+                    REML = F)
+print(summary(pli.q1.hw.1))
+vif(pli.q1.hw.1)
+anova(pli.q1.hw.1)
+pli.q1.hw.2.step <- step(pli.q1.hw.1)
+pli.q1.hw.2.step
+pli.q1.hw.2 <- get_model(pli.q1.hw.2.step)
+print(summary(pli.q1.hw.2))
+check_model(pli.q1.hw.2)
+print(anova(pli.q1.hw.2))
+plot(allEffects(pli.q1.hw.2)) #
+pli.q1.hw.sum <- summary(pli.q1.hw.2)
+pli.q1.hw.sum
+# write.csv(pli.q1.hw.sum$coefficients, "pli_q1_hw_coefs.csv")
+# perf <- performance(pli.q1.hw.2)
+# perf
+# write.csv(perf, "pli_q1_hw_diag.csv")
+#q1 not signif
+
+###tucson ----
+pli.q1.tu.0 <- lmer(data = iws.tu,
+                    log(pli) ~
+                      (1|site),
+                    REML = F)
+print(summary(pli.q1.tu.0))
+
+pli.q1.tu <- lmer(data = iws.tu,
+                  log(pli) ~ Q1+
+                    (1|site),
+                  REML = F)
+print(summary(pli.q1.tu))
+anova(pli.q1.tu)
+check_model(pli.q1.tu)
+plot(allEffects(pli.q1.tu))
+#q1 nearly signif, p = .08 with asphalt being the lowest
+
+pli.q1.tu.1 <- lmer(data = iws.tu,
+                    log(pli) ~ season + prox.normal + ward + pH + prox.normal:pH + prox.normal:season+Q1+
+                      (1|site),
+                    REML = F)
+print(summary(pli.q1.tu.1))
+vif(pli.q1.tu.1)
+pli.q1.tu.2.step <- step(pli.q1.tu.1)
+pli.q1.tu.2.step
+pli.q1.tu.2 <- get_model(pli.q1.tu.2.step)
+print(summary(pli.q1.tu.2))
+check_model(pli.q1.tu.2)
+anova(pli.q1.tu.1)
+print(anova(pli.q1.tu.2))
+plot(allEffects(pli.q1.tu.2))
+pli.q1.tu.sum <- summary(pli.q1.tu.2)
+pli.q1.tu.sum
+# write.csv(pli.q1.tu.sum$coefficients, "pli_q1_tu_coefs.csv")
+# perf <- performance(pli.q1.tu.2)
+# perf
+# write.csv(perf, "pli_q1_tu_diag.csv")
+#q1 nearly signif, p=.1
+
+
+
 ##hds Q67 roof cleaning----
 ###viz ----
 ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q67))+
@@ -744,18 +1020,41 @@ pli.q67.2.step
 pli.q67.2 <- get_model(pli.q67.2.step)
 pli.q67.2 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
                   log(pli) ~ season + prox.normal + pH + community + community:prox.normal + Q67 + (1 | site),
-                  REML = T)
+                  REML = F)
 print(summary(pli.q67.2))
 check_model(pli.q67.2)
+vif(pli.q67.2)
 anova(pli.q67.1)
+pli.q67.3 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                  log(pli) ~ season + prox.normal + pH + community + Q67 + (1 | site),
+                  REML = F)
 print(anova(pli.q67.2))
-plot(allEffects(pli.q67.2))
-pli.q67.sum <- summary(pli.q67.2)
-# write.csv(pli.q67.sum$coefficients, "pli_q67_coefs.csv")
-# perf <- performance(pli.q67.2)
-# perf
-# write.csv(perf, "pli_q67_diag.csv")
+anova(pli.q67.3)
+plot(allEffects(pli.q67.3))
+check_model(pli.q67.3)
+pli.q67.sum <- summary(pli.q67.3)
+pli.q67.sum
+write.csv(pli.q67.sum$coefficients, "pli_q67_coefs.csv")
+perf <- performance(pli.q67.3)
+perf
+write.csv(perf, "pli_q67_diag.csv")
 #q67 nearly signif, cleaning has higher pli
+model.effects <- ggeffect(model = pli.q67.3,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean your roof?",
+       subtitle = "All Communities",
+       x = "\nInfrastructure Practice",
+       y = "PLI\n")+
+  coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "pli_q67_effect.png", res=300, height=6, width=8, units="in")
 
 
 ###dewey-humboldt ----
@@ -877,7 +1176,23 @@ write.csv(pli.q67.tu.sum$coefficients, "pli_q67_tu_coefs.csv")
 perf <- performance(pli.q67.tu.2)
 perf
 write.csv(perf, "pli_q67_tu_diag.csv")
-#q67 not signif
+#q67 signif
+model.effects <- ggeffect(model = pli.q67.tu.2,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean your roof?",
+       subtitle = "Tucson",
+       x = "\nInfrastructure Practice",
+       y = "PLI\n")+
+  coord_cartesian(ylim = c(0,2.2))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "pli_q67_tu_effect.png", res=300, height=6, width=8, units="in")
 
 
 
@@ -970,7 +1285,7 @@ pli.q68.tu.sum
 
 
 
-##hds Q60 home age----
+##hds Q60 cistern material ----
 ###viz ----
 ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q60))+
   geom_histogram()+
@@ -1102,6 +1417,25 @@ perf <- performance(pli.q65.dh.2)
 perf
 write.csv(perf, "pli_q65_dh_diag.csv")
 #q65 is signif, with cisterns <6mo - 2 years having lower contam than cisterns 3-5+ years old
+model.effects <- ggeffect(model = pli.q65.dh.2,
+                          type = "re",
+                          terms = c("Q65"))
+model.effects$x <- as.character(model.effects$x)
+model.effects$x <- factor(model.effects$x, levels = c("<6 months", "6 months-1 year", "1-2 years", "2-3 years", "3-4 years", "5+ years"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "How old is your cistern?",
+       subtitle = "Dewey-Humboldt",
+       x = "\nInfrastructure Practice",
+       y = "PLI\n")+
+  coord_cartesian(ylim = c(0,4))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust =1))
+dev.print(png, "pli_q65_dh_effect.png", res=300, height=6, width=10, units="in")
+
+
 
 ###globe/miami ----
 pli.q65.gm.0 <- lmer(data = iws.gm,
@@ -1186,7 +1520,7 @@ pli.q65.tu.sum
 ##hds Q71 cistern wash ----
 #not enough sample spread in any community to reliably analyze
 
-##hds Q76 home age----
+##hds Q76 first flush----
 ###viz ----
 ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q76))+
   geom_histogram()+
@@ -1234,7 +1568,7 @@ pli.q76.tu.sum
 
 
 
-##hds Q77 cistern age----
+##hds Q77 cistern screen----
 ###viz ----
 ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q77))+
   geom_histogram()+
@@ -1319,7 +1653,7 @@ pli.q77.gm.sum
 # write.csv(perf, "pli_q77_gm_diag.csv")
 #q77 not signif
 
-##hds Q78b home age----
+##hds Q78b cistern screen material----
 ###viz ----
 ggplot(data = iws, mapping = aes(x = prox.normal, fill = Q78b))+
   geom_histogram()+

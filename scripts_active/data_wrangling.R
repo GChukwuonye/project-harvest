@@ -305,6 +305,28 @@ hds.long[hds.long$question == "Q44"& hds.long$response=="1",]$response <- "Yes"
 hds.long[hds.long$question == "Q44"& hds.long$response=="2",]$response <- "No"
 
 #Q1: roof material
+#remove the following from analysis due to low SITE sample size (1 or 2): Composition Tile; Fiberglass; Flat BUR (Reflective), Asphalt Shingle; Flat BUR (Reflective), Metal Panel; Flat BUR (Tar/Gravel), Asphalt Shingle; Metal Panel, Slate; Plastic; Slate; Steel
+#
+#May need to remove roofs with 3 SITES: Flat BUR (Tar/Gravel), Flat BUR (Reflective); Flat BUR (Tar/Gravel), Metal Panel; Rubber Membrane
+#or 4 SITES: Clay/Concrete Tile, Flat BUR (Reflective)
+#
+
+summary(as.factor(hds.long[hds.long$question=="Q1",]$response))
+hds.long <- hds.long%>%
+  filter(response!="Composition Tile")%>%
+  filter(response!="Fiberglass")%>%
+  filter(response!="Flat BUR (Reflective), Asphalt Shingle")%>%
+  filter(response!="Flat BUR (Reflective), Metal Panel")%>%
+  filter(response!="Flat BUR (Tar/Gravel), Asphalt Shingle")%>%
+  filter(response!="Metal Panel, Slate")%>%
+  filter(response!="Plastic")%>%
+  filter(response!="Slate")%>%
+  filter(response!="Steel")%>%
+  filter(response!="Clay/Concrete Tile")%>%
+  filter(response!="Flat BUR (Tar/Gravel), Metal Panel")
+  
+summary(as.factor(hds.long[hds.long$question=="Q1",]$response))
+
 
 #Q67: roof cleaning
 hds.long[hds.long$question == "Q67"& hds.long$response=="1",]$response <- "Yes"
