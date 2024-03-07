@@ -264,224 +264,383 @@ iw.demo.long <- pivot_wider(iw.demo.longer,
 
 #Home description survey ----
 hds <- read_excel("/Users/gift/Documents/GitHub/WorkingFiles/data/data_processing/IO_HDS.xlsx")
-#hds <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/IO_HDS.xlsx")
-#load in data and if there is a missing value, assume participant does not follow best practices - conservative estimate. No is a zero. Yes is a 1
-#assumption: if there is a missing value, we assume a participant does not follow best practices to use a risk-averse analysis framework
-#assumption: this index assumes equal influence of each best practice on rainwater quality
-#assumption/limitation: we assume that the maintenance intervention reported was consistent across the duration of the study
-#assumption: sites with no HDS survey were assumed to have maintenance scores of 0/None.
-##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
-hds67<- hds
-hds67$Q67 <- as.character(hds67$Q67)
-#hds67[is.na(hds67$Q67),]$Q67 <- "0"
-hds67 <- hds67 %>%
-  drop_na(Q67)
-hds67[hds67$Q67=="0",]$Q67 <- "0"
-hds67[hds67$Q67=="1",]$Q67 <- "1"
-hds67[hds67$Q67=="2",]$Q67 <- "2"
-hds67$Q67 <- as.numeric(hds67$Q67)
-summary(as.factor(hds67$Q67))
+#hds <- read_excel("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/IO_HDS.xlsx", sheet = "stats", col_names = TRUE)
+#NA, unsure, and blanks assumed to be NA, removed from analysis
 
-##Q60 What is your cistern made of: ----
-hds60<- hds
-hds60$Q60 <- as.character(hds60$Q60)
-summary(as.factor(hds60$Q60))
+#duplicate cistern material
+hds$Q78b <- hds$Q78
 
+#put all columns in character for pivoting
+hds <- hds %>%
+  mutate(across(everything(),as.character))
 
-##Q65 How old is your cistern:  ----
-hds65<- hds
-hds65 <- hds65 %>%
-  drop_na(Q65)
-hds65$Q65 <- as.character(hds65$Q65)
-hds65[hds65$Q65=="0",]$Q65 <- "NA"
-hds65[hds65$Q65=="1",]$Q65 <- "NA"
-hds65[hds65$Q65=="2",]$Q65 <- "0-2"
-hds65[hds65$Q65=="3",]$Q65 <- "0-2"
-hds65[hds65$Q65=="4",]$Q65 <- "0-2"
-hds65[hds65$Q65=="5",]$Q65 <- "2-5 years"
-hds65[hds65$Q65=="6",]$Q65 <- "2-5 years"
-hds65[hds65$Q65=="7",]$Q65 <- "5+ years"
-hds65 <- hds65 %>% filter(Q65 != "NA")
+hds.long <- pivot_longer(data = hds,
+                         cols = Q9:Q78b,
+                         names_to = "question",
+                         values_to = "response")
+#remove NAs
+hds.long <- hds.long%>%
+  filter(response!=0)%>%
+  filter(response!=100)%>%
+  filter(response!=101)%>%
+  drop_na(response)
 
+#Q9: rename home age
+hds.long[hds.long$question == "Q9"& hds.long$response=="1",]$response <- "Pre 1940"
+hds.long[hds.long$question == "Q9"& hds.long$response=="2",]$response <- "1941-1949"
+hds.long[hds.long$question == "Q9"& hds.long$response=="3",]$response <- "1950-1959"
+hds.long[hds.long$question == "Q9"& hds.long$response=="4",]$response <- "1960-1969"
+hds.long[hds.long$question == "Q9"& hds.long$response=="5",]$response <- "1970-1979"
+hds.long[hds.long$question == "Q9"& hds.long$response=="6",]$response <- "1980-1989"
+hds.long[hds.long$question == "Q9"& hds.long$response=="7",]$response <- "1990-1999"
+hds.long[hds.long$question == "Q9"& hds.long$response=="8",]$response <- "2000-2009"
+hds.long[hds.long$question == "Q9"& hds.long$response=="9",]$response <- "2010-2018"
 
-#Q62What is the capacity of your cistern (in gallons)?  ----
-hds62<- hds
-hds62 <- hds62 %>%
-  drop_na(Q62)
-hds62[hds62$Q62=="0",]$Q62 <- "NA"
-hds62[hds62$Q62=="14",]$Q62 <- "NA"
-hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
-hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
-hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
-hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
-hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
-hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
-hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
-hds62 <- hds62 %>% filter(Q62 != "NA")
-hds62 <- hds62 %>% filter(Q62 != "N/A")
-hds62$Q62<- as.factor(hds62$Q62)
-summary(hds62$Q62)
+#Q18: rename paint peeling
+hds.long[hds.long$question == "Q18"& hds.long$response=="1",]$response <- "Yes"
+hds.long[hds.long$question == "Q18"& hds.long$response=="2",]$response <- "No"
 
-##Q78: How often do you clean parts of your roof draining system (like the debris filter, gutters, scuppers) ----
-hds78<- hds
-hds78 <- hds78 %>%
-  drop_na(Q78)
-hds78[hds78$Q78=="0",]$Q78 <- "No Answer"
-hds78[hds78$Q78=="100",]$Q78 <- "Unsure"
-hds78[hds78$Q78=="1",]$Q78 <- "As Needed"
-hds78[hds78$Q78=="2",]$Q78 <- "Monthly"
-hds78[hds78$Q78=="3",]$Q78 <- "Quarterly"
-hds78[hds78$Q78=="4",]$Q78 <- "Yearly"
-hds78 <- hds78 %>% filter(Q78 != "NA")
-hds78 <- hds78 %>% filter(Q78 != "N/A")
-hds78$Q78<- as.factor(hds78$Q78)
-summary(hds78$Q78)
+#Q44: rename proximity to road
+hds.long[hds.long$question == "Q44"& hds.long$response=="1",]$response <- "Yes"
+hds.long[hds.long$question == "Q44"& hds.long$response=="2",]$response <- "No"
 
-##Q78: What is the screen/filter made of? What type is it?- ----
-hds78<- hds
-hds78 <- hds78 %>%
-  drop_na(Q78)
-hds78[hds78$Q78=="0",]$Q78 <- "Unspecified"
-hds78[hds78$Q78=="100",]$Q78 <- "Unspecified"
-hds78[hds78$Q78=="1",]$Q78 <- "Metal"
-hds78[hds78$Q78=="2",]$Q78 <-  "Metal"
-hds78[hds78$Q78=="3",]$Q78 <-  "Metal"
-hds78[hds78$Q78=="4",]$Q78 <-  "Metal"
-hds78[hds78$Q78=="5",]$Q78 <- "Non-metal"
-hds78[hds78$Q78=="2, 5",]$Q78 <- "Non-metal"
-hds78[hds78$Q78=="1, 5",]$Q78 <- "Non-metal"
-hds78[hds78$Q78=="6",]$Q78 <-"Non-metal"
-hds78[hds78$Q78=="7",]$Q78 <- "Unspecified"
-hds78[hds78$Q78=="8",]$Q78 <- "No Screen"
-hds78[hds78$Q78=="9",]$Q78 <- "Non-metal"
-hds78[hds78$Q78=="10",]$Q78 <-  "Metal"
-hds78[hds78$Q78=="11",]$Q78 <-  "Metal"
-hds78[hds78$Q78=="12",]$Q78 <- "Unspecified"
-hds78[hds78$Q78=="13",]$Q78 <-  "Unspecified"
-hds78 <- hds78 %>% filter(Q78 != "NA")
-hds78 <- hds78 %>% filter(Q78 != "N/A")
-hds78$Q78<- as.factor(hds78$Q78)
-summary(hds78$Q78)
+#Q1: roof material
+#remove the following from analysis due to low SITE sample size (1 or 2): Composition Tile; Fiberglass; Flat BUR (Reflective), Asphalt Shingle; Flat BUR (Reflective), Metal Panel; Flat BUR (Tar/Gravel), Asphalt Shingle; Metal Panel, Slate; Plastic; Slate; Steel
+#
+#May need to remove roofs with 3 SITES: Flat BUR (Tar/Gravel), Flat BUR (Reflective); Flat BUR (Tar/Gravel), Metal Panel; Rubber Membrane
+#or 4 SITES: Clay/Concrete Tile, Flat BUR (Reflective)
+#
+
+summary(as.factor(hds.long[hds.long$question=="Q1",]$response))
+hds.long <- hds.long%>%
+  filter(response!="Composition Tile")%>%
+  filter(response!="Fiberglass")%>%
+  filter(response!="Flat BUR (Reflective), Asphalt Shingle")%>%
+  filter(response!="Flat BUR (Reflective), Metal Panel")%>%
+  filter(response!="Flat BUR (Tar/Gravel), Asphalt Shingle")%>%
+  filter(response!="Metal Panel, Slate")%>%
+  filter(response!="Plastic")%>%
+  filter(response!="Slate")%>%
+  filter(response!="Steel")%>%
+  filter(response!="Clay/Concrete Tile")%>%
+  filter(response!="Flat BUR (Tar/Gravel), Metal Panel")
+  
+summary(as.factor(hds.long[hds.long$question=="Q1",]$response))
 
 
-##Q71 Do you treat or wash your cistern with anything? ----
-hds71<- hds
-hds71$Q71 <- as.character(hds$Q71)
-hds71 <- hds71 %>%
-  drop_na(Q71)
-#hds[is.na(hds$Q71),]$Q71 <- "0"
-hds71[hds71$Q71=="0",]$Q71 <- "0"
-hds71[hds71$Q71=="1",]$Q71 <- "1"
-hds71[hds71$Q71=="2",]$Q71 <- "2"
-hds71$Q71 <- as.numeric(hds71$Q71)
-summary(as.factor(hds71$Q71))
+#Q67: roof cleaning
+hds.long[hds.long$question == "Q67"& hds.long$response=="1",]$response <- "Yes"
+hds.long[hds.long$question == "Q67"& hds.long$response=="2",]$response <- "No"
 
-##Q76 Does your cistern have a first flush? ----
-hds76<- hds
-hds76$Q76 <- as.character(hds76$Q76)
-hds76 <- hds76 %>%
-  drop_na(Q76)
-#hds76[is.na(hds76$Q76),]$Q76 <- "0"
-hds76[hds76$Q76=="0",]$Q76 <- "0"
-hds76[hds76$Q76=="1",]$Q76 <- "1"
-hds76[hds76$Q76=="2",]$Q76 <- "2"
-hds76[hds76$Q76=="3",]$Q76 <- "0"
-hds76$Q76 <- as.numeric(hds76$Q76)
-summary(as.factor(hds76$Q76))
+#Q68: how often do you clean
+hds.long[hds.long$question == "Q68"& hds.long$response=="1",]$response <- "As needed"
+hds.long[hds.long$question == "Q68"& hds.long$response=="2",]$response <- "Monthly"
+hds.long[hds.long$question == "Q68"& hds.long$response=="3",]$response <- "Quarterly"
+hds.long[hds.long$question == "Q68"& hds.long$response=="4",]$response <- "Yearly"
 
-##Q77 Does your cistern have a screen/filter for incoming water from down spout on top of the tank? ----
-hds77<- hds
-hds77$Q77 <- as.character(hds77$Q77)
-hds77 <- hds77 %>%
-  drop_na(Q77)
-#hds77[is.na(hds77$Q77),]$Q77 <- "0"
-hds77[hds77$Q77=="0",]$Q77 <- "0"
-hds77[hds77$Q77=="1",]$Q77 <- "1"
-hds77[hds77$Q77=="2",]$Q77 <- "2"
-hds77[hds77$Q77=="3",]$Q77 <- "0"
-hds77$Q77 <- as.numeric(hds77$Q77)
-summary(as.factor(hds77$Q77))
+#Q60: cistern material
+hds.long[hds.long$question == "Q60"& hds.long$response=="1",]$response <- "Metal"
+hds.long[hds.long$question == "Q60"& hds.long$response=="2",]$response <- "Plastic"
+hds.long[hds.long$question == "Q60"& hds.long$response=="3",]$response <- "Concrete"
+hds.long[hds.long$question == "Q60"& hds.long$response=="4",]$response <- "Fiberglass"
+hds.long[hds.long$question == "Q60"& hds.long$response=="5",]$response <- "Other"
 
-##Q79 Do you ever remove the screen/filter and leave your cistern without the filter? ----
-##note, when we were doing the HDS score models, this question was edited so that the Y/N response goes the same direction as the other questions - doing the best practice was a +1. We added a NOT to the question and the responses were reversed.
+#Q65: cistern age
+hds.long[hds.long$question == "Q65"& hds.long$response=="2",]$response <- "<6 months"
+hds.long[hds.long$question == "Q65"& hds.long$response=="3",]$response <- "6 months-1 year"
+hds.long[hds.long$question == "Q65"& hds.long$response=="4",]$response <- "1-2 years"
+hds.long[hds.long$question == "Q65"& hds.long$response=="5",]$response <- "2-3 years"
+hds.long[hds.long$question == "Q65"& hds.long$response=="6",]$response <- "3-4 years"
+hds.long[hds.long$question == "Q65"& hds.long$response=="7",]$response <- "5+ years"
 
-hds79<- hds
-hds79$Q79 <- as.character(hds79$Q79)
-hds79 <- hds79 %>%
-  drop_na(Q79)
-#hds79[is.na(hds79$Q79),]$Q79 <- "0"
-hds79[hds79$Q79=="0",]$Q79 <- "0"
-hds79[hds79$Q79=="1",]$Q79 <- "1"
-hds79[hds79$Q79=="2",]$Q79 <- "2"
-hds79[hds79$Q79=="100",]$Q79 <- "0"
-hds79$Q79 <- as.numeric(hds79$Q79)
-summary(as.factor(hds79$Q79))
+#Q76: first flush
+hds.long[hds.long$question == "Q76"& hds.long$response=="1",]$response <- "Yes"
+hds.long[hds.long$question == "Q76"& hds.long$response=="2",]$response <- "No"
 
-#hds$score <- hds$Q67 + hds$Q71 + hds$Q76 + hds$Q77 + hds$Q79
-#hds$score <- as.character(hds$score)
-#hds$score_bin <- hds$score
-#hds[hds$score_bin=="0",]$score_bin <- "None"
-#hds[hds$score_bin=="1",]$score_bin <- "Medium"
-#hds[hds$score_bin=="2",]$score_bin <- "Medium"
-#hds[hds$score_bin=="3",]$score_bin <- "High"
-#hds[hds$score_bin=="4",]$score_bin <- "High"
-#hds[hds$score_bin=="5",]$score_bin <- "High"
-#hds$score_bin <- factor(hds$score_bin, levels = c("None", "Medium", "High"))
-#summary(hds$score_bin)
+#Q77: screen
+hds.long[hds.long$question == "Q77"& hds.long$response=="1",]$response <- "Yes"
+hds.long[hds.long$question == "Q77"& hds.long$response=="2",]$response <- "No"
 
-#iw.dm <- full_join(iw.dm, hds, by = c("site"))
-#iw.dm67- combining iw.dm with Q67=====
-iw.dm67 <- full_join(iw.dm, hds67, by = c("site"))
-iw.dm67 <- iw.dm67[!is.na(iw.dm67$community),]
-iw.dm67<-iw.dm67 %>%
-  drop_na(Q67)
+#Q78: screen material
+hds.long[hds.long$question == "Q78"& hds.long$response=="1",]$response <- "Metal (Unspecified)"
+hds.long[hds.long$question == "Q78"& hds.long$response=="2",]$response <- "Metal (Aluminum)"
+hds.long[hds.long$question == "Q78"& hds.long$response=="3",]$response <- "Metal (Stainless Steel)"
+hds.long[hds.long$question == "Q78"& hds.long$response=="4",]$response <- "Metal (Galvanized Steel)"
+hds.long[hds.long$question == "Q78"& hds.long$response=="5",]$response <- "Plastic"
+hds.long[hds.long$question == "Q78"& hds.long$response=="6",]$response <- "Cotton/Cloth"
+hds.long[hds.long$question == "Q78"& hds.long$response=="9",]$response <- "Rocks"
+hds.long[hds.long$question == "Q78"& hds.long$response=="10",]$response <- "Metal (Steel)"
+hds.long[hds.long$question == "Q78"& hds.long$response=="11",]$response <- "Metal (Tin)"
+hds.long[hds.long$question == "Q78"& hds.long$response=="1, 5",]$response <- "Metal (Unspecified), Plastic"
+hds.long[hds.long$question == "Q78"& hds.long$response=="2, 5",]$response <- "Metal (Aluminum), Plastic"
 
 
-#iw.dm71- combining iw.dm with Q71=====
-iw.dm71 <- full_join(iw.dm, hds71, by = c("site"))
-iw.dm71 <- iw.dm71[!is.na(iw.dm71$community),]
-iw.dm71<-iw.dm71 %>%
-  drop_na(Q71)
+#Q78b: screen material simplified
+hds.long[hds.long$question == "Q78b"& hds.long$response=="1",]$response <- "Metal"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="2",]$response <- "Metal"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="3",]$response <- "Metal"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="4",]$response <- "Metal"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="5",]$response <- "Plastic"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="6",]$response <- "Cotton/Cloth"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="9",]$response <- "Rocks"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="10",]$response <- "Metal"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="11",]$response <- "Metal"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="1, 5",]$response <- "Metal, Plastic"
+hds.long[hds.long$question == "Q78b"& hds.long$response=="2, 5",]$response <- "Metal, Plastic"
 
-#iw.dm76- combining iw.dm with Q76=====
-iw.dm76 <- full_join(iw.dm, hds76, by = c("site"))
-iw.dm76 <- iw.dm76[!is.na(iw.dm76$community),]
-iw.dm76<-iw.dm76 %>%
-  drop_na(Q76)
+#pivot wider to combine with rainwater data
+hds.wide <- pivot_wider(data = hds.long,
+                        names_from = "question",
+                        values_from = "response")
 
-#iw.dm77- combining iw.dm with Q77=====
-iw.dm77 <- full_join(iw.dm, hds77, by = c("site"))
-iw.dm77 <- iw.dm77[!is.na(iw.dm77$community),]
-iw.dm77<-iw.dm77 %>%
-  drop_na(Q77)
+#remove unnecessary columns
+hds.wide <- hds.wide%>%
+  dplyr::select(-c(community, Q87, Q62, Q13, Q71, Q79))
+  
+#join data by site
+iw.hds <- full_join(iw.dm, hds.wide, by = c("site"))
 
-#iw.dm79- combining iw.dm with Q79=====
-iw.dm79 <- full_join(iw.dm, hds79, by = c("site"))
-iw.dm79 <- iw.dm79[!is.na(iw.dm79$community),]
-iw.dm79<-iw.dm79 %>%
-  drop_na(Q79)
+#clean up data
+iw.hds <- iw.hds %>%
+  drop_na(community)
 
-#iw.dm65- combining iw.dm with Q65=====
-iw.dm65 <- full_join(iw.dm, hds65, by = c("site"))
-iw.dm65 <- iw.dm65[!is.na(iw.dm65$community),]
-summary(as.factor(iw.dm65$Q67))
+#for each individual question, you will need to remove NAs as needed
 
-iw.dm65<-iw.dm65 %>%
-  drop_na(Q65)
+#
+#
+#
+#
+#
 
-#iw.dm60- combining iw.dm with Q60=====
-iw.dm60 <- full_join(iw.dm, hds60, by = c("site"))
-iw.dm60 <- iw.dm60[!is.na(iw.dm60$community),]
-iw.dm60<-iw.dm60 %>%
-  drop_na(Q60)
 
-summary(as.factor(iw.dm60[iw.dm60$community=="Globe/Miami",]$Q60))
+
+
+
+
+
+
+
+
+
+
+
+# #load in data and if there is a missing value, assume participant does not follow best practices - conservative estimate. No is a zero. Yes is a 1
+# #assumption: if there is a missing value, we assume a participant does not follow best practices to use a risk-averse analysis framework
+# #assumption: this index assumes equal influence of each best practice on rainwater quality
+# #assumption/limitation: we assume that the maintenance intervention reported was consistent across the duration of the study
+# #assumption: sites with no HDS survey were assumed to have maintenance scores of 0/None.
+# ##Q67 Do you clean parts of your roof draining system (like the debris filter, gutters, scuppers, etc.)? ----
+# hds67<- hds
+# hds67$Q67 <- as.character(hds67$Q67)
+# #hds67[is.na(hds67$Q67),]$Q67 <- "0"
+# hds67 <- hds67 %>%
+#   drop_na(Q67)
+# hds67[hds67$Q67=="0",]$Q67 <- "0"
+# hds67[hds67$Q67=="1",]$Q67 <- "1"
+# hds67[hds67$Q67=="2",]$Q67 <- "2"
+# hds67$Q67 <- as.numeric(hds67$Q67)
+# summary(as.factor(hds67$Q67))
+# 
+# ##Q60 What is your cistern made of: ----
+# hds60<- hds
+# hds60$Q60 <- as.character(hds60$Q60)
+# summary(as.factor(hds60$Q60))
+# 
+# 
+# ##Q65 How old is your cistern:  ----
+# hds65<- hds
+# hds65 <- hds65 %>%
+#   drop_na(Q65)
+# hds65$Q65 <- as.character(hds65$Q65)
+# hds65[hds65$Q65=="0",]$Q65 <- "NA"
+# hds65[hds65$Q65=="1",]$Q65 <- "NA"
+# hds65[hds65$Q65=="2",]$Q65 <- "0-2"
+# hds65[hds65$Q65=="3",]$Q65 <- "0-2"
+# hds65[hds65$Q65=="4",]$Q65 <- "0-2"
+# hds65[hds65$Q65=="5",]$Q65 <- "2-5 years"
+# hds65[hds65$Q65=="6",]$Q65 <- "2-5 years"
+# hds65[hds65$Q65=="7",]$Q65 <- "5+ years"
+# hds65 <- hds65 %>% filter(Q65 != "NA")
+# 
+# 
+# #Q62What is the capacity of your cistern (in gallons)?  ----
+# hds62<- hds
+# hds62 <- hds62 %>%
+#   drop_na(Q62)
+# hds62[hds62$Q62=="0",]$Q62 <- "NA"
+# hds62[hds62$Q62=="14",]$Q62 <- "NA"
+# hds62[hds62$Q62=="1",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="2",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="3",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="4",]$Q62 <- "small(<100)"
+# hds62[hds62$Q62=="5",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="6",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="7",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="8",]$Q62 <- "medium(101-1000)"
+# hds62[hds62$Q62=="9",]$Q62 <- "large(>1000)"
+# hds62[hds62$Q62=="10",]$Q62 <-"large(>1000)"
+# hds62[hds62$Q62=="11",]$Q62 <-"large(>1000)"
+# hds62[hds62$Q62=="12",]$Q62 <- "large(>1000)"
+# hds62[hds62$Q62=="13",]$Q62 <- "large(>1000)"
+# hds62 <- hds62 %>% filter(Q62 != "NA")
+# hds62 <- hds62 %>% filter(Q62 != "N/A")
+# hds62$Q62<- as.factor(hds62$Q62)
+# summary(hds62$Q62)
+# 
+# ##Q78: How often do you clean parts of your roof draining system (like the debris filter, gutters, scuppers) ----
+# hds78<- hds
+# hds78 <- hds78 %>%
+#   drop_na(Q78)
+# hds78[hds78$Q78=="0",]$Q78 <- "No Answer"
+# hds78[hds78$Q78=="100",]$Q78 <- "Unsure"
+# hds78[hds78$Q78=="1",]$Q78 <- "As Needed"
+# hds78[hds78$Q78=="2",]$Q78 <- "Monthly"
+# hds78[hds78$Q78=="3",]$Q78 <- "Quarterly"
+# hds78[hds78$Q78=="4",]$Q78 <- "Yearly"
+# hds78 <- hds78 %>% filter(Q78 != "NA")
+# hds78 <- hds78 %>% filter(Q78 != "N/A")
+# hds78$Q78<- as.factor(hds78$Q78)
+# summary(hds78$Q78)
+# 
+# ##Q78: What is the screen/filter made of? What type is it?- ----
+# hds78<- hds
+# hds78 <- hds78 %>%
+#   drop_na(Q78)
+# hds78[hds78$Q78=="0",]$Q78 <- "Unspecified"
+# hds78[hds78$Q78=="100",]$Q78 <- "Unspecified"
+# hds78[hds78$Q78=="1",]$Q78 <- "Metal"
+# hds78[hds78$Q78=="2",]$Q78 <-  "Metal"
+# hds78[hds78$Q78=="3",]$Q78 <-  "Metal"
+# hds78[hds78$Q78=="4",]$Q78 <-  "Metal"
+# hds78[hds78$Q78=="5",]$Q78 <- "Non-metal"
+# hds78[hds78$Q78=="2, 5",]$Q78 <- "Non-metal"
+# hds78[hds78$Q78=="1, 5",]$Q78 <- "Non-metal"
+# hds78[hds78$Q78=="6",]$Q78 <-"Non-metal"
+# hds78[hds78$Q78=="7",]$Q78 <- "Unspecified"
+# hds78[hds78$Q78=="8",]$Q78 <- "No Screen"
+# hds78[hds78$Q78=="9",]$Q78 <- "Non-metal"
+# hds78[hds78$Q78=="10",]$Q78 <-  "Metal"
+# hds78[hds78$Q78=="11",]$Q78 <-  "Metal"
+# hds78[hds78$Q78=="12",]$Q78 <- "Unspecified"
+# hds78[hds78$Q78=="13",]$Q78 <-  "Unspecified"
+# hds78 <- hds78 %>% filter(Q78 != "NA")
+# hds78 <- hds78 %>% filter(Q78 != "N/A")
+# hds78$Q78<- as.factor(hds78$Q78)
+# summary(hds78$Q78)
+# 
+# 
+# ##Q71 Do you treat or wash your cistern with anything? ----
+# hds71<- hds
+# hds71$Q71 <- as.character(hds$Q71)
+# hds71 <- hds71 %>%
+#   drop_na(Q71)
+# #hds[is.na(hds$Q71),]$Q71 <- "0"
+# hds71[hds71$Q71=="0",]$Q71 <- "0"
+# hds71[hds71$Q71=="1",]$Q71 <- "1"
+# hds71[hds71$Q71=="2",]$Q71 <- "2"
+# hds71$Q71 <- as.numeric(hds71$Q71)
+# summary(as.factor(hds71$Q71))
+# 
+# ##Q76 Does your cistern have a first flush? ----
+# hds76<- hds
+# hds76$Q76 <- as.character(hds76$Q76)
+# hds76 <- hds76 %>%
+#   drop_na(Q76)
+# #hds76[is.na(hds76$Q76),]$Q76 <- "0"
+# hds76[hds76$Q76=="0",]$Q76 <- "0"
+# hds76[hds76$Q76=="1",]$Q76 <- "1"
+# hds76[hds76$Q76=="2",]$Q76 <- "2"
+# hds76[hds76$Q76=="3",]$Q76 <- "0"
+# hds76$Q76 <- as.numeric(hds76$Q76)
+# summary(as.factor(hds76$Q76))
+# 
+# ##Q77 Does your cistern have a screen/filter for incoming water from down spout on top of the tank? ----
+# hds77<- hds
+# hds77$Q77 <- as.character(hds77$Q77)
+# hds77 <- hds77 %>%
+#   drop_na(Q77)
+# #hds77[is.na(hds77$Q77),]$Q77 <- "0"
+# hds77[hds77$Q77=="0",]$Q77 <- "0"
+# hds77[hds77$Q77=="1",]$Q77 <- "1"
+# hds77[hds77$Q77=="2",]$Q77 <- "2"
+# hds77[hds77$Q77=="3",]$Q77 <- "0"
+# hds77$Q77 <- as.numeric(hds77$Q77)
+# summary(as.factor(hds77$Q77))
+# 
+# ##Q79 Do you ever remove the screen/filter and leave your cistern without the filter? ----
+# ##note, when we were doing the HDS score models, this question was edited so that the Y/N response goes the same direction as the other questions - doing the best practice was a +1. We added a NOT to the question and the responses were reversed.
+# 
+# hds79<- hds
+# hds79$Q79 <- as.character(hds79$Q79)
+# hds79 <- hds79 %>%
+#   drop_na(Q79)
+# #hds79[is.na(hds79$Q79),]$Q79 <- "0"
+# hds79[hds79$Q79=="0",]$Q79 <- "0"
+# hds79[hds79$Q79=="1",]$Q79 <- "1"
+# hds79[hds79$Q79=="2",]$Q79 <- "2"
+# hds79[hds79$Q79=="100",]$Q79 <- "0"
+# hds79$Q79 <- as.numeric(hds79$Q79)
+# summary(as.factor(hds79$Q79))
+# 
+# #hds$score <- hds$Q67 + hds$Q71 + hds$Q76 + hds$Q77 + hds$Q79
+# #hds$score <- as.character(hds$score)
+# #hds$score_bin <- hds$score
+# #hds[hds$score_bin=="0",]$score_bin <- "None"
+# #hds[hds$score_bin=="1",]$score_bin <- "Medium"
+# #hds[hds$score_bin=="2",]$score_bin <- "Medium"
+# #hds[hds$score_bin=="3",]$score_bin <- "High"
+# #hds[hds$score_bin=="4",]$score_bin <- "High"
+# #hds[hds$score_bin=="5",]$score_bin <- "High"
+# #hds$score_bin <- factor(hds$score_bin, levels = c("None", "Medium", "High"))
+# #summary(hds$score_bin)
+# 
+# #iw.dm <- full_join(iw.dm, hds, by = c("site"))
+# #iw.dm67- combining iw.dm with Q67=====
+# iw.dm67 <- full_join(iw.dm, hds67, by = c("site"))
+# iw.dm67 <- iw.dm67[!is.na(iw.dm67$community),]
+# iw.dm67<-iw.dm67 %>%
+#   drop_na(Q67)
+# 
+# 
+# #iw.dm71- combining iw.dm with Q71=====
+# iw.dm71 <- full_join(iw.dm, hds71, by = c("site"))
+# iw.dm71 <- iw.dm71[!is.na(iw.dm71$community),]
+# iw.dm71<-iw.dm71 %>%
+#   drop_na(Q71)
+# 
+# #iw.dm76- combining iw.dm with Q76=====
+# iw.dm76 <- full_join(iw.dm, hds76, by = c("site"))
+# iw.dm76 <- iw.dm76[!is.na(iw.dm76$community),]
+# iw.dm76<-iw.dm76 %>%
+#   drop_na(Q76)
+# 
+# #iw.dm77- combining iw.dm with Q77=====
+# iw.dm77 <- full_join(iw.dm, hds77, by = c("site"))
+# iw.dm77 <- iw.dm77[!is.na(iw.dm77$community),]
+# iw.dm77<-iw.dm77 %>%
+#   drop_na(Q77)
+# 
+# #iw.dm79- combining iw.dm with Q79=====
+# iw.dm79 <- full_join(iw.dm, hds79, by = c("site"))
+# iw.dm79 <- iw.dm79[!is.na(iw.dm79$community),]
+# iw.dm79<-iw.dm79 %>%
+#   drop_na(Q79)
+# 
+# #iw.dm65- combining iw.dm with Q65=====
+# iw.dm65 <- full_join(iw.dm, hds65, by = c("site"))
+# iw.dm65 <- iw.dm65[!is.na(iw.dm65$community),]
+# summary(as.factor(iw.dm65$Q67))
+# 
+# iw.dm65<-iw.dm65 %>%
+#   drop_na(Q65)
+# 
+# #iw.dm60- combining iw.dm with Q60=====
+# iw.dm60 <- full_join(iw.dm, hds60, by = c("site"))
+# iw.dm60 <- iw.dm60[!is.na(iw.dm60$community),]
+# iw.dm60<-iw.dm60 %>%
+#   drop_na(Q60)
+# 
+# summary(as.factor(iw.dm60[iw.dm60$community=="Globe/Miami",]$Q60))
 
 #write.csv(iw.score, "score_test.csv")
 #iw.dm[is.na(iw.dm$score_bin),]$score_bin <- "None"
@@ -567,7 +726,18 @@ summary(as.factor(iw.dm60[iw.dm60$community=="Globe/Miami",]$Q60))
 # q67$Q67 <- as.factor(q67$Q67)
 # summary(q67$Q67)
 
-
+####----
+####
+####STOP
+####DONT RUN THIS
+####UNLESS 
+####YOU WANT
+####A TON OF
+####FIGURES AND
+####ERROS
+####
+####
+####----
 #Summaries ----
 contam_list <- list("Al", "Sb", "As", "Ba", "Be", "Cd", "Cr", "Co", "Cu", "Fe", "Pb", "Mn", "Mo", "Ni", "Se", "Ag", "Sn", "V", "Zn")
 
@@ -622,11 +792,11 @@ lapply(X=contam_list,
 
 #Functions ----
 violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.string, facet.string, facet.title.string, units.string, type.string){
-  
+
   #load libraries
   library(ggplot2)
   library(tidyverse)
-  
+
   #assign data
   dat <- dataDF
   type <- type.string
@@ -636,11 +806,11 @@ violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.st
   fac <- facet.string
   fac.title <- facet.title.string
   units <- units.string
-  
+
   #format data
   dat <- dat %>%
     drop_na(!!subset)
-  
+
   #write graph
   p <- ggplot(data = dat[dat$analyte == c(analyte),],
               mapping = aes_string(y = "concentration", x = subset, fill = subset)) +
@@ -667,7 +837,7 @@ violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.st
           axis.line.x = element_blank())
   print(p)
   dev.print(png, paste(type,"_", analyte, "_vplot_", subset, ".png", sep=""), res=300, height=7, width=12, units="in")
-  
+
 }
 
 # violintransFX(dataDF = iw.dm.longer,
@@ -681,10 +851,10 @@ violintransFX <- function(dataDF, analyte.string, subset.string, subset.title.st
 
 
 boxplotFX <- function(dataDF, analyte.string, subset.string, subset.title.string, units.string, type.string){
-  
+
   library(ggplot2)
   library(tidyverse)
-  
+
   dat <- dataDF
   type <- type.string
   analyte <- analyte.string
@@ -713,15 +883,15 @@ boxplotFX <- function(dataDF, analyte.string, subset.string, subset.title.string
           axis.line.x = element_blank())
   print(p)
   dev.print(png, paste(type,"_", analyte, "bplot_", subset,".png", sep=""), res=300, height=7, width=10, units="in")
-  
+
 }
 
 violinfacFX <- function(dataDF, analyte.string, subset.string, subset.title.string, facet.string, facet.title.string, units.string, type.string){
-  
+
   #load libraries
   library(ggplot2)
   library(tidyverse)
-  
+
   #assign data
   dat <- dataDF
   type <- type.string
@@ -735,7 +905,7 @@ violinfacFX <- function(dataDF, analyte.string, subset.string, subset.title.stri
   #format data
   dat <- dat %>%
     drop_na(!!subset)
-  
+
   #write graph
   p <- ggplot(data = dat,
               mapping = aes_string(y = analyte, x = subset, fill = subset)) +
@@ -761,7 +931,7 @@ violinfacFX <- function(dataDF, analyte.string, subset.string, subset.title.stri
           axis.line.x = element_blank())
   print(p)
   dev.print(png, paste(type,"_", analyte, "_vplot_", subset, "_", fac, ".png", sep=""), res=300, height=7, width=10, units="in")
-  
+
 }
 
 
