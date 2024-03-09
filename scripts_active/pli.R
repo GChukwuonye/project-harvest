@@ -59,7 +59,7 @@ iws <- iw.hds%>%
 
 
 ##general wrangling----
-#iws <- iw.dm #use this line if NOT doing hds modeling and ignore the data section above
+iws <- iw.dm #use this line if NOT doing hds modeling and ignore the data section above
 iws.c <- iws %>%
   drop_na(pH) %>%
   drop_na(prox.normal) %>%
@@ -182,6 +182,63 @@ anova(pli.1)
 print(anova(pli.2))
 plot(allEffects(pli.2))
 #season, pH, proximity:community with DH having a negative proximity slope
+
+###land use ----
+pli.land.0 <- lmer(data = iw.dm,
+              log(pli) ~
+                (1|site),
+              REML = F)
+print(summary(pli.land.tu.0))
+
+pli.land.1 <- lmer(data = iw.dm[iw.dm$community!="Dewey-Humboldt",],
+              log(pli) ~ season + prox.normal + pH + landuse+landuse:prox.normal+
+                (1|site),
+              REML = F)
+print(summary(pli.land.1))
+vif(pli.land.1)
+pli.land.2.step <- step(pli.land.1)
+pli.land.2.step
+pli.land.2 <- get_model(pli.land.2.step)
+print(summary(pli.land.2))
+pli.land.2 <- lmer(data = iw.dm[iw.dm$community!="Dewey-Humboldt",],
+                   log(pli) ~ season + prox.normal + pH + landuse+landuse:prox.normal+
+                     (1|site),
+                   REML = T)
+check_model(pli.land.2)
+anova(pli.land.1)
+print(anova(pli.land.2))
+plot(allEffects(pli.land.2))
+#when we remove dewey-humboldt and control for the effect of season and pH, we see that the communities with active mining are experiencing greater contamination and have a more drastic effect than the urban community. But, we also see that the contamination in an urban area has a higher baseline, whereas in a mining community, far enough away from the mine, contamination is lower than in the urban community.
+
+pli.land.sum <- summary(pli.land.2)
+pli.land.sum
+write.csv(pli.land.sum$coefficients, "pli_land_coefs.csv")
+perf <- performance(pli.land.2)
+perf
+write.csv(perf, "pli_land_diag.csv")
+
+model.effects <- ggeffect(model = pli.land.2,
+                          type = "re",
+                          terms = c("prox.normal", "landuse"))
+model.effects$landuse <- as.character(model.effects$group)
+ggplot(model.effects, aes(x = x, y = exp(predicted), color = landuse))+
+  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
+  geom_line(linetype = "longdash")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high), fill = landuse),alpha=0.25, color = NA) +
+  scale_fill_poke(pokemon = "tentacruel")+
+  scale_color_poke(pokemon = "tentacruel")+
+  labs(title = "Proximity effect by land use",
+       x = "\nNormalized Proximity to Point Source (km)",
+       y = "Predicted PLI\n",
+       color = "Land Use Type",
+       fill = "Land Use Type")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+dev.print(png, "pli_landuse_effect_nopts.png", res=300, height=6, width=8, units="in")
+
 
 ###dewey-humboldt ----
 pli.dh.0 <- lmer(data = iws.dh,
