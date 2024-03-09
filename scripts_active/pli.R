@@ -190,18 +190,20 @@ pli.land.0 <- lmer(data = iw.dm,
               REML = F)
 print(summary(pli.land.tu.0))
 
-pli.land.1 <- lmer(data = iw.dm[iw.dm$community!="Dewey-Humboldt",],
+pli.land.1 <- lmer(data = iw.dm,
               log(pli) ~ season + prox.normal + pH + landuse+landuse:prox.normal+
                 (1|site),
               REML = F)
 print(summary(pli.land.1))
 vif(pli.land.1)
+anova(pli.land.1)
 pli.land.2.step <- step(pli.land.1)
 pli.land.2.step
 pli.land.2 <- get_model(pli.land.2.step)
 print(summary(pli.land.2))
-pli.land.2 <- lmer(data = iw.dm[iw.dm$community!="Dewey-Humboldt",],
-                   log(pli) ~ season + prox.normal + pH + landuse+landuse:prox.normal+
+plot(allEffects(pli.land.2))
+pli.land.2 <- lmer(data = iw.dm,
+                   log(pli) ~ season + pH + landuse+landuse:prox.normal+
                      (1|site),
                    REML = T)
 check_model(pli.land.2)
@@ -222,11 +224,11 @@ model.effects <- ggeffect(model = pli.land.2,
                           terms = c("prox.normal", "landuse"))
 model.effects$landuse <- as.character(model.effects$group)
 ggplot(model.effects, aes(x = x, y = exp(predicted), color = landuse))+
-  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
+  geom_point(data = iw.dm, aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
   geom_line(linetype = "longdash")+
   geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high), fill = landuse),alpha=0.25, color = NA) +
-  scale_fill_poke(pokemon = "tentacruel")+
-  scale_color_poke(pokemon = "tentacruel")+
+  scale_fill_poke(pokemon = "carvanha")+
+  scale_color_poke(pokemon = "carvanha")+
   labs(title = "Proximity effect by land use",
        x = "\nNormalized Proximity to Point Source (km)",
        y = "Predicted PLI\n",
@@ -237,7 +239,7 @@ ggplot(model.effects, aes(x = x, y = exp(predicted), color = landuse))+
   theme(panel.grid = element_blank(),
         legend.position = "bottom",
         axis.text.x = element_text())
-dev.print(png, "pli_landuse_effect_nopts.png", res=300, height=6, width=8, units="in")
+dev.print(png, "pli_landuse_effect_withdh.png", res=300, height=6, width=8, units="in")
 
 
 ###dewey-humboldt ----

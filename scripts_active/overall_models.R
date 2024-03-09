@@ -1893,6 +1893,28 @@ perf
 write.csv(perf, "cdtu_diag.csv")
 plot(allEffects(Cd.tu.2.2))
 #pH and prox significant, ward almost signif
+model.effects <- ggeffect(model = Cd.tu.2.2,
+                          type = "re",
+                          terms = c("pH", "prox.normal"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), color = group))+
+  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
+  geom_line(linetype = "longdash")+
+  #geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high), fill = group),alpha=0.25, color = NA) +
+  scale_fill_poke(pokemon = "tentacruel")+
+  scale_color_poke(pokemon = "tentacruel")+
+  labs(title = "Tucson - Effect of pH and proximity on [Cd]",
+       x = "\nNormalized Proximity to Point Source (km)",
+       y = "Predicted [Cd] (ug/L)\n",
+       color = "pH",
+       fill = "pH")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+dev.print(png, "tu_cd_effect.png", res=300, height=6, width=8, units="in")
+
+
 
 ###Co ----
 Co.tu.0 <- lmer(data = iws.tu,
