@@ -52,6 +52,15 @@ iws.gm <- iws.gm %>%
   drop_na(location_2)
 iws.gm$location_2 <- factor(iws.gm$location_2, levels = c("Miami/Claypool Area", "Globe Area", "Canyons Area"))
 
+#add sub location to hayden data
+hay <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "hayden", col_names = TRUE)
+iws.hw <- full_join(iws.hw, hay, by = c("site"))
+iws.hw <- iws.hw %>%
+  drop_na(community) %>%
+  drop_na(location)
+iws.hw$location <- factor(iws.hw$location, levels = c("Hayden", "Winkelman"))
+
+
 ## dh ----
 ###Ag ----
 Ag.dh.0 <- lmer(data = iws.dh,
@@ -1146,7 +1155,7 @@ Ag.hw.0 <- lmer(data = iws.hw,
 print(summary(Ag.hw.0))
 
 Ag.hw.1 <- lmer(data = iws.hw,
-                log(Ag) ~ season + prox.normal +  pH +
+                log(Ag) ~ season + prox.normal +  location + pH +
                   (1|site),
                 REML = F)
 print(summary(Ag.hw.1))
@@ -1169,7 +1178,7 @@ al.hw.0 <- lmer(data = iws.hw,
 print(summary(al.hw.0))
 
 al.hw.1 <- lmer(data = iws.hw,
-                log(Al) ~ season + prox.normal +  pH +
+                log(Al) ~ season + prox.normal +  location + pH +
                   (1|site),
                 REML = F)
 print(summary(al.hw.1))
@@ -1200,7 +1209,7 @@ As.hw.0 <- lmer(data = iws.hw,
 print(summary(As.hw.0))
 
 As.hw.1 <- lmer(data = iws.hw,
-                log(As) ~ season + prox.normal +  pH +
+                log(As) ~ season + prox.normal*location + pH +
                   (1|site),
                 REML = F)
 print(summary(As.hw.1))
@@ -1216,11 +1225,14 @@ As.hw.2.1 <- lm(data = iws.hw,
 check_model(As.hw.2)
 anova(As.hw.1)
 print(anova(As.hw.2))
+as.hw.sum <- summary(As.hw.2)
+write.csv(as.hw.sum$coefficients, "as_hw_coefs.csv")
 perf <- performance(As.hw.2)
 perf
-write.csv(perf, "ashw_diag.csv")
+write.csv(perf, "as_hw_diag.csv")
+#prox pH season location
 plot(allEffects(As.hw.2))
-#prox pH season
+
 
 ###Ba ----
 ba.hw.0 <- lmer(data = iws.hw,
@@ -1230,28 +1242,30 @@ ba.hw.0 <- lmer(data = iws.hw,
 print(summary(ba.hw.0))
 
 ba.hw.1 <- lmer(data = iws.hw,
-                log(Ba) ~ season + prox.normal +  pH +
+                log(Ba) ~ season + prox.normal*location + pH +
                   (1|site),
                 REML = F)
 print(summary(ba.hw.1))
-
+check_model(ba.hw.1)
 ba.hw.2.step <- step(ba.hw.1)
 ba.hw.2.step
 ba.hw.2 <- get_model(ba.hw.2.step)
 print(summary(ba.hw.2))
-ba.hw.2 <- lmer(data = iws.hw,
-                log(Ba) ~ season + prox.normal +
-                  (1|site),
-                REML = T)
+ba.hw.3 <- lm(data = iws.hw,
+                log(Ba) ~ season + prox.normal)
+anova(ba.hw.2, ba.hw.3)
+compare_performance(ba.hw.2, ba.hw.3)
 print(summary(ba.hw.2))
 anova(ba.hw.1)
 print(anova(ba.hw.2))
 check_model(ba.hw.2)
+ba.hw.sum <- summary(ba.hw.2)
+write.csv(ba.hw.sum$coefficients, "ba_hw_coefs.csv")
 perf <- performance(ba.hw.2)
 perf
-write.csv(perf, "bahw_diag.csv")
+write.csv(perf, "ba_hw_diag.csv")
+#prox pH season location
 plot(allEffects(ba.hw.2))
-#prox season
 
 ###Be ----
 Be.hw.0 <- lmer(data = iws.hw,
@@ -1261,7 +1275,7 @@ Be.hw.0 <- lmer(data = iws.hw,
 print(summary(Be.hw.0))
 
 Be.hw.1 <- lmer(data = iws.hw,
-                log(Be) ~ season + prox.normal +  pH +
+                log(Be) ~ season + prox.normal +  location + pH +
                   (1|site),
                 REML = F)
 print(summary(Be.hw.1))
@@ -1285,7 +1299,7 @@ Cd.hw.0 <- lmer(data = iws.hw,
 print(summary(Cd.hw.0))
 
 Cd.hw.1 <- lmer(data = iws.hw,
-                log(Cd) ~ season + prox.normal +  pH  + 
+                log(Cd) ~ season + prox.normal +  location + pH  + 
                   (1|site),
                 REML = F)
 print(summary(Cd.hw.1))
@@ -1294,19 +1308,17 @@ Cd.hw.2.step <- step(Cd.hw.1)
 Cd.hw.2.step
 Cd.hw.2 <- get_model(Cd.hw.2.step)
 print(summary(Cd.hw.2))
-Cd.hw.2 <- lmer(data = iws.hw,
-                log(Cd) ~ season + prox.normal +  pH +
-                  (1|site),
-                REML = T)
 print(summary(Cd.hw.2))
 check_model(Cd.hw.2)
 anova(Cd.hw.1)
 print(anova(Cd.hw.2))
+cd.hw.sum <- summary(Cd.hw.2)
+write.csv(cd.hw.sum$coefficients, "cd_hw_coefs.csv")
 perf <- performance(Cd.hw.2)
 perf
-write.csv(perf, "cdhw_diag.csv")
+write.csv(perf, "cd_hw_diag.csv")
+#prox pH season location
 plot(allEffects(Cd.hw.2))
-#season and prox and score
 
 ###Co ----
 Co.hw.0 <- lmer(data = iws.hw,
@@ -1316,7 +1328,7 @@ Co.hw.0 <- lmer(data = iws.hw,
 print(summary(Co.hw.0))
 
 Co.hw.1 <- lmer(data = iws.hw,
-                log(Co) ~ season + prox.normal +  pH +
+                log(Co) ~ season + prox.normal +  location + pH +
                   (1|site),
                 REML = F)
 print(summary(Co.hw.1))
@@ -1341,7 +1353,7 @@ Cr.hw.0 <- lmer(data = iws.hw,
 print(summary(Cr.hw.0))
 
 Cr.hw.1 <- lmer(data = iws.hw,
-                log(Cr) ~ season + prox.normal +  pH +
+                log(Cr) ~ season + prox.normal +  location + pH +
                   (1|site),
                 REML = F)
 print(summary(Cr.hw.1))
@@ -1371,7 +1383,7 @@ Cu.hw.0 <- lmer(data = iws.hw,
 print(summary(Cu.hw.0))
 
 Cu.hw.1 <- lmer(data = iws.hw,
-                log(Cu) ~ season + prox.normal +  pH +
+                log(Cu) ~ season + prox.normal +  location + pH +
                   (1|site),
                 REML = F)
 print(summary(Cu.hw.1))
@@ -1396,7 +1408,7 @@ Fe.hw.0 <- lmer(data = iws.hw,
 print(summary(Fe.hw.0))
 
 Fe.hw.1 <- lmer(data = iws.hw,
-                log(Fe) ~ season + prox.normal +  pH +
+                log(Fe) ~ season + prox.normal + location+ pH +
                   (1|site),
                 REML = F)
 print(summary(Fe.hw.1))
@@ -1427,7 +1439,7 @@ Mn.hw.0 <- lmer(data = iws.hw,
 print(summary(Mn.hw.0))
 
 Mn.hw.1 <- lmer(data = iws.hw,
-                log(Mn) ~ season + prox.normal +  pH +
+                log(Mn) ~ season + prox.normal + location+  pH +
                   (1|site),
                 REML = F)
 print(summary(Mn.hw.1))
@@ -1453,7 +1465,7 @@ mo.hw.0 <- lmer(data = iws.hw,
 print(summary(mo.hw.0))
 
 mo.hw.1 <- lmer(data = iws.hw,
-                log(Mo) ~ season + prox.normal +  pH +
+                log(Mo) ~ season + prox.normal + location+ pH +
                   (1|site),
                 REML = F)
 print(summary(mo.hw.1))
@@ -1465,11 +1477,13 @@ print(summary(mo.hw.2))
 anova(mo.hw.1)
 print(anova(mo.hw.2))
 check_model(mo.hw.2)
+mo.hw.sum <- summary(mo.hw.2)
+write.csv(mo.hw.sum$coefficients, "mo_hw_coefs.csv")
 perf <- performance(mo.hw.2)
 perf
-write.csv(perf, "mohw_diag.csv")
+write.csv(perf, "mo_hw_diag.csv")
+#prox pH season location
 plot(allEffects(mo.hw.2))
-#prox season
 
 ###Ni ----
 ni.hw.0 <- lmer(data = iws.hw,
@@ -1479,7 +1493,7 @@ ni.hw.0 <- lmer(data = iws.hw,
 print(summary(ni.hw.0))
 
 ni.hw.1 <- lmer(data = iws.hw,
-                log(Ni) ~ season + prox.normal +  pH +
+                log(Ni) ~ season + prox.normal + location + pH +
                   (1|site),
                 REML = F)
 print(summary(ni.hw.1))
@@ -1504,7 +1518,7 @@ Pb.hw.0 <- lmer(data = iws.hw,
 print(summary(Pb.hw.0))
 
 Pb.hw.1 <- lmer(data = iws.hw,
-                log(Pb) ~ season + prox.normal +  pH +
+                log(Pb) ~ season + prox.normal + location+ pH +
                   (1|site),
                 REML = F)
 print(summary(Pb.hw.1))
@@ -1535,7 +1549,7 @@ Sb.hw.0 <- lmer(data = iws.hw,
 print(summary(Sb.hw.0))
 
 Sb.hw.1 <- lmer(data = iws.hw,
-                log(Sb) ~ season + prox.normal +  pH +
+                log(Sb) ~ season + prox.normal + location+ pH +
                   (1|site),
                 REML = F)
 print(summary(Sb.hw.1))
@@ -1547,10 +1561,12 @@ print(summary(Sb.hw.2))
 check_model(Sb.hw.2)
 anova(Sb.hw.1)
 print(anova(Sb.hw.2))
+sb.hw.sum <- summary(Sb.hw.2)
+write.csv(sb.hw.sum$coefficients, "sb_hw_coefs.csv")
 perf <- performance(Sb.hw.2)
 perf
-write.csv(perf, "sbhw_diag.csv")
-#season prox
+write.csv(perf, "sb_hw_diag.csv")
+plot(allEffects(Sb.hw.2))
 
 ###Se ----
 Se.hw.0 <- lmer(data = iws.hw,
@@ -1560,7 +1576,7 @@ Se.hw.0 <- lmer(data = iws.hw,
 print(summary(Se.hw.0))
 
 Se.hw.1 <- lmer(data = iws.hw,
-                log(Se) ~ season + prox.normal +  pH +
+                log(Se) ~ season + prox.normal + location+ pH +
                   (1|site),
                 REML = F)
 print(summary(Se.hw.1))
@@ -1585,7 +1601,7 @@ Sn.hw.0 <- lmer(data = iws.hw,
 print(summary(Sn.hw.0))
 
 Sn.hw.1 <- lmer(data = iws.hw,
-                log(Sn) ~ season + prox.normal +  pH +
+                log(Sn) ~ season + prox.normal + location+ pH +
                   (1|site),
                 REML = F)
 print(summary(Sn.hw.1))
@@ -1610,7 +1626,7 @@ v.hw.0 <- lmer(data = iws.hw,
 print(summary(v.hw.0))
 
 v.hw.1 <- lmer(data = iws.hw,
-               log(V) ~ season + prox.normal +  pH +
+               log(V) ~ season + prox.normal + location+ pH +
                  (1|site),
                REML = F)
 print(summary(v.hw.1))
@@ -1640,7 +1656,7 @@ Zn.hw.0 <- lmer(data = iws.hw,
 print(summary(Zn.hw.0))
 
 Zn.hw.1 <- lmer(data = iws.hw,
-                log(Zn) ~ season + prox.normal +  pH +
+                log(Zn) ~ season + prox.normal +location+pH +
                   (1|site),
                 REML = F)
 print(summary(Zn.hw.1))
