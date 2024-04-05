@@ -239,7 +239,7 @@ ggplot(model.effects, aes(x = x, y = exp(predicted), color = landuse))+
   theme(panel.grid = element_blank(),
         legend.position = "bottom",
         axis.text.x = element_text())
-dev.print(png, "pli_landuse_effect_withdh.png", res=300, height=6, width=8, units="in")
+#dev.print(png, "pli_landuse_effect_withdh.png", res=300, height=6, width=8, units="in")
 
 
 ###dewey-humboldt ----
@@ -354,6 +354,258 @@ perf <- performance(pli.tu.2)
 perf
 write.csv(perf, "pli_tu_diag.csv")
 #season, pH
+
+###viz ----
+####season ----
+#####dh----
+model.effects.dh <- ggeffect(model = pli.dh.2,
+                          type = "re",
+                          terms = c("season"))
+model.effects.dh$season <- as.character(model.effects.dh$x)
+model.effects.dh$season <- factor(model.effects.dh$season, levels = c("Winter", "Monsoon"))
+model.effects.dh$community <- "Dewey-Humboldt"
+ggplot(model.effects.dh)+
+  geom_point(data = iw.dm[iw.dm$community=="Dewey-Humboldt",], aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values=c("#C5D7D2","#F5D1C4"))+
+  labs(x = "\nSampling Season",
+       y = "Estimated PLI\n")+
+  # coord_cartesian(ylim = c(0,4))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_dh_ssn_ef.png", res=300, height=6, width=5, units="in")
+
+#####gm----
+model.effects.gm <- ggeffect(model = pli.gm.2,
+                          type = "re",
+                          terms = c("season"))
+model.effects.gm$season <- as.character(model.effects.gm$x)
+model.effects.gm$season <- factor(model.effects.gm$season, levels = c("Winter", "Monsoon"))
+model.effects.gm$community <- "Globe/Miami"
+
+ggplot(model.effects.gm)+
+  geom_point(data = iw.dm[iw.dm$community=="Globe/Miami",], aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values=c("#C5D7D2","#F5D1C4"))+
+  labs(x = "\nSampling Season",
+       y = "Estimated PLI\n")+
+  coord_cartesian(ylim = c(0,30))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_gm_ssn_ef.png", res=300, height=6, width=5, units="in")
+
+#####hw----
+model.effects.hw <- ggeffect(model = pli.hw.2,
+                             type = "re",
+                             terms = c("season"))
+model.effects.hw$season <- as.character(model.effects.hw$x)
+model.effects.hw$season <- factor(model.effects.hw$season, levels = c("Winter", "Monsoon"))
+model.effects.hw$community <- "Hayden/Winkelman"
+
+ggplot(model.effects.hw)+
+  geom_point(data = iw.dm[iw.dm$community=="Hayden/Winkelman",], aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values=c("#C5D7D2","#F5D1C4"))+
+  labs(x = "\nSampling Season",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,30))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_hw_ssn_ef.png", res=300, height=6, width=5, units="in")
+
+#####tu----
+model.effects.tu <- ggeffect(model = pli.tu.2,
+                          type = "re",
+                          terms = c("season"))
+model.effects.tu$season <- as.character(model.effects.tu$x)
+model.effects.tu$season <- factor(model.effects.tu$season, levels = c("Winter", "Monsoon"))
+model.effects.tu$community <- "Tucson"
+ggplot(model.effects.tu)+
+  geom_point(data = iw.dm[iw.dm$community=="Tucson",], aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values=c("#C5D7D2","#F5D1C4"))+
+  labs(x = "\nSampling Season",
+       y = "Estimated PLI\n")+
+  coord_cartesian(ylim = c(0,15))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_tu_ssn_ef.png", res=300, height=6, width=5, units="in")
+
+#####combined ----
+ssneffects <- rbind(model.effects.dh, model.effects.gm, model.effects.hw, model.effects.tu)
+ggplot(ssneffects)+
+  #geom_point(data = iw.dm, aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = community, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high), color = season))+
+  scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  labs(x = "\nCommunity",
+       y = "Estimated PLI\n",
+       color = "Sampling Season")+
+  #coord_cartesian(ylim = c(0,15))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+#dev.print(png, "pli_all_ssn_ef.png", res=300, height=6, width=8, units="in")
+
+####proximity ----
+#####dh----
+model.effects.dh <- ggeffect(model = pli.dh.1,
+                             type = "re",
+                             terms = c("prox.normal"))
+model.effects.dh$community <- "Dewey-Humboldt"
+ggplot(model.effects.dh, aes(x = x, y = exp(predicted)))+
+  geom_point(data = iw.dm[iw.dm$community=="Dewey-Humboldt",], aes(x = prox.normal, y=pli), alpha = .5, shape = 21, fill = "#F9A785")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#F9A785") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#F9A785")) +
+  scale_color_manual(values = c("#F9A785")) +
+  scale_linetype_manual(values = c(5))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_dh_prox_pts_maximaleffect.png", res=300, height=6, width=8, units="in")
+
+#####gm----
+model.effects.gm <- ggeffect(model = pli.gm.2,
+                          type = "re",
+                          terms = c("prox.normal"))
+model.effects.gm$community <- "Globe/Miami"
+ggplot(model.effects.gm, aes(x = x, y = exp(predicted)))+
+  geom_point(data = iw.dm[iw.dm$community=="Globe/Miami",], aes(x = prox.normal, y=pli), alpha = .5, shape = 21, fill = "#00A8C6")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#00A8C6") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#00A8C6")) +
+  scale_color_manual(values = c("#00A8C6")) +
+  scale_linetype_manual(values = c(3))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_gm_prox_pts_ef.png", res=300, height=6, width=8, units="in")
+
+#####hw----
+model.effects.hw <- ggeffect(model = pli.hw.2,
+                             type = "re",
+                             terms = c("prox.normal"))
+model.effects.hw$community <- "Hayden/Winkelman"
+ggplot(model.effects.hw, aes(x = x, y = exp(predicted)))+
+  #geom_point(data = iw.dm[iw.dm$community=="Hayden/Winkelman",], aes(x = prox.normal, y=pli), alpha = .5, shape = 21, fill = "#95CACA")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#95CACA") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#95CACA")) +
+  scale_color_manual(values = c("#95CACA")) +
+  scale_linetype_manual(values = c(2))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "pli_hw_prox_ef.png", res=300, height=6, width=8, units="in")
+
+#####tu----
+model.effects.tu <- ggeffect(model = pli.tu.1,
+                             type = "re",
+                             terms = c("prox.normal"))
+model.effects.tu$community <- "Tucson"
+ggplot(model.effects.tu, aes(x = x, y = exp(predicted)))+
+  geom_point(data = iw.dm[iw.dm$community=="Tucson",], aes(x = prox.normal, y=pli), alpha = .5, shape = 21, fill = "#4068B2")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#4068B2") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#4068B2")) +
+  scale_color_manual(values = c("#4068B2")) +
+  scale_linetype_manual(values = c(4))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_tu_prox_pts_maximaleffect.png", res=300, height=6, width=8, units="in")
+
+#####combined ----
+proxeffects <- rbind(model.effects.gm, model.effects.hw)
+ggplot(proxeffects, aes(x = x, y = exp(predicted), color = community, fill = community))+
+  #geom_point(data = iw.dm[iw.dm$community=="Hayden/Winkelman",], aes(x = prox.normal, y=pli), alpha = .3)+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)),alpha=.75, color = "black") +
+  geom_line(aes(linetype=community), color = "black")+
+  scale_fill_manual(values = c("#00A8C6", "#95CACA")) +
+  scale_color_manual(values = c("#00A8C6", "#95CACA")) +
+  scale_linetype_manual(values = c(3, 2))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated PLI\n",
+       fill = "Community",
+       color = "Community",
+       linetype = "Community")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+#dev.print(png, "pli_gmhw_prox_ef.png", res=300, height=6, width=8, units="in")
+
+proxmaxeffects <- rbind(model.effects.dh, model.effects.tu)
+ggplot(proxmaxeffects, aes(x = x, y = exp(predicted), color = community, fill = community))+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)),alpha=.75, color = "black") +
+  geom_line(aes(linetype=community), color = "black")+
+  scale_fill_manual(values = c("#F9A785", "#4068B2")) +
+  scale_color_manual(values = c("#F9A785", "#4068B2")) +
+  scale_linetype_manual(values = c(5, 4))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated PLI\n",
+       fill = "Community",
+       color = "Community",
+       linetype = "Community")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+#dev.print(png, "pli_dhtu_prox_maximalefffect.png", res=300, height=6, width=8, units="in")
+
+
+####pH ----
+#####tu----
+model.effects.tu <- ggeffect(model = pli.tu.2,
+                             type = "re",
+                             terms = c("pH"))
+model.effects.tu$community <- "Tucson"
+ggplot(model.effects.tu, aes(x = x, y = exp(predicted)))+
+  #geom_point(data = iws.tu, aes(x = pH, y=pli), alpha = .5, shape = 21, fill = "#4068B2")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#4068B2") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#4068B2")) +
+  scale_color_manual(values = c("#4068B2")) +
+  scale_linetype_manual(values = c(4))+
+  labs(x = "\npH",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_tu_pH_ef.png", res=300, height=6, width=8, units="in")
 
 
 

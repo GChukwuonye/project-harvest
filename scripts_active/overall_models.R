@@ -1218,8 +1218,8 @@ As.hw.2.step <- step(As.hw.1)
 As.hw.2.step
 As.hw.2 <- get_model(As.hw.2.step)
 print(summary(As.hw.2))
-As.hw.2 <- lm(data = iws.hw,
-                log(As) ~ season + prox.normal +  pH)
+# As.hw.2 <- lm(data = iws.hw,
+#                 log(As) ~ season + prox.normal + location+  pH)
 As.hw.2.1 <- lm(data = iws.hw,
               log(As) ~ season*prox.normal +  pH)
 check_model(As.hw.2)
@@ -1232,6 +1232,28 @@ perf
 write.csv(perf, "as_hw_diag.csv")
 #prox pH season location
 plot(allEffects(As.hw.2))
+
+####viz----
+model.effects.hw.as <- ggeffect(model = As.hw.2,
+                             type = "re",
+                             terms = c("location"))
+model.effects.hw.as$location <- as.character(model.effects.hw.as$x)
+model.effects.hw.as$location <- factor(model.effects.hw.as$location, levels = c("Hayden", "Winkelman"))
+model.effects.hw.as$analyte <- "As"
+ggplot(model.effects.hw.as)+
+  geom_point(data = iws.hw, aes(x = location, y = As, fill = location), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values = c("#77B180", "#A2A9D6"))+
+  labs(x = "\nSampling Location",
+       y = "Estimated [As] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,30))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "as_hw_loc_ef.png", res=300, height=6, width=5, units="in")
+
 
 
 ###Ba ----
@@ -1319,6 +1341,29 @@ perf
 write.csv(perf, "cd_hw_diag.csv")
 #prox pH season location
 plot(allEffects(Cd.hw.2))
+
+####viz----
+model.effects.hw.cd <- ggeffect(model = Cd.hw.2,
+                                type = "re",
+                                terms = c("location"))
+model.effects.hw.cd$location <- as.character(model.effects.hw.cd$x)
+model.effects.hw.cd$location <- factor(model.effects.hw.cd$location, levels = c("Hayden", "Winkelman"))
+model.effects.hw.cd$analyte <- "Cd"
+ggplot(model.effects.hw.cd)+
+  geom_point(data = iws.hw, aes(x = location, y = Cd, fill = location), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values = c("#77B180", "#A2A9D6"))+
+  labs(x = "\nSampling Location",
+       y = "Estimated [Cd] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,30))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "cd_hw_loc_ef.png", res=300, height=6, width=5, units="in")
+
+
 
 ###Co ----
 Co.hw.0 <- lmer(data = iws.hw,
@@ -1678,6 +1723,25 @@ perf
 write.csv(perf, "znhw_diag.csv")
 #season
 
+###combined
+#####combined ----
+hwloceffects <- rbind(model.effects.hw.as, model.effects.hw.cd)
+
+ggplot(hwloceffects)+
+  #geom_point(data = iw.dm, aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = location, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high), color = analyte))+
+  scale_color_poke(pokemon = "surskit")+
+  labs(x = "\nSampling Location",
+       y = "Estimated [Analyte] (ug/L)\n",
+       color = "Analyte")+
+  #coord_cartesian(ylim = c(0,15))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+dev.print(png, "ascd_hw_loc_ef.png", res=300, height=6, width=8, units="in")
+
+
 ## tu ----
 ###Ag ----
 Ag.tu.0 <- lmer(data = iws.tu,
@@ -1909,26 +1973,7 @@ perf
 write.csv(perf, "cdtu_diag.csv")
 plot(allEffects(Cd.tu.2.2))
 #pH and prox significant, ward almost signif
-model.effects <- ggeffect(model = Cd.tu.2.2,
-                          type = "re",
-                          terms = c("pH", "prox.normal"))
-ggplot(model.effects, aes(x = x, y = exp(predicted), color = group))+
-  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
-  geom_line(linetype = "longdash")+
-  #geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high), fill = group),alpha=0.25, color = NA) +
-  scale_fill_poke(pokemon = "tentacruel")+
-  scale_color_poke(pokemon = "tentacruel")+
-  labs(title = "Tucson - Effect of pH and proximity on [Cd]",
-       x = "\nNormalized Proximity to Point Source (km)",
-       y = "Predicted [Cd] (ug/L)\n",
-       color = "pH",
-       fill = "pH")+
-  #coord_cartesian(ylim = c(0,10))+
-  theme_bw()+
-  theme(panel.grid = element_blank(),
-        legend.position = "bottom",
-        axis.text.x = element_text())
-dev.print(png, "tu_cd_effect.png", res=300, height=6, width=8, units="in")
+
 
 
 
@@ -2393,6 +2438,207 @@ perf
 write.csv(perf, "zntu_diag.csv")
 plot(allEffects(Zn.tu.2.4))
 #season
+
+###viz ----
+####proximity ----
+model.effects.tu <- ggeffect(model = Zn.tu.2.4,
+                             type = "re",
+                             terms = c("prox.normal", "season"))
+model.effects.tu$community <- "Tucson"
+model.effects.tu$season <- factor(model.effects.tu$group, levels = c("Winter", "Monsoon"))
+ggplot(model.effects.tu, aes(x = x, y = exp(predicted), color = season, fill = season))+
+  #geom_point(data = iw.dm[iw.dm$community=="Tucson",], aes(x = prox.normal, y=Zn, fill = season), alpha = .5, shape = 21)+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .75, color = "black") +
+  geom_line(aes(linetype = season),color = "black")+
+  scale_fill_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_linetype_manual(values = c(4, 8))+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimated [Zn] (ug/L)\n",
+       color = "Season",
+       fill = "Season",
+       linetype = "Season")+
+  #coord_cartesian(ylim = c(0,10))+
+  facet_grid(.~season)+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "Zn_tu_prox_ef.png", res=300, height=6, width=8, units="in")
+
+####ward ----
+model.effects.tu.mo <- ggeffect(model = mo.tu.2,
+                                type = "re",
+                                terms = c("ward"))
+model.effects.tu.mo$analyte <- "Mo"
+ggplot(model.effects.tu.mo)+
+  geom_point(data = iws.tu, aes(x = ward, y = Mo, fill = ward), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values = c("#d1f8be", "#f4bde7", "#f07979", "#9ebbd7", "#f4a17a", "#fdf734"))+
+  labs(x = "\nCity Ward",
+       y = "Estimated [Mo] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,30))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "mo_tu_ward_pts_ef.png", res=300, height=6, width=8, units="in")
+
+model.effects.tu.sb <- ggeffect(model = Sb.tu.2,
+                                type = "re",
+                                terms = c("ward"))
+model.effects.tu.sb$analyte <- "Sb"
+ggplot(model.effects.tu.sb)+
+  #geom_point(data = iws.tu, aes(x = ward, y = Sb, fill = ward), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values = c("#d1f8be", "#f4bde7", "#f07979", "#9ebbd7", "#f4a17a", "#fdf734"))+
+  labs(x = "\nCity Ward",
+       y = "Estimated [Sb] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,30))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "sb_tu_ward_ef.png", res=300, height=6, width=8, units="in")
+
+wardeffects <- rbind(model.effects.tu.mo, model.effects.tu.sb)
+ggplot(wardeffects)+
+  #geom_point(data = iw.dm, aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high), color = analyte))+
+  scale_color_poke(pokemon = "tangela")+
+  labs(x = "\nCity Ward",
+       y = "Estimated [Analyte] (ug/L)\n",
+       color = "Analyte")+
+  #coord_cartesian(ylim = c(0,15))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+dev.print(png, "mosb_tu_ward_ef.png", res=300, height=6, width=8, units="in")
+
+####pH----
+#####Be----
+model.effects.tu.be <- ggeffect(model = Be.tu.2,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.be$analyte <- "Be"
+
+ggplot(model.effects.tu.be, aes(x = x, y = exp(predicted)))+
+  geom_point(data = iws.tu, aes(x = pH, y=Be), alpha = .5, shape = 21, fill = "#4068B2")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#4068B2") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#4068B2")) +
+  scale_color_manual(values = c("#4068B2")) +
+  scale_linetype_manual(values = c(4))+
+  labs(x = "\npH",
+       y = "Estimated [Be] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "be_tu_pH_pts_ef.png", res=300, height=6, width=8, units="in")
+
+#####As----
+model.effects.tu.as <- ggeffect(model = As.tu.2,
+                             type = "re",
+                             terms = c("pH"))
+model.effects.tu.as$analyte <- "As"
+
+ggplot(model.effects.tu.as, aes(x = x, y = exp(predicted)))+
+  geom_point(data = iws.tu, aes(x = pH, y=As), alpha = .5, shape = 21, fill = "#4068B2")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#4068B2") +
+  geom_line(aes(linetype = group), color = "black")+
+  scale_fill_manual(values = c("#4068B2")) +
+  scale_color_manual(values = c("#4068B2")) +
+  scale_linetype_manual(values = c(4))+
+  labs(x = "\npH",
+       y = "Estimated [As] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "as_tu_pH_pts_ef.png", res=300, height=6, width=8, units="in")
+
+#######combined----
+model.effects.tu.ba <- ggeffect(model = ba.tu.2,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.ba$analyte <- "Ba"
+model.effects.tu.cr <- ggeffect(model = Cr.tu.2.2,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.cr$analyte <- "Cr"
+model.effects.tu.cu <- ggeffect(model = Cu.tu.2.1,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.cu$analyte <- "Cu"
+model.effects.tu.mn <- ggeffect(model = Mn.tu.2,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.mn$analyte <- "Mn"
+model.effects.tu.ni <- ggeffect(model = ni.tu.2,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.ni$analyte <- "Ni"
+model.effects.tu.pb <- ggeffect(model = Pb.tu.2,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.pb$analyte <- "Pb"
+model.effects.tu.zn <- ggeffect(model = Zn.tu.2.4,
+                                type = "re",
+                                terms = c("pH"))
+model.effects.tu.zn$analyte <- "Zn"
+
+wardeffects <- rbind(model.effects.tu.as, model.effects.tu.ba, model.effects.tu.cr, model.effects.tu.cu, model.effects.tu.mn, model.effects.tu.ni, model.effects.tu.pb, model.effects.tu.zn)
+
+ggplot(wardeffects, aes(x = x, y = exp(predicted), color = analyte))+
+  #geom_point(data = iws.tu, aes(x = pH, y=As), alpha = .5, shape = 21, fill = "#4068B2")+
+  #geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#4068B2") +
+  geom_line(linetype = 4)+
+  scale_color_poke(pokemon = "porygon")+
+  #scale_fill_poke("tentacool")+
+  labs(x = "\npH",
+       y = "Estimated [Analyte] (ug/L)\n",
+       color = "Analyte",
+       label = "")+
+  #coord_cartesian(ylim = c(0,10))+
+  facet_wrap(.~analyte, scales = "free_y")+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+#dev.print(png, "analytes_tu_pH+_facet_ef.png", res=300, height=8, width=10, units="in")
+
+
+#####Cd----
+model.effects.tu.cd <- ggeffect(model = Cd.tu.2.2,
+                          type = "re",
+                          terms = c("pH", "prox.normal"))
+
+ggplot(model.effects.tu.cd, aes(x = as.numeric(group), y = exp(predicted), color = as.factor(x)))+
+  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
+  geom_line(linetype = "longdash")+
+  #geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high), fill = group),alpha=0.25, color = NA) +
+  scale_color_brewer(palette = 13)+
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Predicted [Cd] (ug/L)\n",
+       color = "pH",
+       fill = "pH")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text())
+#dev.print(png, "cd_tu_pHprox_ef.png", res=300, height=6, width=8, units="in")
+
+
+
+
+
 
 #plotting ----
 #quick example plots
