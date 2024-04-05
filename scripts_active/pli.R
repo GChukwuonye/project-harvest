@@ -202,7 +202,7 @@ pli.land.2.step
 pli.land.2 <- get_model(pli.land.2.step)
 print(summary(pli.land.2))
 plot(allEffects(pli.land.2))
-pli.land.2 <- lmer(data = iw.dm,
+pli.land.2 <- lmer(data = iw.dm[iw.dm$community!="Dewey-Humboldt",],
                    log(pli) ~ season + pH + landuse+landuse:prox.normal+
                      (1|site),
                    REML = T)
@@ -212,6 +212,7 @@ print(anova(pli.land.2))
 plot(allEffects(pli.land.2))
 #when we remove dewey-humboldt and control for the effect of season and pH, we see that the communities with active mining are experiencing greater contamination and have a more drastic effect than the urban community. But, we also see that the contamination in an urban area has a higher baseline, whereas in a mining community, far enough away from the mine, contamination is lower than in the urban community.
 
+
 pli.land.sum <- summary(pli.land.2)
 pli.land.sum
 write.csv(pli.land.sum$coefficients, "pli_land_coefs.csv")
@@ -219,19 +220,20 @@ perf <- performance(pli.land.2)
 perf
 write.csv(perf, "pli_land_diag.csv")
 
+#####viz----
+######prox----
 model.effects <- ggeffect(model = pli.land.2,
                           type = "re",
                           terms = c("prox.normal", "landuse"))
 model.effects$landuse <- as.character(model.effects$group)
 ggplot(model.effects, aes(x = x, y = exp(predicted), color = landuse))+
-  geom_point(data = iw.dm, aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
+  geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = prox.normal, y=pli, color = landuse), alpha = .3)+
   geom_line(linetype = "longdash")+
   geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high), fill = landuse),alpha=0.25, color = NA) +
   scale_fill_poke(pokemon = "carvanha")+
   scale_color_poke(pokemon = "carvanha")+
-  labs(title = "Proximity effect by land use",
-       x = "\nNormalized Proximity to Point Source (km)",
-       y = "Predicted PLI\n",
+  labs(x = "\nNormalized Proximity to Point Source (km)",
+       y = "Estimaetd PLI\n",
        color = "Land Use Type",
        fill = "Land Use Type")+
   #coord_cartesian(ylim = c(0,10))+
@@ -239,8 +241,46 @@ ggplot(model.effects, aes(x = x, y = exp(predicted), color = landuse))+
   theme(panel.grid = element_blank(),
         legend.position = "bottom",
         axis.text.x = element_text())
-#dev.print(png, "pli_landuse_effect_withdh.png", res=300, height=6, width=8, units="in")
+#dev.print(png, "pli_landuse_prox_pts_ef.png", res=300, height=6, width=8, units="in")
 
+######pH----
+model.effects <- ggeffect(model = pli.land.2,
+                          type = "re",
+                          terms = c("pH"))
+ggplot(model.effects, aes(x = x, y = exp(predicted)))+
+  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = pH, y=pli), alpha = .5, shape = 21, fill = "#77B180")+
+  geom_ribbon(aes(ymin=exp(conf.low), ymax=exp(conf.high)), alpha = .5, color = "black", fill = "#77B180") +
+  geom_line(linetype = "longdash", color = "black")+
+  scale_fill_manual(values = c("#77B180")) +
+  scale_color_manual(values = c("#77B180")) +
+  labs(x = "\npH",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,10))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_landuse_pH_ef.png", res=300, height=6, width=8, units="in")
+
+######season----
+model.effects <- ggeffect(model = pli.land.2,
+                             type = "re",
+                             terms = c("season"))
+model.effects$season <- as.character(model.effects$x)
+model.effects$season <- factor(model.effects$season, levels = c("Winter", "Monsoon"))
+ggplot(model.effects)+
+  #geom_point(data = iw.dm[iw.dm$community!="Dewey-Humboldt",], aes(x = season, y = pli, fill = season), color = "black",shape = 21, alpha = .75, position = "jitter")+
+  geom_pointrange(aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)), color = "black")+
+  # scale_color_manual(values=c("#C5D7D2","#F5D1C4"))+
+  scale_fill_manual(values=c("#C5D7D2","#F5D1C4"))+
+  labs(x = "\nSampling Season",
+       y = "Estimated PLI\n")+
+  #coord_cartesian(ylim = c(0,15))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+#dev.print(png, "pli_land_ssn_ef.png", res=300, height=6, width=5, units="in")
 
 ###dewey-humboldt ----
 pli.dh.0 <- lmer(data = iws.dh,
