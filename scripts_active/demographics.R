@@ -30,10 +30,7 @@ iwm.demo <- iw.demo %>%
   drop_na(prox.normal)%>%
   drop_na(Zip)
 
-
 #split dataframe into different ones for each community
-
-
 iws.c <- iw.demo %>%
   group_by(community) %>%
   group_split()
@@ -42,6 +39,19 @@ iws.dh <- iws.c[[1]]
 iws.gm <- iws.c[[2]]
 iws.hw <- iws.c[[3]]
 iws.tu <- iws.c[[4]]
+
+#for summaries, use the data frame, "demo" for overall demographics of participants who consented to share their information. Use the data frame, "iw.demo.rain" for demographics of the participants who consented to share their information AND we have rainwater samples from them.
+iw.demo.rain <- iw.demo %>% distinct(site, .keep_all = TRUE)
+
+#make demo data longer for summaries
+iw.demo.rain.long <- pivot_longer(iw.demo.rain,
+                          cols = c(Zip:`Low Income`),
+                          values_to = "value",
+                          names_to = "demographic")
+
+#clean up data for summaries
+iw.demo.rain.long <- iw.demo.rain.long %>%
+  drop_na(value)
 
 #globe specific
 glo <- read_xlsx("~/Documents/GitHub/ProjectHarvest/WorkingFiles/data/data_processing/LATLOGSITE.xlsx", sheet = "globe", col_names = TRUE)
@@ -66,7 +76,7 @@ iws.tu$ward <- factor(iws.tu$ward, levels = c("One", "Two", "Three", "Four", "Fi
 #summaries----
 ##demo summaries ----
 ###overall ----
-facsumFX(datalongDF = demo.long,
+facsumFX(datalongDF = iw.demo.rain.long,
       subset.vector.string = c("demographic", "value"),
       dfname.string = "sum.demo",
       filename.string = "demo")
@@ -1396,7 +1406,7 @@ facsumFX <- function(datalongDF, subset.vector.string, dfname.string, filename.s
   filename <- filename.string
   
   #calculate summary stats
-  demon <- demo.long %>%
+  demon <- dat.long %>%
     mutate(value = factor(value)) %>%
     mutate(demographic = factor(demographic))%>%
     group_by(across(all_of(cols))) %>%
