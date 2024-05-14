@@ -207,78 +207,89 @@ sumFX(datalongDF = iw.demo.long,
 #Initial correlations ----
 ##community----
 #community x zip are correlated, definitely dont use both in a single model
+xtest(dataDF = iw.demo.rain,
+      var1.string = "community_2",
+      var2.string = "Zip",
+      filename.string = "X2_comzip")
+
 #community x language are correlated
-xtest(dataDF = demo,
+xtest(dataDF = iw.demo.rain,
       var1.string = "community_2",
       var2.string = "Primary Language",
       filename.string = "X2_comlang")
 
 #community and race are correlated - does this mean we cannot have both those variables in the same model?
-xtest(dataDF = demo,
+xtest(dataDF = iw.demo.rain[iw.demo.rain$BIPOC!="Other",],
       var1.string = "community_2",
       var2.string = "Race Ethnicity",
       filename.string = "X2_comrace")
 
-xtest(dataDF = demo,
+xtest(dataDF = iw.demo.rain[iw.demo.rain$BIPOC!="Other",],
       var1.string = "community_2",
       var2.string = "BIPOC",
       filename.string = "X2_compoc")
 
 #com x ed are correlated
-xtest(dataDF = demo,
+xtest(dataDF = iw.demo.rain,
       var1.string = "community_2",
       var2.string = "Education_grouped",
       filename.string = "X2_comed")
 
 #com x household size
-xtest(dataDF = demo,
+xtest(dataDF = iw.demo.rain,
       var1.string = "community_2",
       var2.string = "household_size",
       filename.string = "X2_comsize")
 
 #com x income
-xtest(dataDF = demo,
+xtest(dataDF = iw.demo.rain,
       var1.string = "community_2",
       var2.string = "Low Income",
       filename.string = "X2_comsize")
 
 ##proximity ----
-#prox x language not collinear?
-
-demo$lang <- demo$`Primary Language`
-demo$income <- demo$`Low Income`
-
-plang <- lm(data = demo,
+#prox x language not collinear? insufficient data
+plang <- lm(data = iw.demo.rain,
             prox.normal~lang*community)
 summary(plang)
 plot(allEffects(plang))
 anova(plang)
 
-ggplot(data = demo, mapping = aes(x = prox.normal, fill = `Primary Language`))+
+ggplot(data = iw.demo.rain, mapping = aes(x = prox.normal, fill = `Primary Language`))+
   geom_histogram() +
   facet_wrap(.~community_2)
 
 #prox x race only correlated for Tucson
-demopoc <- demo%>%
+iw.demo.rainpoc <- iw.demo.rain%>%
   filter(BIPOC!="Other")
-ppoc <- lm(data = demopoc,
-            log(proximity.km)~BIPOC*community_2)
+ppoc <- lm(data = iw.demo.rainpoc,
+            prox.normal~BIPOC*community_2)
 summary(ppoc)
 plot(allEffects(ppoc))
 anova(ppoc)
 
+#globe only - not signif with rainwater cohort or overall cohort
 ppocgm <- lm(data = demopoc[demopoc$community=="Globe/Miami",],
            prox.normal~BIPOC)
 summary(ppocgm)
 plot(allEffects(ppocgm))
 anova(ppocgm)
+
+#tucson only - nearly signif with rainwater cohort, signif with overall cohort
 ppoctu <- lm(data = demopoc[demopoc$community=="Tucson",],
              prox.normal~BIPOC)
 summary(ppoctu)
 plot(allEffects(ppoctu))
 anova(ppoctu)
 
-
+#tucson + globe together - signif with rainwater cohort, signif with overall cohort
+ppoctugm <- lm(data = iw.demo.rainpoc[iw.demo.rainpoc$community!="Dewey-Humboldt"&iw.demo.rainpoc$community!="Hayden/Winkelman",],
+             prox.normal~BIPOC+community)
+summary(ppoctugm)
+plot(allEffects(ppoctugm))
+anova(ppoctugm)
+check_model(ppoctugm)
+performance(ppoctugm)
 
 ggplot(data = demopoc, mapping = aes(x = proximity.km, fill = BIPOC))+
   geom_boxplot() +
