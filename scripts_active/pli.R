@@ -29,7 +29,7 @@ library(pals)
 ##hds wrangling ----
 #each time you run the models, you need to change out the hds question you're focused on below. And apply the correct factor ordering
 iws <- iw.hds%>%
-  drop_na(Q65)%>%
+  drop_na(Q67)%>%
   mutate(Q9 = factor(Q9))%>%
   mutate(Q18 = factor(Q18))%>%
   mutate(Q44 = factor(Q44))%>%
@@ -40,7 +40,9 @@ iws <- iw.hds%>%
   mutate(Q76 = factor(Q76))%>%
   mutate(Q77 = factor(Q77))%>%
   mutate(Q78 = factor(Q78))%>%
-  mutate(Q1 = factor(Q1))
+  mutate(Q1 = factor(Q1))%>%
+  drop_na(pH) %>%
+  drop_na(prox.normal)
 
 #summary(iws$Q1)
 
@@ -59,7 +61,7 @@ iws <- iw.hds%>%
 
 
 ##general wrangling----
-iws <- iw.dm #use this line if NOT doing hds modeling and ignore the data section above
+iws <- iw.dm #use this line if NOT doing hds modeling and ignore the data section above ----
 iws.c <- iws %>%
   drop_na(pH) %>%
   drop_na(prox.normal) %>%
@@ -1870,6 +1872,567 @@ ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax 
         legend.position = "none",
         axis.text.x = element_text())
 dev.print(png, "pli_q67_effect.png", res=300, height=6, width=8, units="in")
+
+#####Ag ----
+Ag.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Ag) ~
+                  (1|site),
+                REML = F)
+print(summary(Ag.q67.0))
+
+Ag.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Ag) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Ag.q67.1))
+Ag.q67.2.step <- step(Ag.q67.1)
+Ag.q67.2.step
+Ag.q67.2 <- get_model(Ag.q67.2.step)
+print(summary(Ag.q67.2))
+check_model(Ag.q67.2)
+anova(Ag.q67.1)
+print(anova(Ag.q67.2))
+#season only
+
+#####Al ----
+al.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Al) ~
+                  (1|site),
+                REML = F)
+print(summary(al.q67.0))
+
+al.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Al) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(al.q67.1))
+
+al.q67.2.step <- step(al.q67.1)
+al.q67.2.step
+al.q67.2 <- get_model(al.q67.2.step)
+print(summary(al.q67.2))
+check_model(al.q67.2)
+anova(al.q67.1)
+print(anova(al.q67.2))
+#not signif
+
+#####As ----
+As.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(As) ~
+                  (1|site),
+                REML = F)
+print(summary(As.q67.0))
+
+As.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(As) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(As.q67.1))
+
+As.q67.2.step <- step(As.q67.1)
+As.q67.2.step
+As.q67.2 <- get_model(As.q67.2.step)
+print(summary(As.q67.2))
+check_model(As.q67.2)
+vif(As.q67.2)
+anova(As.q67.1)
+print(anova(As.q67.2))
+performance(As.q67.2)
+plot(allEffects(As.q67.2))
+
+As.q67.2 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                 log(As) ~ season + prox.normal + pH + Q67 + (1 | site),
+                 REML = T)
+
+As.q67.sum <- summary(As.q67.2)
+As.q67.sum
+write.csv(As.q67.sum$coefficients, "As_q67_allcom_coefs.csv")
+perf <- performance(As.q67.2)
+perf
+write.csv(perf, "As_q67_allcom_diag.csv")
+#q67 signif, cleaning has higher As
+model.effects <- ggeffect(model = As.q67.2,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean your roof?",
+       subtitle = "All Communities except Hayden/Winkelman",
+       x = "\nInfrastructure Practice",
+       y = "Estimated [As] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "As_q67_allcom_effect.png", res=300, height=6, width=8, units="in")
+
+
+#####Ba ----
+ba.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Ba) ~
+                  (1|site),
+                REML = F)
+print(summary(ba.q67.0))
+
+ba.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Ba) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(ba.q67.1))
+
+ba.q67.2.step <- step(ba.q67.1)
+ba.q67.2.step
+ba.q67.2 <- get_model(ba.q67.2.step)
+print(summary(ba.q67.2))
+anova(ba.q67.1)
+print(anova(ba.q67.2))
+check_model(ba.q67.2)
+performance(ba.q67.2)
+#not signif
+
+#####Be ----
+Be.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Be) ~
+                  (1|site),
+                REML = F)
+print(summary(Be.q67.0))
+
+Be.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Be) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Be.q67.1))
+Be.q67.2.step <- step(Be.q67.1)
+Be.q67.2.step
+Be.q67.2 <- get_model(Be.q67.2.step)
+print(summary(Be.q67.2))
+check_model(Be.q67.2)
+anova(Be.q67.1)
+print(anova(Be.q67.2))
+performance(Be.q67.2)
+#not signif
+
+#####Cd ----
+Cd.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Cd) ~
+                  (1|site),
+                REML = F)
+print(summary(Cd.q67.0))
+
+Cd.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Cd) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Cd.q67.1))
+
+Cd.q67.2.step <- step(Cd.q67.1)
+Cd.q67.2.step
+Cd.q67.2 <- get_model(Cd.q67.2.step)
+print(summary(Cd.q67.2))
+check_model(Cd.q67.2)
+anova(Cd.q67.1)
+print(anova(Cd.q67.2))
+performance(Cd.q67.2)
+plot(allEffects(Cd.q67.2))
+#not signif
+
+
+#####Co ----
+Co.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Co) ~
+                  (1|site),
+                REML = F)
+print(summary(Co.q67.0))
+
+Co.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Co) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Co.q67.1))
+
+Co.q67.2.step <- step(Co.q67.1)
+Co.q67.2.step
+Co.q67.2 <- get_model(Co.q67.2.step)
+print(summary(Co.q67.2))
+check_model(Co.q67.2)
+anova(Co.q67.1)
+print(anova(Co.q67.2))
+performance(Co.q67.2)
+plot(allEffects(Co.q67.2))
+
+Co.q67.2 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                 log(Co) ~ season + prox.normal + pH + community + Q67 + (1 | site),
+                 REML = T)
+
+Co.q67.sum <- summary(Co.q67.2)
+Co.q67.sum
+write.csv(Co.q67.sum$coefficients, "Co_q67_allcom_coefs.csv")
+perf <- performance(Co.q67.2)
+perf
+write.csv(perf, "Co_q67_allcom_diag.csv")
+#q67 signif, cleaning has higher Co
+model.effects <- ggeffect(model = Co.q67.2,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean your roof?",
+       subtitle = "All Communities except Hayden/Winkelman",
+       x = "",
+       y = "Estimated [Co] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "Co_q67_allcom_effect.png", res=300, height=6, width=8, units="in")
+
+
+#####Cr ----
+Cr.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Cr) ~
+                  (1|site),
+                REML = F)
+print(summary(Cr.q67.0))
+
+Cr.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Cr) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Cr.q67.1))
+
+Cr.q67.2.step <- step(Cr.q67.1)
+Cr.q67.2.step
+Cr.q67.2 <- get_model(Cr.q67.2.step)
+print(summary(Cr.q67.2))
+check_model(Cr.q67.2)
+anova(Cr.q67.1)
+print(anova(Cr.q67.2))
+performance(Cr.q67.2)
+
+
+Cr.q67.2 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                 log(Cr) ~ season+ Q67 + (1 | site),
+                 REML = T)
+
+Cr.q67.sum <- summary(Cr.q67.2)
+Cr.q67.sum
+write.csv(Cr.q67.sum$coefficients, "Cr_q67_allcom_coefs.csv")
+perf <- performance(Cr.q67.2)
+perf
+write.csv(perf, "Cr_q67_allcom_diag.csv")
+#q67 signif, cleaning has higher Cr
+model.effects <- ggeffect(model = Cr.q67.2,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean your roof?",
+       subtitle = "All Crmmunities except Hayden/Winkelman",
+       x = "",
+       y = "Estimated [Cr] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "Cr_q67_allcom_effect.png", res=300, height=6, width=8, units="in")
+
+#####Cu ----
+Cu.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Cu) ~
+                  (1|site),
+                REML = F)
+print(summary(Cu.q67.0))
+
+Cu.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Cu) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Cu.q67.1))
+
+Cu.q67.2.step <- step(Cu.q67.1)
+Cu.q67.2.step
+Cu.q67.2 <- get_model(Cu.q67.2.step)
+print(summary(Cu.q67.2))
+check_model(Cu.q67.2)
+anova(Cu.q67.1)
+print(anova(Cu.q67.2))
+
+
+#####Fe ----
+Fe.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Fe) ~
+                  (1|site),
+                REML = F)
+print(summary(Fe.q67.0))
+
+Fe.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Fe) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Fe.q67.1))
+
+Fe.q67.2.step <- step(Fe.q67.1)
+Fe.q67.2.step
+Fe.q67.2 <- get_model(Fe.q67.2.step)
+print(summary(Fe.q67.2))
+check_model(Fe.q67.2)
+anova(Fe.q67.1)
+print(anova(Fe.q67.2))
+performance(Fe.q67.2)
+#nothing
+
+#####Mn ----
+Mn.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Mn) ~
+                  (1|site),
+                REML = F)
+print(summary(Mn.q67.0))
+
+Mn.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Mn) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Mn.q67.1))
+
+Mn.q67.2.step <- step(Mn.q67.1)
+Mn.q67.2.step
+Mn.q67.2 <- get_model(Mn.q67.2.step)
+print(summary(Mn.q67.2))
+check_model(Mn.q67.2)
+anova(Mn.q67.1)
+print(anova(Mn.q67.2))
+perf <- performance(Mn.q67.2)
+perf
+write.csv(perf, "Mntu65_diag.csv")
+plot(allEffects(Mn.q67.2))
+#season only
+
+#####Mo ----
+mo.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Mo) ~
+                  (1|site),
+                REML = F)
+print(summary(mo.q67.0))
+
+mo.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Mo) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(mo.q67.1))
+
+mo.q67.2.step <- step(mo.q67.1)
+mo.q67.2.step
+mo.q67.2 <- get_model(mo.q67.2.step)
+print(summary(mo.q67.2))
+anova(mo.q67.1)
+print(anova(mo.q67.2))
+check_model(mo.q67.2)
+performance(mo.q67.2)
+vif(mo.q67.2)
+mo.q67.3 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                 log(Mo) ~ season + prox.normal + pH + community+
+                   (1|site),
+                 REML = F)
+anova(mo.q67.2, mo.q67.3)
+
+mo.q67.2 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                 log(Mo) ~ season + prox.normal + pH + community + Q67 + (1 | site),
+                 REML = T)
+
+mo.q67.sum <- summary(mo.q67.2)
+mo.q67.sum
+write.csv(mo.q67.sum$coefficients, "mo_q67_allcom_coefs.csv")
+perf <- performance(mo.q67.2)
+perf
+write.csv(perf, "mo_q67_allcom_diag.csv")
+#q67 nearly signif, cleaning has higher mo
+model.effects <- ggeffect(model = mo.q67.2,
+                          type = "re",
+                          terms = c("Q67"))
+model.effects$x <- as.character(model.effects$x)
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Do you clean your roof?",
+       subtitle = "All mommunities except Hayden/Winkelman",
+       x = "",
+       y = "Estimated [Mo] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "mo_q67_allcom_effect.png", res=300, height=6, width=8, units="in")
+
+
+#####Ni ----
+ni.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Ni) ~
+                  (1|site),
+                REML = F)
+print(summary(ni.q67.0))
+
+ni.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Ni) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(ni.q67.1))
+
+ni.q67.2.step <- step(ni.q67.1)
+ni.q67.2.step
+ni.q67.2 <- get_model(ni.q67.2.step)
+print(summary(ni.q67.2))
+anova(ni.q67.1)
+print(anova(ni.q67.2))
+check_model(ni.q67.2)
+vif(ni.q67.2)
+#not signif
+
+#####Pb ----
+Pb.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Pb) ~
+                  (1|site),
+                REML = F)
+print(summary(Pb.q67.0))
+
+Pb.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Pb) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Pb.q67.1))
+
+Pb.q67.2.step <- step(Pb.q67.1)
+Pb.q67.2.step
+Pb.q67.2 <- get_model(Pb.q67.2.step)
+print(summary(Pb.q67.2))
+check_model(Pb.q67.2)
+anova(Pb.q67.1)
+print(anova(Pb.q67.2))
+
+#####Sb ----
+Sb.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Sb) ~
+                  (1|site),
+                REML = F)
+print(summary(Sb.q67.0))
+
+Sb.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Sb) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Sb.q67.1))
+
+Sb.q67.2.step <- step(Sb.q67.1)
+Sb.q67.2.step
+Sb.q67.2 <- get_model(Sb.q67.2.step)
+print(summary(Sb.q67.2))
+check_model(Sb.q67.2)
+anova(Sb.q67.1)
+print(anova(Sb.q67.2))
+perf <- performance(Sb.q67.2)
+perf
+write.csv(perf, "Sbtu65_diag.csv")
+#nothing
+
+#####Se ----
+Se.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Se) ~
+                  (1|site),
+                REML = F)
+print(summary(Se.q67.0))
+
+Se.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Se) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Se.q67.1))
+
+Se.q67.2.step <- step(Se.q67.1)
+Se.q67.2.step
+Se.q67.2 <- get_model(Se.q67.2.step)
+print(summary(Se.q67.2))
+check_model(Se.q67.2)
+anova(Se.q67.1)
+print(anova(Se.q67.2))
+performance(Se.q67.2)
+#season only
+
+#####Sn ----
+Sn.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Sn) ~
+                  (1|site),
+                REML = F)
+print(summary(Sn.q67.0))
+
+Sn.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Sn) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Sn.q67.1))
+
+Sn.q67.2.step <- step(Sn.q67.1)
+Sn.q67.2.step
+Sn.q67.2 <- get_model(Sn.q67.2.step)
+print(summary(Sn.q67.2))
+check_model(Sn.q67.2)
+anova(Sn.q67.1)
+print(anova(Sn.q67.2))
+performance(Sn.q67.2)
+#nothing
+
+#####V ----
+v.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+               log(V) ~
+                 (1|site),
+               REML = F)
+print(summary(v.q67.0))
+
+v.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+               log(V) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                 (1|site),
+               REML = F)
+print(summary(v.q67.1))
+
+v.q67.2.step <- step(v.q67.1)
+v.q67.2.step
+v.q67.2 <- get_model(v.q67.2.step)
+print(summary(v.q67.2))
+anova(v.q67.1)
+print(anova(v.q67.2))
+check_model(v.q67.2)
+vif(v.q67.2)
+performance(v.q67.2)
+
+#not signif
+
+
+#####Zn ----
+Zn.q67.0 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Zn) ~
+                  (1|site),
+                REML = F)
+print(summary(Zn.q67.0))
+
+Zn.q67.1 <- lmer(data = iws[iws$community!="Hayden/Winkelman",],
+                log(Zn) ~ season + prox.normal + pH + community+community:prox.normal+Q67+
+                  (1|site),
+                REML = F)
+print(summary(Zn.q67.1))
+
+Zn.q67.2.step <- step(Zn.q67.1)
+Zn.q67.2.step
+Zn.q67.2 <- get_model(Zn.q67.2.step)
+print(summary(Zn.q67.2))
+check_model(Zn.q67.2)
+anova(Zn.q67.1)
+print(anova(Zn.q67.2))
+performance(Zn.q67.2)
+#nothing
 
 
 ###dewey-humboldt ----
