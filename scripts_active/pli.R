@@ -947,15 +947,16 @@ summary(Cd.q9.4)
 check_model(Cd.q9.4)
 print(anova(Cd.q9.4))
 performance(Cd.q9.4)
+anova(Cd.q9.4)
 plot(allEffects(Cd.q9.4))
-ba.q9.sum <- summary(ba.q9.4)
-ba.q9.sum
-write.csv(ba.q9.sum$coefficients, "ba_q9_allcom_coefs.csv")
-perf <- performance(ba.q9.4)
+Cd.q9.sum <- summary(Cd.q9.4)
+Cd.q9.sum
+write.csv(Cd.q9.sum$coefficients, "Cd_q9_allcom_coefs.csv")
+perf <- performance(Cd.q9.4)
 perf
-write.csv(perf, "ba_q9_allcom_diag.csv")
-#q9 signif, cleaning has higher ba
-model.effects <- ggeffect(model = ba.q9.4,
+write.csv(perf, "Cd_q9_allcom_diag.csv")
+#q9 signif, cleaning has higher Cd
+model.effects <- ggeffect(model = Cd.q9.4,
                           type = "re",
                           terms = c("Q9"))
 model.effects$x <- as.character(model.effects$x)
@@ -965,13 +966,13 @@ ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax 
   labs(title = "Approximately, when was your home built?",
        subtitle = "All Communities",
        x = "\nApproximate Home Age",
-       y = "Estimated [Ba] (ug/L)\n")+
+       y = "Estimated [Cd] (ug/L)\n")+
   #coord_cartesian(ylim = c(0,2.5))+
   theme_bw()+
   theme(panel.grid = element_blank(),
         legend.position = "none",
         axis.text.x = element_text())
-dev.print(png, "ba_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
+dev.print(png, "Cd_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
 
 
 #####Co ----
@@ -997,35 +998,6 @@ print(anova(Co.q9.2))
 performance(Co.q9.2)
 plot(allEffects(Co.q9.2))
 
-Co.q9.2 <- lmer(data = iws,
-                 log(Co) ~ season + prox.normal + pH + community + Q9 + (1 | site),
-                 REML = T)
-
-Co.q9.sum <- summary(Co.q9.2)
-Co.q9.sum
-write.csv(Co.q9.sum$coefficients, "Co_q9_allcom_coefs.csv")
-perf <- performance(Co.q9.2)
-perf
-write.csv(perf, "Co_q9_allcom_diag.csv")
-#q9 signif, cleaning has higher Co
-model.effects <- ggeffect(model = Co.q9.2,
-                          type = "re",
-                          terms = c("Q9"))
-model.effects$x <- as.character(model.effects$x)
-ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
-  geom_pointrange()+
-  labs(title = "Do you clean your roof?",
-       subtitle = "All Communities except Hayden/Winkelman",
-       x = "",
-       y = "Estimated [Co] (ug/L)\n")+
-  #coord_cartesian(ylim = c(0,2.5))+
-  theme_bw()+
-  theme(panel.grid = element_blank(),
-        legend.position = "none",
-        axis.text.x = element_text())
-dev.print(png, "Co_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
-
-
 #####Cr ----
 Cr.q9.0 <- lmer(data = iws,
                  log(Cr) ~
@@ -1049,34 +1021,6 @@ print(anova(Cr.q9.2))
 performance(Cr.q9.2)
 
 
-Cr.q9.2 <- lmer(data = iws,
-                 log(Cr) ~ season+ Q9 + (1 | site),
-                 REML = T)
-
-Cr.q9.sum <- summary(Cr.q9.2)
-Cr.q9.sum
-write.csv(Cr.q9.sum$coefficients, "Cr_q9_allcom_coefs.csv")
-perf <- performance(Cr.q9.2)
-perf
-write.csv(perf, "Cr_q9_allcom_diag.csv")
-#q9 signif, cleaning has higher Cr
-model.effects <- ggeffect(model = Cr.q9.2,
-                          type = "re",
-                          terms = c("Q9"))
-model.effects$x <- as.character(model.effects$x)
-ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
-  geom_pointrange()+
-  labs(title = "Do you clean your roof?",
-       subtitle = "All Crmmunities except Hayden/Winkelman",
-       x = "",
-       y = "Estimated [Cr] (ug/L)\n")+
-  #coord_cartesian(ylim = c(0,2.5))+
-  theme_bw()+
-  theme(panel.grid = element_blank(),
-        legend.position = "none",
-        axis.text.x = element_text())
-dev.print(png, "Cr_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
-
 #####Cu ----
 Cu.q9.0 <- lmer(data = iws,
                  log(Cu) ~
@@ -1095,9 +1039,45 @@ Cu.q9.2.step
 Cu.q9.2 <- get_model(Cu.q9.2.step)
 print(summary(Cu.q9.2))
 check_model(Cu.q9.2)
+Cu.q9.3 <- lmer(data = iws,
+                log(Cu) ~ season + prox.normal + pH + community+Q9+
+                  (1|site),
+                REML = F)
+Cu.q9.3.step <- step(Cu.q9.3)
+Cu.q9.3.step
+Cu.q9.4 <- get_model(Cu.q9.3.step)
+print(summary(Cu.q9.4))
+check_model(Cu.q9.4)
+Cu.q9.4 <- lmer(data = iws,
+                log(Cu) ~ season + pH + community+Q9+
+                  (1|site),
+                REML = T)
 anova(Cu.q9.1)
-print(anova(Cu.q9.2))
-
+print(anova(Cu.q9.4))
+Cu.q9.sum <- summary(Cu.q9.4)
+Cu.q9.sum
+write.csv(Cu.q9.sum$coefficients, "Cu_q9_allcom_coefs.csv")
+perf <- performance(Cu.q9.4)
+perf
+write.csv(perf, "Cu_q9_allcom_diag.csv")
+#q9 signif
+model.effects <- ggeffect(model = Cu.q9.4,
+                          type = "re",
+                          terms = c("Q9"))
+model.effects$x <- as.character(model.effects$x)
+model.effects$x  <- factor(model.effects$x , levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Approximately, when was your home built?",
+       subtitle = "All Communities",
+       x = "\nApproximate Home Age",
+       y = "Estimated [Cu] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "Cu_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
 
 #####Fe ----
 Fe.q9.0 <- lmer(data = iws,
@@ -1120,7 +1100,34 @@ check_model(Fe.q9.2)
 anova(Fe.q9.1)
 print(anova(Fe.q9.2))
 performance(Fe.q9.2)
-#nothing
+Fe.q9.2 <- lmer(data = iws,
+                log(Fe) ~ season +Q9+
+                  (1|site),
+                REML = T)
+Fe.q9.sum <- summary(Fe.q9.2)
+Fe.q9.sum
+write.csv(Fe.q9.sum$coefficients, "Fe_q9_allcom_coefs.csv")
+perf <- performance(Fe.q9.2)
+perf
+write.csv(perf, "Fe_q9_allcom_diag.csv")
+#q9 nearly signif
+model.effects <- ggeffect(model = Fe.q9.2,
+                          type = "re",
+                          terms = c("Q9"))
+model.effects$x <- as.character(model.effects$x)
+model.effects$x  <- factor(model.effects$x , levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Approximately, when was your home built?",
+       subtitle = "All Communities",
+       x = "\nApproximate Home Age",
+       y = "Estimated [Fe] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "Fe_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
 
 #####Mn ----
 Mn.q9.0 <- lmer(data = iws,
@@ -1170,39 +1177,6 @@ print(anova(mo.q9.2))
 check_model(mo.q9.2)
 performance(mo.q9.2)
 vif(mo.q9.2)
-mo.q9.3 <- lmer(data = iws,
-                 log(Mo) ~ season + prox.normal + pH + community+
-                   (1|site),
-                 REML = F)
-anova(mo.q9.2, mo.q9.3)
-
-mo.q9.2 <- lmer(data = iws,
-                 log(Mo) ~ season + prox.normal + pH + community + Q9 + (1 | site),
-                 REML = T)
-
-mo.q9.sum <- summary(mo.q9.2)
-mo.q9.sum
-write.csv(mo.q9.sum$coefficients, "mo_q9_allcom_coefs.csv")
-perf <- performance(mo.q9.2)
-perf
-write.csv(perf, "mo_q9_allcom_diag.csv")
-#q9 nearly signif, cleaning has higher mo
-model.effects <- ggeffect(model = mo.q9.2,
-                          type = "re",
-                          terms = c("Q9"))
-model.effects$x <- as.character(model.effects$x)
-ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
-  geom_pointrange()+
-  labs(title = "Do you clean your roof?",
-       subtitle = "All mommunities except Hayden/Winkelman",
-       x = "",
-       y = "Estimated [Mo] (ug/L)\n")+
-  #coord_cartesian(ylim = c(0,2.5))+
-  theme_bw()+
-  theme(panel.grid = element_blank(),
-        legend.position = "none",
-        axis.text.x = element_text())
-dev.print(png, "mo_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
 
 
 #####Ni ----
@@ -1226,7 +1200,36 @@ anova(ni.q9.1)
 print(anova(ni.q9.2))
 check_model(ni.q9.2)
 vif(ni.q9.2)
-#not signif
+
+Ni.q9.2 <- lmer(data = iws,
+                log(Ni) ~ season + pH +Q9+
+                  (1|site),
+                REML = T)
+Ni.q9.sum <- summary(Ni.q9.2)
+Ni.q9.sum
+write.csv(Ni.q9.sum$coefficients, "Ni_q9_allcom_coefs.csv")
+perf <- performance(Ni.q9.2)
+perf
+write.csv(perf, "Ni_q9_allcom_diag.csv")
+#q9 signif
+model.effects <- ggeffect(model = Ni.q9.2,
+                          type = "re",
+                          terms = c("Q9"))
+model.effects$x <- as.character(model.effects$x)
+model.effects$x  <- factor(model.effects$x , levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Approximately, when was your home built?",
+       subtitle = "All Communities",
+       x = "\nApproximate Home Age",
+       y = "Estimated [Ni] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "Ni_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
+
 
 #####Pb ----
 Pb.q9.0 <- lmer(data = iws,
@@ -1271,7 +1274,6 @@ anova(Sb.q9.1)
 print(anova(Sb.q9.2))
 perf <- performance(Sb.q9.2)
 perf
-write.csv(perf, "Sbtu65_diag.csv")
 #nothing
 
 #####Se ----
@@ -1367,7 +1369,36 @@ check_model(Zn.q9.2)
 anova(Zn.q9.1)
 print(anova(Zn.q9.2))
 performance(Zn.q9.2)
-#nothing
+#
+
+Zn.q9.2 <- lmer(data = iws,
+                log(Zn) ~ season + prox.normal +Q9+
+                  (1|site),
+                REML = T)
+Zn.q9.sum <- summary(Zn.q9.2)
+Zn.q9.sum
+write.csv(Zn.q9.sum$coefficients, "Zn_q9_allcom_coefs.csv")
+perf <- performance(Zn.q9.2)
+perf
+write.csv(perf, "Zn_q9_allcom_diag.csv")
+#q9 signif
+model.effects <- ggeffect(model = Zn.q9.2,
+                          type = "re",
+                          terms = c("Q9"))
+model.effects$x <- as.character(model.effects$x)
+model.effects$x  <- factor(model.effects$x , levels = c("Pre 1940", "1941-1949", "1950-1959", "1960-1969", "1970-1979", "1980-1989", "1990-1999", "2000-2009", "2010-2018"))
+ggplot(model.effects, aes(x = x, y = exp(predicted), ymin = exp(conf.low), ymax = exp(conf.high)))+
+  geom_pointrange()+
+  labs(title = "Approximately, when was your home built?",
+       subtitle = "All Communities",
+       x = "\nApproximate Home Age",
+       y = "Estimated [Zn] (ug/L)\n")+
+  #coord_cartesian(ylim = c(0,2.5))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_text())
+dev.print(png, "Zn_q9_allcom_effect.png", res=300, height=6, width=8, units="in")
 
 
 ###dewey-humboldt ----
